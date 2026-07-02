@@ -146,43 +146,95 @@ Build this first — it's the quick win, and a `telnet` session can trigger it.
 
 ### 1 Hz telemetry (produces `telemetry seq=...` in Python)
 
-Add **two shift registers** to the inner loop (right-click the loop border →
-*Add Shift Register*, twice):
+Unlike the ack, this is **not** gated on a received line — it runs on its own
+1 Hz timer. **Place it in the inner-loop body, *outside* the "line arrived?"
+Case** from the previous section, so it fires every second whether or not a
+line came in.
 
-- `lastTick` (I32) — initialize the left terminal, outside the loop, with a
-  single `Tick Count (ms)` read (or just `0`; then the first frame fires
-  immediately, which is fine).
-- `seq` (I32) — initialize the left terminal with `0`.
+The mechanism: the inner loop spins at ~10 Hz (paced by the 100 ms read
+timeout), so you can't send once per iteration. Instead you remember the
+clock reading of the last send in a shift register and only send when ≥1000 ms
+have elapsed. A second shift register carries the telemetry sequence number.
 
-Each iteration:
+**Step A — add the two shift registers.** Right-click the **inner** loop
+border → *Add Shift Register*, twice. You'll get a down-arrow terminal on the
+left edge and an up-arrow on the right edge for each.
 
-1. `Tick Count (ms)` → **`now`**. Compute `now − lastTick` (**`Subtract`**) →
-   `elapsed`. Test `elapsed ≥ 1000` (**`Greater Or Equal?`**) → boolean.
-2. **Case structure** on that boolean:
-   - **True (time to send):**
-     - `seq` → **`Increment`** → `newSeq`.
-     - **`Format Into String`**: format-string constant
+- **`lastTick`** — holds the clock reading (ms) at the last send. Initialize
+  its left terminal (wire from *outside* the loop): drop a `Tick Count (ms)`
+  (Programming → Timing) *before* the loop and wire it in, **or** just wire a
+  `0` constant. With `0`, the first frame goes out on iteration 1 (fine).
+  `Tick Count (ms)` is **U32**; let the shift register take that type — don't
+  force it to I32.
+- **`seq`** — the telemetry counter. Initialize its left terminal with a
+  numeric constant `0` (right-click the constant → *Representation → I32* so
+  it matches `%d`).
 
-       ```
-       {"type":"telemetry","seq":%d,"ts":0,"mode":"HELLO","channels":{"counter":%d},"flags":{"labview_ok":true}}
-       ```
+**Step B — the 1 Hz gate.** In the loop body each iteration:
 
-       Grow the node to **two arguments** and wire `newSeq` (I32) to **both**
-       `%d` inputs. Output is the JSON line, no terminator.
-     - **`Concatenate Strings`**: JSON `+` a `\r\n` constant (`'\' Codes
-       Display`).
-     - `TCP Write`: *data in* = that string; *connection ID* = the
-       connection (branch the `TCP Read` wire).
-     - `newSeq` → the `seq` shift register (right) **and** → the
-       `Telemetry seq` indicator. `now` → the `lastTick` shift register
-       (right).
-   - **False (not yet):** pass `seq` and `lastTick` through their shift
-     registers **unchanged**; connection ID and error straight across, no
-     write.
+1. Drop a second `Tick Count (ms)` → call its output **`now`**.
+2. **`Subtract`**: `now − lastTick` → **`elapsed`**.
+3. **`Greater Or Equal?`**: `elapsed ≥ 1000` (wire a `1000` constant to the
+   `y` input) → a boolean, "time to send."
 
-The `%d` fields want an integer — keep `seq` as **I32** (an orange/DBL wire
-into `%d` coerces with a warning). `ts` is hard-coded `0` here on purpose;
-the Python side tolerates it for this experiment.
+   *(U32 subtraction wraps correctly, so the ~49-day `Tick Count` rollover is
+   a non-issue here — no special handling needed.)*
+
+**Step C — the send Case.** Drop a **Case structure** and wire the boolean to
+its selector.
+
+**True case (time to send):**
+
+1. **`Increment`** on `seq` → **`newSeq`** (this is the value you'll send and
+   store).
+2. **`Format Into String`** (Programming → String):
+   - Drop a **String Constant** for the format string and wire it to the top
+     *format string* input:
+
+     ```
+     {"type":"telemetry","seq":%d,"ts":0,"mode":"HELLO","channels":{"counter":%d},"flags":{"labview_ok":true}}\r\n
+     ```
+
+     Put this constant in **`'\' Codes Display`** so the trailing `\r\n` is a
+     real CR+LF. (`Format Into String` passes everything literally except the
+     `%` specifiers, so an embedded CR+LF just flows through — this saves a
+     separate `Concatenate Strings`. If you'd rather keep the `\r\n` out of
+     the format string, leave it off here and `Concatenate Strings` a `\r\n`
+     constant onto the output instead.)
+   - The two `%d`s mean **two arguments**: drag the node's bottom edge down to
+     expose two argument inputs (or right-click → *Add Parameter*), and wire
+     **`newSeq` to both**. Both `channels.counter` and `seq` will show the
+     same number — that's intentional for the hello test.
+3. **`TCP Write`** (same as the ack): *data in* = the `Format Into String`
+   output; *connection ID in* = the connection (branch the `TCP Read` wire);
+   thread the **error** in→out.
+4. Route the updated values to the case's **output tunnels**: `newSeq` → the
+   `seq` output tunnel, and also branch it to the **`Telemetry seq`
+   indicator**; `now` → the `lastTick` output tunnel.
+
+**False case (not yet):**
+
+1. Pass **`seq` straight through** to its output tunnel (input `seq` →
+   output), and **`lastTick` straight through** to its output tunnel (input
+   `lastTick` → output). This is mandatory — the shift registers must get a
+   value every iteration, and every Case output tunnel must be wired in every
+   case.
+2. Pass the **error** input tunnel to the error output tunnel. No `TCP Write`.
+
+**Step D — close the shift registers.** Wire the Case's `seq` output tunnel to
+the **`seq` right shift-register terminal**, and the `lastTick` output tunnel
+to the **`lastTick` right terminal**. Now each register carries forward
+correctly whether or not a frame was sent.
+
+**Notes.**
+
+- Keep `seq` as **I32** end to end — an orange/DBL wire into `%d` compiles but
+  throws a coercion warning.
+- `ts` is hard-coded `0` on purpose; the Python side tolerates it for this
+  experiment (real telemetry will carry a timestamp later).
+- Order the two writes deterministically by threading the **error wire**
+  `TCP Read → ack Case → telemetry Case → inner-loop edge`. Both writes then
+  share the session in a defined order and short-circuit if the read errored.
 
 ### Quick verification
 
