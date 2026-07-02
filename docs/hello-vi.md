@@ -82,21 +82,67 @@ Build this first — it's the quick win, and a `telnet` session can trigger it.
 3. `Match Pattern`'s *offset past match* output (bottom, I32) → **`≥ 0`**
    (`Greater Or Equal To 0?`). That boolean is "a command line arrived."
    (Equivalent: *match substring* → `Empty String/Path?` → `Not`.)
-4. Feed the boolean to a **Case structure**:
-   - **True:** a **string constant in `'\' Codes Display`** (right-click →
-     *'\' Codes Display* so `\r\n` becomes a real CR+LF), containing:
+4. **Drop a Case structure** (Programming → Structures → Case Structure) and
+   wire the boolean from step 3 to its **selector terminal** (the green `?`
+   on the left border). The structure flips to a True/False selector.
 
-     ```
-     {"type":"command_ack","id":1,"accepted":true,"reason":"hello from LabVIEW"}\r\n
-     ```
+   **True case — send the ack:**
+   1. Drop a **String Constant** (Programming → String → String Constant)
+      *inside* the True case. Before typing, **right-click it → '\' Codes
+      Display** so the `\r\n` you type becomes a real CR+LF rather than four
+      literal characters. Then type exactly:
 
-     → `TCP Write` *data in*; connection ID → `TCP Write` *connection ID*;
-     pass the error through.
-   - **False:** wire connection ID and error straight across, write nothing.
-5. Nest this inside the same "line arrived?" case you already use to update
-   `Last received` / bump `Lines received`, so you're not matching on an
-   empty timeout string. (Harmless if you don't — an empty string never
-   matches — but tidier.)
+      ```
+      {"type":"command_ack","id":1,"accepted":true,"reason":"hello from LabVIEW"}\r\n
+      ```
+
+      (The JSON itself has no backslashes, so only the trailing `\r\n` is
+      affected by the display mode.)
+   2. Drop **`TCP Write`** (Data Communication → Protocols → TCP → TCP Write)
+      inside the True case. Its terminals, top to bottom on the left:
+      *connection ID in*, *data in*, *timeout ms* (leave unwired → default
+      25 s), *error in*.
+   3. Wire the **string constant → *data in***.
+   4. Wire the **connection ID → *connection ID in***: branch the same teal
+      wire that feeds `TCP Read` and bring it across the case border (this
+      makes an **input tunnel** — input tunnels may be used in one case
+      only, so you do *not* have to wire it in the False case).
+   5. Wire the **error** through: error-in input tunnel → `TCP Write` *error
+      in*; `TCP Write` *error out* → the case's **error output tunnel**.
+
+   **False case — send nothing:**
+   1. Wire the **error input tunnel straight across to the error output
+      tunnel** (click one, drag to the other). This is required: a Case
+      structure demands every **output** tunnel be wired in **every** case,
+      or its border shows a hollow square and the diagram is broken. (If you
+      prefer, right-click the output tunnel → *Linked Input Tunnel* → pick
+      the error input to auto-pass it, or *Use Default If Unwired* — but for
+      an error wire, wire it explicitly.)
+   2. No `TCP Write`, no connection-ID tunnel needed here.
+
+   Only the **error wire** threads through this Case (in both branches); the
+   connection ID stays a plain branch that dips into the True case only. That
+   keeps the write ordered after the read (via the error chain) without
+   forcing a connection-ID tunnel through both cases.
+
+5. **Gate it on "a line actually arrived."** On a 100 ms read timeout,
+   `TCP Read` returns an **empty string**, and you don't want to run
+   `Match Pattern` / touch `Last received` on empties. The tidy structure is
+   a single **outer "line arrived?" Case** wrapping *all* per-line work:
+   - Selector: `TCP Read` *data out* → `Empty String/Path?` → `Not` (True =
+     a line arrived).
+   - Put **inside its True case**: update `Last received`, bump
+     `Lines received`, and the entire `Match Pattern` + ack Case from steps
+     1–4.
+   - Its **False case** (timeout): pass the shift registers / counter and
+     the error wire straight through, do nothing else.
+
+   If you already built the line counter with a **Select** node rather than a
+   Case, either add this wrapping Case now (cleaner), or leave the ack logic
+   ungated — it's harmless, because an empty string never matches
+   `"type":"command"`, so the ack Case simply takes its False branch on every
+   timeout. The telemetry sender in the next section is independent of this
+   gate: it fires on its own 1 s timer whether or not a line arrived.
 
 ### 1 Hz telemetry (produces `telemetry seq=...` in Python)
 
