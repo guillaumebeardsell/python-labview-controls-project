@@ -1,0 +1,6161 @@
+<HTML>
+<HEAD>
+<TITLE>APC_9049_RT_main.vi</TITLE>
+<META NAME="Author" CONTENT="">
+<META NAME="GENERATOR" CONTENT="G Development Environment">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF">
+<A NAME="APC_9049_RT_main.vi"></A><H2>APC_9049_RT_main.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__RT__mainc.png" ALT="APC_9049_RT_main.vi"></P>
+<P><IMG SRC="APC__9049__RT__mainp.png" ALT="APC_9049_RT_main.vi"></P>
+<P><IMG SRC="APC__9049__RT__maind.png" ALT="APC_9049_RT_main.vi"></P>
+<P><IMG SRC="APC__9049__RT__maind1.png" ALT="APC_9049_RT_main.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__CAS__loopi.png" ALT="APC_9049_CAS_loop.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_CAS_loop.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_CAS_loop.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__SAVE__loopi.png" ALT="APC_9049_SAVE_loop.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_SAVE_loop.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_SAVE_loop.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__TS10ms__loopi.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_TS10ms_loop.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_TS10ms_loop.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__SensorCalibrationi.png" ALT="APC_9049_SensorCalibration.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_SensorCalibration.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_SensorCalibration.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__MODBUSTCP__HealingLoopi.png" ALT="APC_9049_MODBUSTCP_HealingLoop.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_MODBUSTCP_HealingLoop.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_MODBUSTCP_HealingLoop.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__TS100ms__loopi.png" ALT="APC_9049_TS100ms_loop.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_TS100ms_loop.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_TS100ms_loop.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_CAS_loop.vi"></A><H2>APC_9049_CAS_loop.vi</H2>
+<P>This example demonstrates the procedure required to apply different NI-DAQmx Custom Scales to each virtual channel in a task.  A DAQmx Task Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition &gt;&gt; DAQmx Advanced Task Options) is used to obtain the task's virtual channels.  A DAQmx Channel Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition) is then used to set the custom scale for each virtual channel in the task.</P>
+<P></P>
+<P>The &quot;DAQmx Create Scale&quot; VI creates a custom scale for each channel in the channel list.  *Note, make sure your Minimum and Maximum channel parameters are consistent with the range the scale will create.</P>
+<P><IMG SRC="APC__9049__CAS__loopc.png" ALT="APC_9049_CAS_loop.vi"></P>
+<P><IMG SRC="APC__9049__CAS__loopp.png" ALT="APC_9049_CAS_loop.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cgenclassrntag.png" ALT="cgenclassrntag"></P>
+</TD>
+<TD>
+<B>scaled dAQmx task</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cerrcodeclst.png" ALT="cerrcodeclst"></P>
+</TD>
+<TD>
+<B>error in</B> <P><B>error in</B> can accept error information wired from VIs previously called. Use this information to decide if any functionality should be bypassed in the event of errors from other VIs.</P>
+<P></P>
+<P>Right-click the <B>error in</B> control on the front panel and select <B>Explain Error</B> or <B>Explain Warning</B> from the shortcut menu for more information about the error.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B>status</B> <P><B>status</B> is TRUE (X) if an error occurred or FALSE (checkmark) to indicate a warning or that no error occurred.</P>
+<P></P>
+<P>Right-click the <B>error in</B> control on the front panel and select <B>Explain Error</B> or <B>Explain Warning</B> from the shortcut menu for more information about the error.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ci32.png" ALT="ci32"></P>
+</TD>
+<TD>
+<B>code</B> <P><B>code</B> is the error or warning code.</P>
+<P></P>
+<P>Right-click the <B>error in</B> control on the front panel and select <B>Explain Error</B> or <B>Explain Warning</B> from the shortcut menu for more information about the error.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cstr.png" ALT="cstr"></P>
+</TD>
+<TD>
+<B>source</B> <P><B>source</B> describes the origin of the error or warning.</P>
+<P></P>
+<P>Right-click the <B>error in</B> control on the front panel and select <B>Explain Error</B> or <B>Explain Warning</B> from the shortcut menu for more information about the error.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>DAQqueues</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>SignalList</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dstr.png" ALT="c1dstr"></P>
+</TD>
+<TD>
+<B>CAS</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cstr.png" ALT="cstr"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dstr.png" ALT="c1dstr"></P>
+</TD>
+<TD>
+<B>CycAvg</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cstr.png" ALT="cstr"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>Queues</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cqueuern.png" ALT="cqueuern"></P>
+</TD>
+<TD>
+<B>CAS</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cqueuern.png" ALT="cqueuern"></P>
+</TD>
+<TD>
+<B>CycAvg</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dstr.png" ALT="c1dstr"></P>
+</TD>
+<TD>
+<B>scaled units</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cstr.png" ALT="cstr"></P>
+</TD>
+<TD>
+<B>scaled units</B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<P><IMG SRC="APC__9049__CAS__loopd.png" ALT="APC_9049_CAS_loop.vi"></P>
+<P><IMG SRC="APC__9049__CAS__loopd1.png" ALT="APC_9049_CAS_loop.vi"></P>
+<P><IMG SRC="APC__9049__CAS__loopd2.png" ALT="APC_9049_CAS_loop.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__LoadWarningConfigi.png" ALT="APC_9049_LoadWarningConfig.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_LoadWarningConfig.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_LoadWarningConfig.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="DAQmx_Stop_Taski.png" ALT="DAQmx Stop Task.vi"></P>
+</TD>
+<TD>
+<B><P>DAQmx Stop Task.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\DAQmx\configure\task.llb\DAQmx Stop Task.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="DAQmx_Fill_In_Error_Infoi.png" ALT="DAQmx Fill In Error Info.vi"></P>
+</TD>
+<TD>
+<B><P>DAQmx Fill In Error Info.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\DAQmx\miscellaneous.llb\DAQmx Fill In Error Info.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__PressureAnalyticsi.png" ALT="APC_9049_PressureAnalytics.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_PressureAnalytics.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_PressureAnalytics.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__SharedVarBroadcasti.png" ALT="APC_9049_SharedVarBroadcast.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_SharedVarBroadcast.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_SharedVarBroadcast.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__checkAIi.png" ALT="APC_9049_checkAI.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_checkAI.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_checkAI.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__ControlSettingsPollingi.png" ALT="APC_9049_ControlSettingsPolling.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_ControlSettingsPolling.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_ControlSettingsPolling.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__9056SharedVarPollingi.png" ALT="APC_9049_9056SharedVarPolling.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_9056SharedVarPolling.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_9056SharedVarPolling.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__rpmi.png" ALT="APC_9049_rpm.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_rpm.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_rpm.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="DAQmx_Start_Taski.png" ALT="DAQmx Start Task.vi"></P>
+</TD>
+<TD>
+<B><P>DAQmx Start Task.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\DAQmx\configure\task.llb\DAQmx Start Task.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__HRL__CreateFilteri.png" ALT="APC_9049_HRL_CreateFilter.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_HRL_CreateFilter.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_HRL_CreateFilter.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="DAQmx_Read_(Analog_2D_DBL_NChan_NSamp)i.png" ALT="DAQmx Read (Analog 2D DBL NChan NSamp).vi"></P>
+</TD>
+<TD>
+<B><P>DAQmx Read (Analog 2D DBL NChan NSamp).vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\DAQmx\read.llb\DAQmx Read (Analog 2D DBL NChan NSamp).vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="DAQmx_Readi.png" ALT="DAQmx Read.vi"></P>
+</TD>
+<TD>
+<B><P>DAQmx Read.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\DAQmx\read.llb\DAQmx Read.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__DAQqueuesctli.png" ALT="APC_DAQqueues.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_DAQqueues.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_DAQqueues.ctl</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_HRL.vi"></A><H2>APC_HRL.vi</H2>
+<P></P>
+<P><IMG SRC="APC__HRLc.png" ALT="APC_HRL.vi"></P>
+<P><IMG SRC="APC__HRLp.png" ALT="APC_HRL.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c2ddbl.png" ALT="c2ddbl"></P>
+</TD>
+<TD>
+<B>Pcyl</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c2ddbl.png" ALT="c2ddbl"></P>
+</TD>
+<TD>
+<B>exhaust pressure</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>FilterCoefs</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>IIR LowPass</B> <P><B>IIR Filter Cluster</B> contains the cascaded form of IIR filter coefficients.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cenum.png" ALT="cenum"></P>
+</TD>
+<TD>
+<B>filter structure</B> <P><B>filter structure</B> indicates either IIR second-order or IIR fourth-order filter stages.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Reverse Coefficients</B> <P><B>Reverse Coefficients</B> is the reverse coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> <P><B>Reverse Coefficients</B> is the reverse coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Forward Coefficients</B> <P><B>Forward Coefficients</B> is the forward coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> <P><B>Forward Coefficients</B> is the forward coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>IIR HighPass</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cenum.png" ALT="cenum"></P>
+</TD>
+<TD>
+<B>filter structure</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Reverse Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Forward Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Expected IMEP</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i2ddbl.png" ALT="i2ddbl"></P>
+</TD>
+<TD>
+<B>LPfilt Pcyl</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i2ddbl.png" ALT="i2ddbl"></P>
+</TD>
+<TD>
+<B>HRL [J]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="icclst.png" ALT="icclst"></P>
+</TD>
+<TD>
+<B>CombustionAnalysisCluster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPg [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>IMEPg [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>MAPO [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>maxQ [J]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>maxQ [J]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA10  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA50 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA90 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Pmax [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPstd [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA03  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA97  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA10CA90 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>maxdpdCAD [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>kappa_comp [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>kappa_exp [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>PMEP [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>RI [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dcclst.png" ALT="i1dcclst"></P>
+</TD>
+<TD>
+<B>PcylDiagWarningsAndErrors</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="icclst.png" ALT="icclst"></P>
+</TD>
+<TD>
+<B>PcylDiag</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>misfire from IMEP</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>misfire self reg</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>misfire cyl-to-cyl</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>cyclic variability</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>knock</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>maximum pressure</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>late combustion</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i2ddbl.png" ALT="i2ddbl"></P>
+</TD>
+<TD>
+<B>HPfilt Pcyl</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__HRLd.png" ALT="APC_HRL.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__Pcyl__Diagi.png" ALT="APC_Pcyl_Diag.vi"></P>
+</TD>
+<TD>
+<B><P>APC_Pcyl_Diag.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\support\APC_Pcyl_Diag.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__CombustionMetricsctli.png" ALT="APC_CombustionMetrics.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_CombustionMetrics.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_CombustionMetrics.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__PcylDiagctli.png" ALT="APC_PcylDiag.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_PcylDiag.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_PcylDiag.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__HRL__IMEPi.png" ALT="APC_9049_HRL_IMEP.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_HRL_IMEP.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_HRL_IMEP.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__HRL__apparentHRLi.png" ALT="APC_9049_HRL_apparentHRL.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_HRL_apparentHRL.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_HRL_apparentHRL.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__HRL__peggingi.png" ALT="APC_9049_HRL_pegging.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_HRL_pegging.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_HRL_pegging.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlteri.png" ALT="APC_9049_HRL_ZeroPhaseFIlter.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_HRL_ZeroPhaseFIlter.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_HRL_ZeroPhaseFIlter.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__HRL__MAPOi.png" ALT="APC_9049_HRL_MAPO.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_HRL_MAPO.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_HRL_MAPO.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__HRL__volumei.png" ALT="APC_9049_HRL_volume.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_HRL_volume.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_HRL_volume.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_Pcyl_Diag.vi"></A><H2>APC_Pcyl_Diag.vi</H2>
+<P></P>
+<P><IMG SRC="APC__Pcyl__Diagc.png" ALT="APC_Pcyl_Diag.vi"></P>
+<P><IMG SRC="APC__Pcyl__Diagp.png" ALT="APC_Pcyl_Diag.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>CombustionAnalysisCluster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPg [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>IMEPg [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>MAPO [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>maxQ [J]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>maxQ [J]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA10  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA50 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA90 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Pmax [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPstd [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA03  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA97  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA10CA90 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>maxdpdCAD [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>kappa_comp [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>kappa_exp [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>PMEP [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>RI [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Expected IMEP</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dcclst.png" ALT="i1dcclst"></P>
+</TD>
+<TD>
+<B>WarningsAndErrors</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="icclst.png" ALT="icclst"></P>
+</TD>
+<TD>
+<B>Warnings</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>misfire from IMEP</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>misfire self reg</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>misfire cyl-to-cyl</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>cyclic variability</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>knock</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>maximum pressure</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>late combustion</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="icclst.png" ALT="icclst"></P>
+</TD>
+<TD>
+<B>CombustionAnalysisClusterOut</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPg [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>IMEPg [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>MAPO [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>maxQ [J]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>maxQ [J]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA10  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA50 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA90 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Pmax [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPstd [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA03  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA97  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>CA10CA90 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>maxdpdCAD [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>kappa_comp [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>kappa_exp [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>PMEP [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>RI [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<P><IMG SRC="APC__Pcyl__Diagd.png" ALT="APC_Pcyl_Diag.vi"></P>
+<P><IMG SRC="APC__Pcyl__Diagd1.png" ALT="APC_Pcyl_Diag.vi"></P>
+<P><IMG SRC="APC__Pcyl__Diagd2.png" ALT="APC_Pcyl_Diag.vi"></P>
+<P><IMG SRC="APC__Pcyl__Diagd3.png" ALT="APC_Pcyl_Diag.vi"></P>
+<P><IMG SRC="APC__Pcyl__Diagd4.png" ALT="APC_Pcyl_Diag.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__PtbyPt_lvlib_Standard_Deviation_PtByPti.png" ALT="NI_PtbyPt.lvlib:Standard Deviation PtByPt.vi"></P>
+</TD>
+<TD>
+<B><P>NI_PtbyPt.lvlib:Standard Deviation PtByPt.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\ptbypt\Probability &amp; Statistics.llb\Standard Deviation PtByPt.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__LoadWarningConfigi.png" ALT="APC_9049_LoadWarningConfig.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_LoadWarningConfig.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_LoadWarningConfig.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__CombustionMetricsctli.png" ALT="APC_CombustionMetrics.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_CombustionMetrics.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_CombustionMetrics.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__PcylDiagctli.png" ALT="APC_PcylDiag.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_PcylDiag.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_PcylDiag.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Mean_(DBL)i.png" ALT="NI_AALBase.lvlib:Mean (DBL).vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Mean (DBL).vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\baseanly.llb\Mean (DBL).vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Meani.png" ALT="NI_AALBase.lvlib:Mean.vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Mean.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\baseanly.llb\Mean.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__CylDaignosticsClusterctli.png" ALT="APC_CylDaignosticsCluster.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_CylDaignosticsCluster.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_CylDaignosticsCluster.ctl</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_LoadWarningConfig.vi"></A><H2>APC_9049_LoadWarningConfig.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__LoadWarningConfigc.png" ALT="APC_9049_LoadWarningConfig.vi"></P>
+<P><IMG SRC="APC__9049__LoadWarningConfigp.png" ALT="APC_9049_LoadWarningConfig.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B>Load?</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cnclst.png" ALT="cnclst"></P>
+</TD>
+<TD>
+<B>CylinderDiagnosticsCluster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ci32.png" ALT="ci32"></P>
+</TD>
+<TD>
+<B>samples for running IMEP std</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromExpectedIMEPError [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromExpectedIMEPWarning [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromAvgError [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromSelfAvgWarning [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromSelfAvgError [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromAvgWarning [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MaxIMEPstdWarning [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MaxIMEPstdError [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MAPOmaxError [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MAPOmaxWarning [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50maxError [CADATDC]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50maxWarning [CADATDC]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MaxPCylMaxError [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>MaxPCylMaxWarning [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="inclst.png" ALT="inclst"></P>
+</TD>
+<TD>
+<B>CylinderDiagnosticsCluster 2</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ii32.png" ALT="ii32"></P>
+</TD>
+<TD>
+<B>samples for running IMEP std</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromExpectedIMEPError [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromExpectedIMEPWarning [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromAvgError [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromSelfAvgWarning [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromSelfAvgError [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MaxDevFromAvgWarning [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MaxIMEPstdWarning [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MaxIMEPstdError [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MAPOmaxError [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MAPOmaxWarning [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50maxError [CADATDC]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50maxWarning [CADATDC]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MaxPCylMaxError [bar]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MaxPCylMaxWarning [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__LoadWarningConfigd.png" ALT="APC_9049_LoadWarningConfig.vi"></P>
+<P><IMG SRC="APC__9049__LoadWarningConfigd1.png" ALT="APC_9049_LoadWarningConfig.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="Read_From_XML_File(string)i.png" ALT="Read From XML File(string).vi"></P>
+</TD>
+<TD>
+<B><P>Read From XML File(string).vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Utility\xml.llb\Read From XML File(string).vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="Read_From_XML_Filei.png" ALT="Read From XML File.vi"></P>
+</TD>
+<TD>
+<B><P>Read From XML File.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Utility\xml.llb\Read From XML File.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="Write_to_XML_File(string)i.png" ALT="Write to XML File(string).vi"></P>
+</TD>
+<TD>
+<B><P>Write to XML File(string).vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Utility\xml.llb\Write to XML File(string).vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="Write_to_XML_Filei.png" ALT="Write to XML File.vi"></P>
+</TD>
+<TD>
+<B><P>Write to XML File.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Utility\xml.llb\Write to XML File.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__CylDaignosticsClusterctli.png" ALT="APC_CylDaignosticsCluster.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_CylDaignosticsCluster.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_CylDaignosticsCluster.ctl</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_keyKnock.vi"></A><H2>APC_9049_keyKnock.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__keyKnockc.png" ALT="APC_9049_keyKnock.vi"></P>
+<P><IMG SRC="APC__9049__keyKnockp.png" ALT="APC_9049_keyKnock.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dbool.png" ALT="c1dbool"></P>
+</TD>
+<TD>
+<B>Knock</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__keyKnockd.png" ALT="APC_9049_keyKnock.vi"></P>
+<P><IMG SRC="APC__9049__keyKnockd1.png" ALT="APC_9049_keyKnock.vi"></P>
+<HR>
+<A NAME="APC_CombustionMetrics.ctl"></A><H2>APC_CombustionMetrics.ctl</H2>
+<P></P>
+<P><IMG SRC="APC__CombustionMetricsctlc.png" ALT="APC_CombustionMetrics.ctl"></P>
+<P><IMG SRC="APC__CombustionMetricsctlp.png" ALT="APC_CombustionMetrics.ctl"></P>
+<HR>
+<A NAME="APC_PcylDiag.ctl"></A><H2>APC_PcylDiag.ctl</H2>
+<P></P>
+<P><IMG SRC="APC__PcylDiagctlc.png" ALT="APC_PcylDiag.ctl"></P>
+<P><IMG SRC="APC__PcylDiagctlp.png" ALT="APC_PcylDiag.ctl"></P>
+<HR>
+<A NAME="APC_9056_ForceArraySize6b.vi"></A><H2>APC_9056_ForceArraySize6b.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9056__ForceArraySize6bc.png" ALT="APC_9056_ForceArraySize6b.vi"></P>
+<P><IMG SRC="APC__9056__ForceArraySize6bp.png" ALT="APC_9056_ForceArraySize6b.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dbool.png" ALT="c1dbool"></P>
+</TD>
+<TD>
+<B>ArrayIn</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B>Boolean</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dbool.png" ALT="i1dbool"></P>
+</TD>
+<TD>
+<B>ArrayOut</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B>Boolean</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9056__ForceArraySize6bd.png" ALT="APC_9056_ForceArraySize6b.vi"></P>
+<P><IMG SRC="APC__9056__ForceArraySize6bd1.png" ALT="APC_9056_ForceArraySize6b.vi"></P>
+<HR>
+<A NAME="APC_9049_keyCA50.vi"></A><H2>APC_9049_keyCA50.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__keyCA50c.png" ALT="APC_9049_keyCA50.vi"></P>
+<P><IMG SRC="APC__9049__keyCA50p.png" ALT="APC_9049_keyCA50.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__keyCA50d.png" ALT="APC_9049_keyCA50.vi"></P>
+<HR>
+<A NAME="APC_9049_CombCluster2Array.vi"></A><H2>APC_9049_CombCluster2Array.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__CombCluster2Arrayc.png" ALT="APC_9049_CombCluster2Array.vi"></P>
+<P><IMG SRC="APC__9049__CombCluster2Arrayp.png" ALT="APC_9049_CombCluster2Array.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>CombustionAnalysisCluster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPg [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>IMEPg [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>MAPO [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>maxQ [J]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>maxQ [J]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA10  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA50 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA90 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Pmax [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>IMEPstd [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA03  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA97  [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>CA10CA90 [CADATDC]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>maxdpdCAD [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>kappa_comp [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>kappa_exp [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>PMEP [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>RI [-]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>IMEPn [bar]</B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>SystemPressure</B> <P><B>mean</B> is the mean, or average, of the values in the input sequence <B>X</B>.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>ExhPressure</B> <P><B>mean</B> is the mean, or average, of the values in the input sequence <B>X</B>.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dcclst.png" ALT="c1dcclst"></P>
+</TD>
+<TD>
+<B>PcylDiag</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>PcylDiag</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dbool.png" ALT="c1dbool"></P>
+</TD>
+<TD>
+<B>misfire from IMEP</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dbool.png" ALT="c1dbool"></P>
+</TD>
+<TD>
+<B>misfire self reg</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dbool.png" ALT="c1dbool"></P>
+</TD>
+<TD>
+<B>misfire cyl-to-cyl</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dbool.png" ALT="c1dbool"></P>
+</TD>
+<TD>
+<B>cyclic variability</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dbool.png" ALT="c1dbool"></P>
+</TD>
+<TD>
+<B>knock</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dbool.png" ALT="c1dbool"></P>
+</TD>
+<TD>
+<B>maximum pressure</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dbool.png" ALT="c1dbool"></P>
+</TD>
+<TD>
+<B>late combustion</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>PrechamberPeakPdiff</B> <P><B>mean</B> is the mean, or average, of the values in the input sequence <B>X</B>.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>9049_CalculatedVariablesRaster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>mean</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__CombCluster2Arrayd.png" ALT="APC_9049_CombCluster2Array.vi"></P>
+<P><IMG SRC="APC__9049__CombCluster2Arrayd1.png" ALT="APC_9049_CombCluster2Array.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__keyKnocki.png" ALT="APC_9049_keyKnock.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_keyKnock.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_keyKnock.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__CombustionMetricsctli.png" ALT="APC_CombustionMetrics.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_CombustionMetrics.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_CombustionMetrics.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__PcylDiagctli.png" ALT="APC_PcylDiag.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_PcylDiag.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_PcylDiag.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9056__ForceArraySize6bi.png" ALT="APC_9056_ForceArraySize6b.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9056_ForceArraySize6b.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9056_ForceArraySize6b.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__keyCA50i.png" ALT="APC_9049_keyCA50.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_keyCA50.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_keyCA50.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_PressureAnalytics.vi"></A><H2>APC_9049_PressureAnalytics.vi</H2>
+<P>This example demonstrates the procedure required to apply different NI-DAQmx Custom Scales to each virtual channel in a task.  A DAQmx Task Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition &gt;&gt; DAQmx Advanced Task Options) is used to obtain the task's virtual channels.  A DAQmx Channel Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition) is then used to set the custom scale for each virtual channel in the task.</P>
+<P></P>
+<P>The &quot;DAQmx Create Scale&quot; VI creates a custom scale for each channel in the channel list.  *Note, make sure your Minimum and Maximum channel parameters are consistent with the range the scale will create.</P>
+<P><IMG SRC="APC__9049__PressureAnalyticsc.png" ALT="APC_9049_PressureAnalytics.vi"></P>
+<P><IMG SRC="APC__9049__PressureAnalyticsp.png" ALT="APC_9049_PressureAnalytics.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c2ddbl.png" ALT="c2ddbl"></P>
+</TD>
+<TD>
+<B>AIdata [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>element</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>FilterCoefs</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>IIR LowPass</B> <P><B>IIR Filter Cluster</B> contains the cascaded form of IIR filter coefficients.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cenum.png" ALT="cenum"></P>
+</TD>
+<TD>
+<B>filter structure</B> <P><B>filter structure</B> indicates either IIR second-order or IIR fourth-order filter stages.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Reverse Coefficients</B> <P><B>Reverse Coefficients</B> is the reverse coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> <P><B>Reverse Coefficients</B> is the reverse coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Forward Coefficients</B> <P><B>Forward Coefficients</B> is the forward coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> <P><B>Forward Coefficients</B> is the forward coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>IIR HighPass</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cenum.png" ALT="cenum"></P>
+</TD>
+<TD>
+<B>filter structure</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Reverse Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Forward Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i2ddbl.png" ALT="i2ddbl"></P>
+</TD>
+<TD>
+<B>SyncCylPres [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>element</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>9049_CalculatedVariablesRaster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>mean</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__PressureAnalyticsd.png" ALT="APC_9049_PressureAnalytics.vi"></P>
+<P><IMG SRC="APC__9049__PressureAnalyticsd1.png" ALT="APC_9049_PressureAnalytics.vi"></P>
+<P><IMG SRC="APC__9049__PressureAnalyticsd2.png" ALT="APC_9049_PressureAnalytics.vi"></P>
+<P><IMG SRC="APC__9049__PressureAnalyticsd3.png" ALT="APC_9049_PressureAnalytics.vi"></P>
+<P><IMG SRC="APC__9049__PressureAnalyticsd4.png" ALT="APC_9049_PressureAnalytics.vi"></P>
+<P><IMG SRC="APC__9049__PressureAnalyticsd5.png" ALT="APC_9049_PressureAnalytics.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__HRLi.png" ALT="APC_HRL.vi"></P>
+</TD>
+<TD>
+<B><P>APC_HRL.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\support\APC_HRL.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__CombustionMetricsctli.png" ALT="APC_CombustionMetrics.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_CombustionMetrics.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_CombustionMetrics.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__PcylDiagctli.png" ALT="APC_PcylDiag.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_PcylDiag.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_PcylDiag.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__CombCluster2Arrayi.png" ALT="APC_9049_CombCluster2Array.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_CombCluster2Array.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\support\APC_9049_CombCluster2Array.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__PPhaseCorrectioni.png" ALT="APC_9049_PPhaseCorrection.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_PPhaseCorrection.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_PPhaseCorrection.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__checkAIi.png" ALT="APC_9049_checkAI.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_checkAI.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_checkAI.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_SharedVarBroadcast.vi"></A><H2>APC_9049_SharedVarBroadcast.vi</H2>
+<P>This example demonstrates the procedure required to apply different NI-DAQmx Custom Scales to each virtual channel in a task.  A DAQmx Task Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition &gt;&gt; DAQmx Advanced Task Options) is used to obtain the task's virtual channels.  A DAQmx Channel Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition) is then used to set the custom scale for each virtual channel in the task.</P>
+<P></P>
+<P>The &quot;DAQmx Create Scale&quot; VI creates a custom scale for each channel in the channel list.  *Note, make sure your Minimum and Maximum channel parameters are consistent with the range the scale will create.</P>
+<P><IMG SRC="APC__9049__SharedVarBroadcastc.png" ALT="APC_9049_SharedVarBroadcast.vi"></P>
+<P><IMG SRC="APC__9049__SharedVarBroadcastp.png" ALT="APC_9049_SharedVarBroadcast.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c2ddbl.png" ALT="c2ddbl"></P>
+</TD>
+<TD>
+<B>SyncCylPres [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>element</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>9049_MeasAndCalc</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__SharedVarBroadcastd.png" ALT="APC_9049_SharedVarBroadcast.vi"></P>
+<HR>
+<A NAME="APC_9049_HRL_IMEP.vi"></A><H2>APC_9049_HRL_IMEP.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__HRL__IMEPc.png" ALT="APC_9049_HRL_IMEP.vi"></P>
+<P><IMG SRC="APC__9049__HRL__IMEPp.png" ALT="APC_9049_HRL_IMEP.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Pressure</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>Volume cluster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>V [m^3]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>dV [m^3/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Vdis [m^3]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Surface [m^2]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CAD/sample</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>IMPEn</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>IMEPg</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>Pmax</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>PMEP</B> </TD>
+</TR>
+</Table>
+<P><IMG SRC="APC__9049__HRL__IMEPd.png" ALT="APC_9049_HRL_IMEP.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALPro_lvlib_1D_Numeric_Integrationi.png" ALT="NI_AALPro.lvlib:1D Numeric Integration.vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALPro.lvlib:1D Numeric Integration.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\8numeric.llb\1D Numeric Integration.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALPro_lvlib_Numeric_Integrationi.png" ALT="NI_AALPro.lvlib:Numeric Integration.vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALPro.lvlib:Numeric Integration.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\8numeric.llb\Numeric Integration.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__volumectli.png" ALT="APC_volume.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_volume.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_volume.ctl</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_volume.ctl"></A><H2>APC_volume.ctl</H2>
+<P></P>
+<P><IMG SRC="APC__volumectlc.png" ALT="APC_volume.ctl"></P>
+<P><IMG SRC="APC__volumectlp.png" ALT="APC_volume.ctl"></P>
+<HR>
+<A NAME="APC_9049_HRL_apparentHRL.vi"></A><H2>APC_9049_HRL_apparentHRL.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__HRL__apparentHRLc.png" ALT="APC_9049_HRL_apparentHRL.vi"></P>
+<P><IMG SRC="APC__9049__HRL__apparentHRLp.png" ALT="APC_9049_HRL_apparentHRL.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Pegged pressure [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>Volume cluster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>V [m^3]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>dV [m^3/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Vdis [m^3]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Surface [m^2]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CAD/sample</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>HRL [J]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>HRL [J]</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="inclst.png" ALT="inclst"></P>
+</TD>
+<TD>
+<B>CylMetrics</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>maxdPdCAD [bar/CAD]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>kappa_comp</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>kappa_exp</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>maxQ [J]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA03</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA90</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA97</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10CA90</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__HRL__apparentHRLd.png" ALT="APC_9049_HRL_apparentHRL.vi"></P>
+<P><IMG SRC="APC__9049__HRL__apparentHRLd1.png" ALT="APC_9049_HRL_apparentHRL.vi"></P>
+<P><IMG SRC="APC__9049__HRL__apparentHRLd2.png" ALT="APC_9049_HRL_apparentHRL.vi"></P>
+<P><IMG SRC="APC__9049__HRL__apparentHRLd3.png" ALT="APC_9049_HRL_apparentHRL.vi"></P>
+<P><IMG SRC="APC__9049__HRL__apparentHRLd4.png" ALT="APC_9049_HRL_apparentHRL.vi"></P>
+<P><IMG SRC="APC__9049__HRL__apparentHRLd5.png" ALT="APC_9049_HRL_apparentHRL.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__volumectli.png" ALT="APC_volume.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_volume.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_volume.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__CAi.png" ALT="APC_9049_CA.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_CA.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_CA.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__MFBi.png" ALT="APC_9049_MFB.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_MFB.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_MFB.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cumsum__dQi.png" ALT="cumsum_dQ.vi"></P>
+</TD>
+<TD>
+<B><P>cumsum_dQ.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\cumsum_dQ.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALPro_lvlib_Solve_Linear_Eqs_(Gen,_single_right_hand)i.png" ALT="NI_AALPro.lvlib:Solve Linear Eqs (Gen, single right hand).vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALPro.lvlib:Solve Linear Eqs (Gen, single right hand).vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\7linalg.llb\Solve Linear Eqs (Gen, single right hand).vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__CAD__derivativei.png" ALT="APC_CAD_derivative.vi"></P>
+</TD>
+<TD>
+<B><P>APC_CAD_derivative.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\support\APC_CAD_derivative.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALPro_lvlib_Solve_Linear_Equations_(single_right_hand)i.png" ALT="NI_AALPro.lvlib:Solve Linear Equations (single right hand).vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALPro.lvlib:Solve Linear Equations (single right hand).vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\7linalg.llb\Solve Linear Equations (single right hand).vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALPro_lvlib_Solve_Linear_Equationsi.png" ALT="NI_AALPro.lvlib:Solve Linear Equations.vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALPro.lvlib:Solve Linear Equations.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\7linalg.llb\Solve Linear Equations.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__CylMetricsctli.png" ALT="APC_CylMetrics.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_CylMetrics.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_CylMetrics.ctl</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_CA.vi"></A><H2>APC_9049_CA.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__CAc.png" ALT="APC_9049_CA.vi"></P>
+<P><IMG SRC="APC__9049__CAp.png" ALT="APC_9049_CA.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>CAD/sample</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cu32.png" ALT="cu32"></P>
+</TD>
+<TD>
+<B>Window initi</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>MFB</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA50</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA90</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA03</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA97</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CA10CA90</B> </TD>
+</TR>
+</Table>
+<P><IMG SRC="APC__9049__CAd.png" ALT="APC_9049_CA.vi"></P>
+<HR>
+<A NAME="APC_9049_MFB.vi"></A><H2>APC_9049_MFB.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__MFBc.png" ALT="APC_9049_MFB.vi"></P>
+<P><IMG SRC="APC__9049__MFBp.png" ALT="APC_9049_MFB.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Q</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>MFB</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__MFBd.png" ALT="APC_9049_MFB.vi"></P>
+<HR>
+<A NAME="cumsum_dQ.vi"></A><H2>cumsum_dQ.vi</H2>
+<P></P>
+<P><IMG SRC="cumsum__dQc.png" ALT="cumsum_dQ.vi"></P>
+<P><IMG SRC="cumsum__dQp.png" ALT="cumsum_dQ.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ci32.png" ALT="ci32"></P>
+</TD>
+<TD>
+<B>index start cumsum (zeros before)</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>dQ</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Numeric Control</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Enc. res. [CAD/sample]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Qcum</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>element</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="cumsum__dQd.png" ALT="cumsum_dQ.vi"></P>
+<HR>
+<A NAME="APC_CAD_derivative.vi"></A><H2>APC_CAD_derivative.vi</H2>
+<P></P>
+<P><IMG SRC="APC__CAD__derivativec.png" ALT="APC_CAD_derivative.vi"></P>
+<P><IMG SRC="APC__CAD__derivativep.png" ALT="APC_CAD_derivative.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>x (e.g., pcyl)</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Encoder res. [CAD/sample]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>dx/dCAD</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__CAD__derivatived.png" ALT="APC_CAD_derivative.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALPro_lvlib_Derivative_x(t)i.png" ALT="NI_AALPro.lvlib:Derivative x(t).vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALPro.lvlib:Derivative x(t).vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\2dsp.llb\Derivative x(t).vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_CylMetrics.ctl"></A><H2>APC_CylMetrics.ctl</H2>
+<P></P>
+<P><IMG SRC="APC__CylMetricsctlc.png" ALT="APC_CylMetrics.ctl"></P>
+<P><IMG SRC="APC__CylMetricsctlp.png" ALT="APC_CylMetrics.ctl"></P>
+<HR>
+<A NAME="APC_9049_HRL_pegging.vi"></A><H2>APC_9049_HRL_pegging.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__HRL__peggingc.png" ALT="APC_9049_HRL_pegging.vi"></P>
+<P><IMG SRC="APC__9049__HRL__peggingp.png" ALT="APC_9049_HRL_pegging.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>exhaust pressure</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Pcylfilt</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i2ddbl.png" ALT="i2ddbl"></P>
+</TD>
+<TD>
+<B>Pressure pegging</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Pegged Pressure</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__HRL__peggingd.png" ALT="APC_9049_HRL_pegging.vi"></P>
+<P><IMG SRC="APC__9049__HRL__peggingd1.png" ALT="APC_9049_HRL_pegging.vi"></P>
+<HR>
+<A NAME="APC_9049_HRL_ZeroPhaseFIlter.vi"></A><H2>APC_9049_HRL_ZeroPhaseFIlter.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterc.png" ALT="APC_9049_HRL_ZeroPhaseFIlter.vi"></P>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterp.png" ALT="APC_9049_HRL_ZeroPhaseFIlter.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Pcyl</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>IIR Filter Cluster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cenum.png" ALT="cenum"></P>
+</TD>
+<TD>
+<B>filter structure</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Reverse Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Forward Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B>Init value compensation</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i2ddbl.png" ALT="i2ddbl"></P>
+</TD>
+<TD>
+<B>Pressure filtering</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Pcylfilt</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterd.png" ALT="APC_9049_HRL_ZeroPhaseFIlter.vi"></P>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterd1.png" ALT="APC_9049_HRL_ZeroPhaseFIlter.vi"></P>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterd2.png" ALT="APC_9049_HRL_ZeroPhaseFIlter.vi"></P>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterd3.png" ALT="APC_9049_HRL_ZeroPhaseFIlter.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Zero_Phase_Filter_(Cascade,_DBL)i.png" ALT="NI_AALBase.lvlib:Zero Phase Filter (Cascade, DBL).vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Zero Phase Filter (Cascade, DBL).vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\3filter.llb\Zero Phase Filter (Cascade, DBL).vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Zero_Phase_Filteri.png" ALT="NI_AALBase.lvlib:Zero Phase Filter.vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Zero Phase Filter.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\3filter.llb\Zero Phase Filter.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_HRL_MAPO.vi"></A><H2>APC_9049_HRL_MAPO.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__HRL__MAPOc.png" ALT="APC_9049_HRL_MAPO.vi"></P>
+<P><IMG SRC="APC__9049__HRL__MAPOp.png" ALT="APC_9049_HRL_MAPO.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Pcyl</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>IIR Filter Cluster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cenum.png" ALT="cenum"></P>
+</TD>
+<TD>
+<B>filter structure</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Reverse Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Forward Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>PcylHPfilt</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>MAPO</B> </TD>
+</TR>
+</Table>
+<P><IMG SRC="APC__9049__HRL__MAPOd.png" ALT="APC_9049_HRL_MAPO.vi"></P>
+<P><IMG SRC="APC__9049__HRL__MAPOd1.png" ALT="APC_9049_HRL_MAPO.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterBPi.png" ALT="APC_9049_HRL_ZeroPhaseFIlterBP.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_HRL_ZeroPhaseFIlterBP.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_HRL_ZeroPhaseFIlterBP.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_HRL_ZeroPhaseFIlterBP.vi"></A><H2>APC_9049_HRL_ZeroPhaseFIlterBP.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterBPc.png" ALT="APC_9049_HRL_ZeroPhaseFIlterBP.vi"></P>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterBPp.png" ALT="APC_9049_HRL_ZeroPhaseFIlterBP.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Pcyl</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ccclst.png" ALT="ccclst"></P>
+</TD>
+<TD>
+<B>IIR Filter Cluster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cenum.png" ALT="cenum"></P>
+</TD>
+<TD>
+<B>filter structure</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Reverse Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>Forward Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B>Init value removal</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i2ddbl.png" ALT="i2ddbl"></P>
+</TD>
+<TD>
+<B>Pressure filtering</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Pcylfilt</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterBPd.png" ALT="APC_9049_HRL_ZeroPhaseFIlterBP.vi"></P>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterBPd1.png" ALT="APC_9049_HRL_ZeroPhaseFIlterBP.vi"></P>
+<P><IMG SRC="APC__9049__HRL__ZeroPhaseFIlterBPd2.png" ALT="APC_9049_HRL_ZeroPhaseFIlterBP.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Zero_Phase_Filter_(Cascade,_DBL)i.png" ALT="NI_AALBase.lvlib:Zero Phase Filter (Cascade, DBL).vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Zero Phase Filter (Cascade, DBL).vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\3filter.llb\Zero Phase Filter (Cascade, DBL).vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Zero_Phase_Filteri.png" ALT="NI_AALBase.lvlib:Zero Phase Filter.vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Zero Phase Filter.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\3filter.llb\Zero Phase Filter.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_HRL_volume.vi"></A><H2>APC_9049_HRL_volume.vi</H2>
+<P>This VI calculates the cylinder volume information according to the piston position in the cylinder and the crank angle position provided by the CAD vector (the volume matches the the CAD defined as an input, no offset for TDC is considered here).</P>
+<P><IMG SRC="APC__9049__HRL__volumec.png" ALT="APC_9049_HRL_volume.vi"></P>
+<P><IMG SRC="APC__9049__HRL__volumep.png" ALT="APC_9049_HRL_volume.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="icclst.png" ALT="icclst"></P>
+</TD>
+<TD>
+<B>Volume cluster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>V [m^3]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>dV [m^3/CAD]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>Vdis [m^3]</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Surface [m^2]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>CAD/sample</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__HRL__volumed.png" ALT="APC_9049_HRL_volume.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__volumectli.png" ALT="APC_volume.ctl"></P>
+</TD>
+<TD>
+<B><P>APC_volume.ctl</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\controls\APC_volume.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__CAD__derivativei.png" ALT="APC_CAD_derivative.vi"></P>
+</TD>
+<TD>
+<B><P>APC_CAD_derivative.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\support\APC_CAD_derivative.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_PPhaseCorrection.vi"></A><H2>APC_9049_PPhaseCorrection.vi</H2>
+<P>This example demonstrates the procedure required to apply different NI-DAQmx Custom Scales to each virtual channel in a task.  A DAQmx Task Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition &gt;&gt; DAQmx Advanced Task Options) is used to obtain the task's virtual channels.  A DAQmx Channel Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition) is then used to set the custom scale for each virtual channel in the task.</P>
+<P></P>
+<P>The &quot;DAQmx Create Scale&quot; VI creates a custom scale for each channel in the channel list.  *Note, make sure your Minimum and Maximum channel parameters are consistent with the range the scale will create.</P>
+<P><IMG SRC="APC__9049__PPhaseCorrectionc.png" ALT="APC_9049_PPhaseCorrection.vi"></P>
+<P><IMG SRC="APC__9049__PPhaseCorrectionp.png" ALT="APC_9049_PPhaseCorrection.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c2ddbl.png" ALT="c2ddbl"></P>
+</TD>
+<TD>
+<B>AIdata [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>element</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cbool.png" ALT="cbool"></P>
+</TD>
+<TD>
+<B>UsePcylDatabase</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i2ddbl.png" ALT="i2ddbl"></P>
+</TD>
+<TD>
+<B>RawPcyl [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>element</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i2ddbl.png" ALT="i2ddbl"></P>
+</TD>
+<TD>
+<B>PhaseCompPcyl [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>element</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>SystemP [bar]</B> <P><B>mean</B> is the mean, or average, of the values in the input sequence <B>X</B>.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i2ddbl.png" ALT="i2ddbl"></P>
+</TD>
+<TD>
+<B>PhaseCompPexh [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>element</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>ExhaustP [bar]</B> <P><B>mean</B> is the mean, or average, of the values in the input sequence <B>X</B>.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>PrechamberPeakDiff [bar]</B> <P><B>mean</B> is the mean, or average, of the values in the input sequence <B>X</B>.</P>
+</TD>
+</TR>
+</Table>
+<P><IMG SRC="APC__9049__PPhaseCorrectiond.png" ALT="APC_9049_PPhaseCorrection.vi"></P>
+<P><IMG SRC="APC__9049__PPhaseCorrectiond1.png" ALT="APC_9049_PPhaseCorrection.vi"></P>
+<P><IMG SRC="APC__9049__PPhaseCorrectiond2.png" ALT="APC_9049_PPhaseCorrection.vi"></P>
+<P><IMG SRC="APC__9049__PPhaseCorrectiond3.png" ALT="APC_9049_PPhaseCorrection.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Mean_(DBL)i.png" ALT="NI_AALBase.lvlib:Mean (DBL).vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Mean (DBL).vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\baseanly.llb\Mean (DBL).vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Meani.png" ALT="NI_AALBase.lvlib:Mean.vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Mean.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\baseanly.llb\Mean.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__HRL__preChamberi.png" ALT="APC_9049_HRL_preChamber.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_HRL_preChamber.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_HRL_preChamber.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9049_HRL_preChamber.vi"></A><H2>APC_9049_HRL_preChamber.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__HRL__preChamberc.png" ALT="APC_9049_HRL_preChamber.vi"></P>
+<P><IMG SRC="APC__9049__HRL__preChamberp.png" ALT="APC_9049_HRL_preChamber.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>InCylPressure</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1ddbl.png" ALT="c1ddbl"></P>
+</TD>
+<TD>
+<B>PrechamberPressure</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B>PreIgnition</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>peakPrechamberPdiff</B> </TD>
+</TR>
+</Table>
+<P><IMG SRC="APC__9049__HRL__preChamberd.png" ALT="APC_9049_HRL_preChamber.vi"></P>
+<P><IMG SRC="APC__9049__HRL__preChamberd1.png" ALT="APC_9049_HRL_preChamber.vi"></P>
+<HR>
+<A NAME="APC_9049_checkAI.vi"></A><H2>APC_9049_checkAI.vi</H2>
+<P>This example demonstrates the procedure required to apply different NI-DAQmx Custom Scales to each virtual channel in a task.  A DAQmx Task Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition &gt;&gt; DAQmx Advanced Task Options) is used to obtain the task's virtual channels.  A DAQmx Channel Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition) is then used to set the custom scale for each virtual channel in the task.</P>
+<P></P>
+<P>The &quot;DAQmx Create Scale&quot; VI creates a custom scale for each channel in the channel list.  *Note, make sure your Minimum and Maximum channel parameters are consistent with the range the scale will create.</P>
+<P><IMG SRC="APC__9049__checkAIc.png" ALT="APC_9049_checkAI.vi"></P>
+<P><IMG SRC="APC__9049__checkAIp.png" ALT="APC_9049_checkAI.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c2ddbl.png" ALT="c2ddbl"></P>
+</TD>
+<TD>
+<B>AIdata [bar]</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>element</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ibool.png" ALT="ibool"></P>
+</TD>
+<TD>
+<B>x = y?</B> </TD>
+</TR>
+</Table>
+<P><IMG SRC="APC__9049__checkAId.png" ALT="APC_9049_checkAI.vi"></P>
+<HR>
+<A NAME="APC_CylDaignosticsCluster.ctl"></A><H2>APC_CylDaignosticsCluster.ctl</H2>
+<P></P>
+<P><IMG SRC="APC__CylDaignosticsClusterctlc.png" ALT="APC_CylDaignosticsCluster.ctl"></P>
+<P><IMG SRC="APC__CylDaignosticsClusterctlp.png" ALT="APC_CylDaignosticsCluster.ctl"></P>
+<HR>
+<A NAME="APC_9049_ControlSettingsPolling.vi"></A><H2>APC_9049_ControlSettingsPolling.vi</H2>
+<P>This example demonstrates the procedure required to apply different NI-DAQmx Custom Scales to each virtual channel in a task.  A DAQmx Task Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition &gt;&gt; DAQmx Advanced Task Options) is used to obtain the task's virtual channels.  A DAQmx Channel Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition) is then used to set the custom scale for each virtual channel in the task.</P>
+<P></P>
+<P>The &quot;DAQmx Create Scale&quot; VI creates a custom scale for each channel in the channel list.  *Note, make sure your Minimum and Maximum channel parameters are consistent with the range the scale will create.</P>
+<P><IMG SRC="APC__9049__ControlSettingsPollingc.png" ALT="APC_9049_ControlSettingsPolling.vi"></P>
+<P><IMG SRC="APC__9049__ControlSettingsPollingp.png" ALT="APC_9049_ControlSettingsPolling.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>9049_ControlSettings</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>millisecond timer value</B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9049__ControlSettingsPollingd.png" ALT="APC_9049_ControlSettingsPolling.vi"></P>
+<HR>
+<A NAME="APC_9049_9056SharedVarPolling.vi"></A><H2>APC_9049_9056SharedVarPolling.vi</H2>
+<P>This example demonstrates the procedure required to apply different NI-DAQmx Custom Scales to each virtual channel in a task.  A DAQmx Task Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition &gt;&gt; DAQmx Advanced Task Options) is used to obtain the task's virtual channels.  A DAQmx Channel Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition) is then used to set the custom scale for each virtual channel in the task.</P>
+<P></P>
+<P>The &quot;DAQmx Create Scale&quot; VI creates a custom scale for each channel in the channel list.  *Note, make sure your Minimum and Maximum channel parameters are consistent with the range the scale will create.</P>
+<P><IMG SRC="APC__9049__9056SharedVarPollingc.png" ALT="APC_9049_9056SharedVarPolling.vi"></P>
+<P><IMG SRC="APC__9049__9056SharedVarPollingp.png" ALT="APC_9049_9056SharedVarPolling.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ci32.png" ALT="ci32"></P>
+</TD>
+<TD>
+<B>Number of signals</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>9056 IO</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>millisecond timer value</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ii32.png" ALT="ii32"></P>
+</TD>
+<TD>
+<B>Number of signals (out)</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>TimeStamp9056</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>SystemState</B> </TD>
+</TR>
+</Table>
+<P><IMG SRC="APC__9049__9056SharedVarPollingd.png" ALT="APC_9049_9056SharedVarPolling.vi"></P>
+<P><IMG SRC="APC__9049__9056SharedVarPollingd1.png" ALT="APC_9049_9056SharedVarPolling.vi"></P>
+<P><IMG SRC="APC__9049__9056SharedVarPollingd2.png" ALT="APC_9049_9056SharedVarPolling.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9056__Signalsi.png" ALT="APC_9056_Signals.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9056_Signals.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9056_Signals.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9056_Signals.vi"></A><H2>APC_9056_Signals.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9056__Signalsc.png" ALT="APC_9056_Signals.vi"></P>
+<P><IMG SRC="APC__9056__Signalsp.png" ALT="APC_9056_Signals.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dstr.png" ALT="i1dstr"></P>
+</TD>
+<TD>
+<B>9056_raster</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="istr.png" ALT="istr"></P>
+</TD>
+<TD>
+<B>name to assign</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1di32.png" ALT="i1di32"></P>
+</TD>
+<TD>
+<B>signals per group</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ii32.png" ALT="ii32"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1di32.png" ALT="i1di32"></P>
+</TD>
+<TD>
+<B>Starting Index</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ii32.png" ALT="ii32"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9056__Signalsd.png" ALT="APC_9056_Signals.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9056__NI9214confi.png" ALT="APC_9056_NI9214conf.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9056_NI9214conf.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9056_NI9214conf.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9056__NI9208confi.png" ALT="APC_9056_NI9208conf.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9056_NI9208conf.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9056_NI9208conf.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9056__NI9205confi.png" ALT="APC_9056_NI9205conf.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9056_NI9205conf.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9056_NI9205conf.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9056__additonalSignalsi.png" ALT="APC_9056_additonalSignals.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9056_additonalSignals.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9056_additonalSignals.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9056_NI9214conf.vi"></A><H2>APC_9056_NI9214conf.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9056__NI9214confc.png" ALT="APC_9056_NI9214conf.vi"></P>
+<P><IMG SRC="APC__9056__NI9214confp.png" ALT="APC_9056_NI9214conf.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dstr.png" ALT="i1dstr"></P>
+</TD>
+<TD>
+<B>channels name out</B> <P><B>name to assign</B> specifies a name to assign to the virtual channel this VI creates. If you do not wire a value to this input, NI-DAQmx uses the physical channel name as the virtual channel name.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="istr.png" ALT="istr"></P>
+</TD>
+<TD>
+<B>name to assign</B> <P><B>name to assign</B> specifies a name to assign to the virtual channel this VI creates. If you do not wire a value to this input, NI-DAQmx uses the physical channel name as the virtual channel name.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9056__NI9214confd.png" ALT="APC_9056_NI9214conf.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__AppendUnitsi.png" ALT="APC_AppendUnits.vi"></P>
+</TD>
+<TD>
+<B><P>APC_AppendUnits.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_AppendUnits.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_AppendUnits.vi"></A><H2>APC_AppendUnits.vi</H2>
+<P></P>
+<P><IMG SRC="APC__AppendUnitsc.png" ALT="APC_AppendUnits.vi"></P>
+<P><IMG SRC="APC__AppendUnitsp.png" ALT="APC_AppendUnits.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dstr.png" ALT="c1dstr"></P>
+</TD>
+<TD>
+<B>names</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cstr.png" ALT="cstr"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="c1dstr.png" ALT="c1dstr"></P>
+</TD>
+<TD>
+<B>units</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cstr.png" ALT="cstr"></P>
+</TD>
+<TD>
+<B>scaled units</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dstr.png" ALT="i1dstr"></P>
+</TD>
+<TD>
+<B>names_units</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="istr.png" ALT="istr"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__AppendUnitsd.png" ALT="APC_AppendUnits.vi"></P>
+<HR>
+<A NAME="APC_9056_NI9208conf.vi"></A><H2>APC_9056_NI9208conf.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9056__NI9208confc.png" ALT="APC_9056_NI9208conf.vi"></P>
+<P><IMG SRC="APC__9056__NI9208confp.png" ALT="APC_9056_NI9208conf.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dstr.png" ALT="i1dstr"></P>
+</TD>
+<TD>
+<B>channels name out</B> <P><B>name to assign</B> specifies a name to assign to the virtual channel this VI creates. If you do not wire a value to this input, NI-DAQmx uses the physical channel name as the virtual channel name.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="istr.png" ALT="istr"></P>
+</TD>
+<TD>
+<B>name to assign</B> <P><B>name to assign</B> specifies a name to assign to the virtual channel this VI creates. If you do not wire a value to this input, NI-DAQmx uses the physical channel name as the virtual channel name.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Slope out</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Y-Intercept out</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Max V out</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>AI.Max</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Min V out</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>AI.Max</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dstr.png" ALT="i1dstr"></P>
+</TD>
+<TD>
+<B>scaled units out2</B> <P><B>scaled units</B> is the units to use for the scaled value. You can use an arbitrary string. LabVIEW uses the units to label a graph or chart.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="istr.png" ALT="istr"></P>
+</TD>
+<TD>
+<B>scaled units</B> <P><B>scaled units</B> is the units to use for the scaled value. You can use an arbitrary string. LabVIEW uses the units to label a graph or chart.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9056__NI9208confd.png" ALT="APC_9056_NI9208conf.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__AppendUnitsi.png" ALT="APC_AppendUnits.vi"></P>
+</TD>
+<TD>
+<B><P>APC_AppendUnits.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_AppendUnits.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9056_NI9205conf.vi"></A><H2>APC_9056_NI9205conf.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9056__NI9205confc.png" ALT="APC_9056_NI9205conf.vi"></P>
+<P><IMG SRC="APC__9056__NI9205confp.png" ALT="APC_9056_NI9205conf.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dstr.png" ALT="i1dstr"></P>
+</TD>
+<TD>
+<B>channels name out</B> <P><B>name to assign</B> specifies a name to assign to the virtual channel this VI creates. If you do not wire a value to this input, NI-DAQmx uses the physical channel name as the virtual channel name.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="istr.png" ALT="istr"></P>
+</TD>
+<TD>
+<B>name to assign</B> <P><B>name to assign</B> specifies a name to assign to the virtual channel this VI creates. If you do not wire a value to this input, NI-DAQmx uses the physical channel name as the virtual channel name.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Slope out</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Y-Intercept out</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>Numeric</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Max V out</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>AI.Max</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Min V out</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>AI.Max</B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dstr.png" ALT="i1dstr"></P>
+</TD>
+<TD>
+<B>scaled units out2</B> <P><B>scaled units</B> is the units to use for the scaled value. You can use an arbitrary string. LabVIEW uses the units to label a graph or chart.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="istr.png" ALT="istr"></P>
+</TD>
+<TD>
+<B>scaled units</B> <P><B>scaled units</B> is the units to use for the scaled value. You can use an arbitrary string. LabVIEW uses the units to label a graph or chart.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9056__NI9205confd.png" ALT="APC_9056_NI9205conf.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__AppendUnitsi.png" ALT="APC_AppendUnits.vi"></P>
+</TD>
+<TD>
+<B><P>APC_AppendUnits.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_AppendUnits.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_9056_additonalSignals.vi"></A><H2>APC_9056_additonalSignals.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9056__additonalSignalsc.png" ALT="APC_9056_additonalSignals.vi"></P>
+<P><IMG SRC="APC__9056__additonalSignalsp.png" ALT="APC_9056_additonalSignals.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dstr.png" ALT="i1dstr"></P>
+</TD>
+<TD>
+<B>AdditionalTSSignalList_pre</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="istr.png" ALT="istr"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1dstr.png" ALT="i1dstr"></P>
+</TD>
+<TD>
+<B>AdditionalTSSignalList_post</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="istr.png" ALT="istr"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<P><IMG SRC="APC__9056__additonalSignalsd.png" ALT="APC_9056_additonalSignals.vi"></P>
+<HR>
+<A NAME="APC_9049_rpm.vi"></A><H2>APC_9049_rpm.vi</H2>
+<P>This example demonstrates the procedure required to apply different NI-DAQmx Custom Scales to each virtual channel in a task.  A DAQmx Task Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition &gt;&gt; DAQmx Advanced Task Options) is used to obtain the task's virtual channels.  A DAQmx Channel Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition) is then used to set the custom scale for each virtual channel in the task.</P>
+<P></P>
+<P>The &quot;DAQmx Create Scale&quot; VI creates a custom scale for each channel in the channel list.  *Note, make sure your Minimum and Maximum channel parameters are consistent with the range the scale will create.</P>
+<P><IMG SRC="APC__9049__rpmc.png" ALT="APC_9049_rpm.vi"></P>
+<P><IMG SRC="APC__9049__rpmp.png" ALT="APC_9049_rpm.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cu32.png" ALT="cu32"></P>
+</TD>
+<TD>
+<B>millisecond timer value</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B>rpm from DAQ</B> </TD>
+</TR>
+</Table>
+<P><IMG SRC="APC__9049__rpmd.png" ALT="APC_9049_rpm.vi"></P>
+<HR>
+<A NAME="APC_9049_HRL_CreateFilter.vi"></A><H2>APC_9049_HRL_CreateFilter.vi</H2>
+<P></P>
+<P><IMG SRC="APC__9049__HRL__CreateFilterc.png" ALT="APC_9049_HRL_CreateFilter.vi"></P>
+<P><IMG SRC="APC__9049__HRL__CreateFilterp.png" ALT="APC_9049_HRL_CreateFilter.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ci32.png" ALT="ci32"></P>
+</TD>
+<TD>
+<B>order</B> <P><B>order</B> is the order of the IIR filter and must be greater than zero. If <B>order</B> is less than or equal to zero, the VI sets <B>Reverse Coefficients</B> and <B>Forward Coefficients</B> to empty arrays and returns an error.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>low cutoff freq: fl</B> <P><B>low cutoff freq: fl</B> is the low cutoff frequency in Hz and must observe the Nyquist criterion.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>high cutoff freq: fh</B> <P><B>high cutoff freq: fh</B> is the high cutoff frequency in Hz. The default is 0.45 Hz.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>sampling freq: fs</B> <P><B>sampling freq: fs</B> is the sampling frequency in Hz and must be greater than zero. The default is 1.0 Hz.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ci32.png" ALT="ci32"></P>
+</TD>
+<TD>
+<B>order 2</B> <P><B>order</B> is the order of the IIR filter and must be greater than zero. If <B>order</B> is less than or equal to zero, the VI sets <B>Reverse Coefficients</B> and <B>Forward Coefficients</B> to empty arrays and returns an error.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>low cutoff freq: fl 2</B> <P><B>low cutoff freq: fl</B> is the low cutoff frequency in Hz and must observe the Nyquist criterion.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>high cutoff freq: fh 2</B> <P><B>high cutoff freq: fh</B> is the high cutoff frequency in Hz. The default is 0.45 Hz.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="cdbl.png" ALT="cdbl"></P>
+</TD>
+<TD>
+<B>sampling freq: fs 2</B> <P><B>sampling freq: fs</B> is the sampling frequency in Hz and must be greater than zero. The default is 1.0 Hz.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="icclst.png" ALT="icclst"></P>
+</TD>
+<TD>
+<B>FilterCoefs</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="icclst.png" ALT="icclst"></P>
+</TD>
+<TD>
+<B>IIR LowPass</B> <P><B>IIR Filter Cluster</B> contains the cascaded form of IIR filter coefficients.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ienum.png" ALT="ienum"></P>
+</TD>
+<TD>
+<B>filter structure</B> <P><B>filter structure</B> indicates either IIR second-order or IIR fourth-order filter stages.</P>
+</TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Reverse Coefficients</B> <P><B>Reverse Coefficients</B> is the reverse coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> <P><B>Reverse Coefficients</B> is the reverse coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Forward Coefficients</B> <P><B>Forward Coefficients</B> is the forward coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> <P><B>Forward Coefficients</B> is the forward coefficients of the IIR cascade filter.</P>
+</TD>
+</TR>
+</Table>
+</UL>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="icclst.png" ALT="icclst"></P>
+</TD>
+<TD>
+<B>IIR HighPass</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ienum.png" ALT="ienum"></P>
+</TD>
+<TD>
+<B>filter structure</B> </TD>
+</TR>
+</Table>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Reverse Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="i1ddbl.png" ALT="i1ddbl"></P>
+</TD>
+<TD>
+<B>Forward Coefficients</B> </TD>
+</TR>
+</Table>
+<UL>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="idbl.png" ALT="idbl"></P>
+</TD>
+<TD>
+<B></B> </TD>
+</TR>
+</Table>
+</UL>
+</UL>
+</UL>
+<P><IMG SRC="APC__9049__HRL__CreateFilterd.png" ALT="APC_9049_HRL_CreateFilter.vi"></P>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Butterworth_Coefficientsi.png" ALT="NI_AALBase.lvlib:Butterworth Coefficients.vi"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Butterworth Coefficients.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\3filter.llb\Butterworth Coefficients.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Filter_Structure_Typectli.png" ALT="NI_AALBase.lvlib:Filter Structure Type.ctl"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Filter Structure Type.ctl</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\3filter.llb\Filter Structure Type.ctl</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="NI__AALBase_lvlib_Filter_Passband_Typectli.png" ALT="NI_AALBase.lvlib:Filter Passband Type.ctl"></P>
+</TD>
+<TD>
+<B><P>NI_AALBase.lvlib:Filter Passband Type.ctl</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Analysis\3filter.llb\Filter Passband Type.ctl</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<A NAME="APC_DAQqueues.ctl"></A><H2>APC_DAQqueues.ctl</H2>
+<P></P>
+<P><IMG SRC="APC__DAQqueuesctlc.png" ALT="APC_DAQqueues.ctl"></P>
+<P><IMG SRC="APC__DAQqueuesctlp.png" ALT="APC_DAQqueues.ctl"></P>
+</BODY>
+</HTML>

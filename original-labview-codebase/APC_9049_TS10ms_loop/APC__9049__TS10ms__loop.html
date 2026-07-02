@@ -1,0 +1,135 @@
+<HTML>
+<HEAD>
+<TITLE>APC_9049_TS10ms_loop.vi</TITLE>
+<META NAME="Author" CONTENT="">
+<META NAME="GENERATOR" CONTENT="G Development Environment">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF">
+<A NAME="APC_9049_TS10ms_loop.vi"></A><H2>APC_9049_TS10ms_loop.vi</H2>
+<P>This example demonstrates the procedure required to apply different NI-DAQmx Custom Scales to each virtual channel in a task.  A DAQmx Task Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition &gt;&gt; DAQmx Advanced Task Options) is used to obtain the task's virtual channels.  A DAQmx Channel Property Node (Functions &gt;&gt; NI Measurements &gt;&gt; DAQmx - Data Acquisition) is then used to set the custom scale for each virtual channel in the task.</P>
+<P></P>
+<P>The &quot;DAQmx Create Scale&quot; VI creates a custom scale for each channel in the channel list.  *Note, make sure your Minimum and Maximum channel parameters are consistent with the range the scale will create.</P>
+<HR>
+<H3>Connector Pane</H3>
+<P><IMG SRC="APC__9049__TS10ms__loopc.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+<HR>
+<H3>Front Panel</H3>
+<P><IMG SRC="APC__9049__TS10ms__loopp.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+<HR>
+<H3>Block Diagram</H3>
+<P><IMG SRC="APC__9049__TS10ms__loopd.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+<P><IMG SRC="APC__9049__TS10ms__loopd1.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+<P><IMG SRC="APC__9049__TS10ms__loopd2.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+<P><IMG SRC="APC__9049__TS10ms__loopd3.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+<P><IMG SRC="APC__9049__TS10ms__loopd4.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+<P><IMG SRC="APC__9049__TS10ms__loopd5.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+<P><IMG SRC="APC__9049__TS10ms__loopd6.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+<P><IMG SRC="APC__9049__TS10ms__loopd7.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+<HR>
+<H3>List of SubVIs and Express VIs with Configuration Information</H3>
+<Table>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__KnockCA50Controli.png" ALT="APC_9049_KnockCA50Control.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_KnockCA50Control.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_KnockCA50Control.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="Error_Cluster_From_Error_Codei.png" ALT="Error Cluster From Error Code.vi"></P>
+</TD>
+<TD>
+<B><P>Error Cluster From Error Code.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Utility\error.llb\Error Cluster From Error Code.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="Offset2CATi.png" ALT="Offset2CAT.vi"></P>
+</TD>
+<TD>
+<B><P>Offset2CAT.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Powertrain Controls\Device Drivers\Tools\Real-Time\Offset2CAT.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="Interp1DTableRTi.png" ALT="Interp1DTableRT.vi"></P>
+</TD>
+<TD>
+<B><P>Interp1DTableRT.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Powertrain Controls\Device Drivers\Tools\Real-Time\Interp1DTableRT.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="PlsGen__Time__Convert__revf5i.png" ALT="PlsGen_Time_Convert_revf5.vi"></P>
+</TD>
+<TD>
+<B><P>PlsGen_Time_Convert_revf5.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Powertrain Controls\Device Drivers\Direct Injector Driver\RevF5\Real-Time\PlsGen_Time_Convert_revf5.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="time2ticksi.png" ALT="time2ticks.vi"></P>
+</TD>
+<TD>
+<B><P>time2ticks.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Powertrain Controls\Device Drivers\Tools\Real-Time\time2ticks.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__SparkSettingsi.png" ALT="APC_9049_SparkSettings.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_SparkSettings.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_SparkSettings.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="di__rt__iphase__conv__revf5i.png" ALT="di_rt_iphase_conv_revf5.vi"></P>
+</TD>
+<TD>
+<B><P>di_rt_iphase_conv_revf5.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Powertrain Controls\Device Drivers\Direct Injector Driver\RevF5\Real-Time\di_rt_iphase_conv_revf5.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="APC__9049__ControlSettingsRasteri.png" ALT="APC_9049_ControlSettingsRaster.vi"></P>
+</TD>
+<TD>
+<B><P>APC_9049_ControlSettingsRaster.vi</P>
+</B><P>C:\LabVIEW PROJECT\MONARCH\APC_9049_ControlSettingsRaster.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="di__rt__control__revf5i.png" ALT="di_rt_control_revf5.vi"></P>
+</TD>
+<TD>
+<B><P>di_rt_control_revf5.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Powertrain Controls\Device Drivers\Direct Injector Driver\RevF5\Real-Time\di_rt_control_revf5.vi</P>
+</TD>
+</TR>
+<TR valign=TOP>
+<TD>
+<P><IMG SRC="ticks2speedi.png" ALT="ticks2speed.vi"></P>
+</TD>
+<TD>
+<B><P>ticks2speed.vi</P>
+</B><P>C:\Program Files (x86)\National Instruments\LabVIEW 2020\vi.lib\Powertrain Controls\Device Drivers\Tools\Real-Time\ticks2speed.vi</P>
+</TD>
+</TR>
+</Table>
+<HR>
+<H3>Position in Hierarchy</H3>
+<P><IMG SRC="APC__9049__TS10ms__looph.png" ALT="APC_9049_TS10ms_loop.vi"></P>
+</BODY>
+</HTML>
