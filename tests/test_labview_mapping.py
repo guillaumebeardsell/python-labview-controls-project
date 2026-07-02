@@ -27,17 +27,24 @@ def _faithful_labview_capture() -> dict:
     """A flat {label: value} object equivalent to what LabVIEW would flatten —
     compare_flatten keys on the innermost label, so flatness is fine."""
     path_to_label = {v: k for k, v in LABEL_TO_PATH.items()}
-    capture = {}
+    capture: dict = {}
     for dotted, leaf in model_leaves().items():
         label = path_to_label[dotted]
         if leaf["kind"] == "array":
-            capture[label] = [0] * leaf["length"]
+            value: object = [0] * leaf["length"]
         elif leaf["kind"] == "bool":
-            capture[label] = False
+            value = False
         elif leaf["kind"] == "number":
-            capture[label] = 0
+            value = 0
         else:
-            capture[label] = ""
+            value = ""
+        # A parent-qualified mapping key ("parent/label") is nested, exercising
+        # resolve_label's qualified lookup; bare labels sit at the top level.
+        if "/" in label:
+            parent, leaf_label = label.split("/", 1)
+            capture.setdefault(parent, {})[leaf_label] = value
+        else:
+            capture[label] = value
     return capture
 
 
@@ -74,7 +81,9 @@ def test_detects_type_mismatch():
 
 def test_detects_array_length_mismatch():
     cap = _faithful_labview_capture()
-    cap["Activate cylinder"] = [False] * 4  # model expects 6
+    # look the label up (it contains an embedded newline) rather than hardcode it
+    label = next(k for k, v in LABEL_TO_PATH.items() if v == "activate_cylinder")
+    cap[label] = [False] * 4  # model expects 6
     rep = compare_flatten(cap)
     assert any(p == "activate_cylinder" for _, p, *_ in rep.array_mismatch)
     assert not rep.ok

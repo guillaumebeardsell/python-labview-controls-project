@@ -57,22 +57,44 @@ Nested `PidControlReferences`: feed/vent valve commands, per-actuator channels
 plant-tag reference values, the MTR Modbus float/u16 arrays, and MTR/PC
 heartbeats plus `EMERGENCY STOP & VENT`.
 
-## Open questions — confirm against a live `Flatten To JSON`
+## Confirmed against a live capture (2026-07-02)
 
-These do not affect the serialization mechanism (tests pass), but must be
-resolved before Python has any authority:
+A real LabVIEW `Flatten To JSON` capture
+(`original-labview-codebase/control_settings_flatten.txt`) was diffed against the
+model with `tools/compare_flatten.py` → **RESULT: AGREE**. All 64 leaf fields
+match on name, type, and structure. What the capture resolved:
 
-1. **Boolean polarity.** The diagram states venting valves use `1 = closed,
-   0 = open`. NG/Ar/O2 feed-valve polarity is unconfirmed. Model defaults are
-   provisional.
-2. **Reference grouping.** Whether each actuator's reference values are a true
-   LabVIEW sub-cluster (modeled here as a per-channel object) or flat siblings
-   of the `*_control_mode` element. Affects only how the gateway maps them.
-3. **Array lengths.** `activate_cylinder` (6), `mtr_modbus_floats` (19),
-   `mtr_modbus_u16` (6) are read off the panel, not pinned.
-4. **`PFI advance`.** An older StateMachine panel listed a `PFI advance`
-   field; the current typedef has only `PFI duration [ms]`. Modeled per the
-   current typedef.
+1. **Array lengths — pinned.** `activate_cylinder` = 6, `mtr_modbus_floats` = 19,
+   `mtr_modbus_u16` = **7** (was modeled as 6; corrected).
+2. **`Requested mode`** flattens as a **number** (−1..3), matching the model's
+   `int`/`SystemState`. No string-enum handling needed.
+3. **Reference grouping.** LabVIEW nests `PID control references` as a sub-object
+   but keeps each actuator's `*_control_mode` and its `*-REF` values as **flat
+   siblings** (not per-channel sub-clusters). The model groups them into channel
+   objects; the diff tool matches by innermost label, and the mapping bridges the
+   two, so this is purely a gateway-side mapping detail.
+4. **`PFI advance`** confirmed absent — the current cluster has only
+   `PFI duration [ms]`, as modeled.
 
-The cleanest way to close all four at once: on the gateway, `Flatten To JSON`
-the real cluster once and diff its output against `ControlSettings().model_dump_json()`.
+### LabVIEW label quirks absorbed by the mapping
+
+The real field labels contain oddities that `LABEL_TO_PATH` now matches exactly,
+so the clean snake_case wire keys are unaffected:
+
+- Embedded newlines: `"CL PFI\n lambda"`, `"CL PFI\nIMEP"`, `"Activate\ncylinder"`.
+- Stray spaces: `"DI duration [ms] "` (trailing), `"Tcoolant control  mode"` (double).
+- `"l ref"` (LabVIEW renders `λ` as `l`).
+- The nested e-stop field flattens as label `"EMERGENCY STOP"` (Boolean text
+  "EMERGENCY STOP & VENT"), colliding with the top-level `"EMERGENCY STOP"`;
+  disambiguated by a parent-qualified mapping key.
+
+### Boolean polarity
+
+The capture was taken with `Requested mode = SAFE` and all valve booleans
+`false`. Per the MAX-LEVEL-OF-CONTROL table the SAFE column is vents *open*,
+feeds *closed*, so **`false` = the safe position** for both: vents `false = open`
+(consistent with the diagram's `1 = closed`), feed valves `false = closed`
+(hence `true = open`). This matches the model defaults (all `false`). Worth a
+second capture in an active state (e.g. FIRING, vents commanded closed) to
+remove any doubt before the limiting logic relies on it — polarity affects the
+Stage-3 limiter, not the contract structure.

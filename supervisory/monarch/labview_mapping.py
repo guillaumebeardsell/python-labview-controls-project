@@ -26,23 +26,23 @@ LABEL_TO_PATH: dict[str, str] = {
     "Pref": "p_ref",
     "O2ref": "o2_ref",
     "DI advance [CADBTDC]": "di_advance_cadbtdc",
-    "DI duration [ms]": "di_duration_ms",
+    "DI duration [ms] ": "di_duration_ms",  # NB: trailing space in the LabVIEW label
     "CO2ref": "co2_ref",
     "PFI duration [ms]": "pfi_duration_ms",
     "IMEP ref": "imep_ref",
     "Speed ref": "speed_ref",
     "IGN enable": "ign_enable",
     "DI enable": "di_enable",
-    "CL PFI lambda": "cl_pfi_lambda",
-    "CL PFI IMEP": "cl_pfi_imep",
-    "Activate cylinder": "activate_cylinder",
+    "CL PFI\n lambda": "cl_pfi_lambda",  # NB: embedded newline in the LabVIEW label
+    "CL PFI\nIMEP": "cl_pfi_imep",  # NB: embedded newline
+    "Activate\ncylinder": "activate_cylinder",  # NB: embedded newline
     "Force idling": "force_idling",
     "Force motoring": "force_motoring",
     "ETP resync": "force_etp_resync",
     "Requested mode": "requested_mode",
     "Clear Sync Errors": "clear_sync_errors",
     "toggle TDC": "toggle_tdc",
-    "λ ref": "lambda_ref",
+    "l ref": "lambda_ref",  # LabVIEW renders the "λ ref" label as "l ref"
     "CA50setpoint [CADATDC]": "ca50_setpoint_cadatdc",
     "CA50 control": "ca50_control",
     "Knock control": "knock_control",
@@ -70,7 +70,7 @@ LABEL_TO_PATH: dict[str, str] = {
     "O2-FC-001-REF": _PCR + "o2.o2_fc_001_ref",
     "WF-OA-001-REF": _PCR + "o2.wf_oa_001_ref",
     # --- Tcoolant channel ---
-    "Tcoolant control mode": _PCR + "tcoolant.mode",
+    "Tcoolant control  mode": _PCR + "tcoolant.mode",  # NB: double space in the LabVIEW label
     "EC-FC-001-REF": _PCR + "tcoolant.ec_fc_001_ref",
     "EC-TT-001-REF": _PCR + "tcoolant.ec_tt_001_ref",
     # --- Texh channel ---
@@ -93,7 +93,10 @@ LABEL_TO_PATH: dict[str, str] = {
     "MTR modbus u16": _PCR + "mtr_modbus_u16",
     "MTR HB": _PCR + "mtr_hb",
     "PC_HB": _PCR + "pc_hb",
-    "EMERGENCY STOP & VENT": _PCR + "emergency_stop_and_vent",
+    # This nested field flattens with label "EMERGENCY STOP" (its Boolean text is
+    # "EMERGENCY STOP & VENT"), colliding with the top-level "EMERGENCY STOP".
+    # A parent-qualified key ("parent/label") disambiguates; see compare_flatten.
+    "PID control references/EMERGENCY STOP": _PCR + "emergency_stop_and_vent",
 }
 
 
@@ -134,13 +137,26 @@ def model_leaves() -> dict[str, dict]:
     return {".".join(p): leaf for p, leaf in flatten_leaves(dump).items()}
 
 
+def resolve_label(path: tuple[str, ...]) -> str | None:
+    """Model dotted path for a LabVIEW leaf at `path`. Tries a parent-qualified
+    key ("parent/label") first — to disambiguate labels that repeat in different
+    clusters (e.g. "EMERGENCY STOP") — then the bare innermost label."""
+    if not path:
+        return None
+    label = path[-1]
+    if len(path) >= 2:
+        qualified = LABEL_TO_PATH.get(f"{path[-2]}/{label}")
+        if qualified is not None:
+            return qualified
+    return LABEL_TO_PATH.get(label)
+
+
 @dataclass
 class Report:
     unmapped: list[tuple] = field(default_factory=list)       # (label, lv_path, kind) — LabVIEW has, model doesn't
     missing: list[str] = field(default_factory=list)          # dotted path — model has, capture didn't
     type_mismatch: list[tuple] = field(default_factory=list)  # (label, path, lv_kind, model_kind)
     array_mismatch: list[tuple] = field(default_factory=list) # (label, path, lv_len, model_len)
-    dup_labels: list[str] = field(default_factory=list)
     booleans: list[tuple] = field(default_factory=list)       # (label, lv_path, value) — to resolve polarity
     arrays: list[tuple] = field(default_factory=list)         # (label, lv_path, length)
 
@@ -153,25 +169,19 @@ def compare_flatten(lv_obj) -> Report:
     """Diff a LabVIEW `Flatten To JSON` capture against the model contract."""
     model = model_leaves()
     rep = Report()
+    covered: set[str] = set()
 
-    lv_by_label: dict[str, tuple[tuple[str, ...], dict]] = {}
     for path, leaf in flatten_leaves(lv_obj).items():
         if not path:
             continue
         label = path[-1]
-        if label in lv_by_label:
-            rep.dup_labels.append(label)
-        lv_by_label[label] = (path, leaf)
-
-    covered: set[str] = set()
-    for label, (path, leaf) in lv_by_label.items():
         lv_path = ".".join(path)
         if leaf["kind"] == "bool":
             rep.booleans.append((label, lv_path, leaf["value"]))
         if leaf["kind"] == "array":
             rep.arrays.append((label, lv_path, leaf["length"]))
 
-        model_path = LABEL_TO_PATH.get(label)
+        model_path = resolve_label(path)
         if model_path is None or model_path not in model:
             rep.unmapped.append((label, lv_path, leaf["kind"]))
             continue

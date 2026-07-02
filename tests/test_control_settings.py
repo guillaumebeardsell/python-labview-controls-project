@@ -17,7 +17,7 @@ def test_defaults_construct():
     assert cs.requested_mode is SystemState.STAND_BY
     assert len(cs.activate_cylinder) == 6
     assert len(cs.pid_control_references.mtr_modbus_floats) == 19
-    assert len(cs.pid_control_references.mtr_modbus_u16) == 6
+    assert len(cs.pid_control_references.mtr_modbus_u16) == 7
 
 
 def test_round_trip_defaults():

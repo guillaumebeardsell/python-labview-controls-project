@@ -143,7 +143,7 @@ class PidControlReferences(BaseModel):
     membrane: MembraneChannel = Field(default_factory=MembraneChannel)
 
     mtr_modbus_floats: list[float] = Field(default_factory=lambda: [0.0] * 19)  # "MTR modbus floats"
-    mtr_modbus_u16: list[int] = Field(default_factory=lambda: [0] * 6)  # "MTR modbus u16"
+    mtr_modbus_u16: list[int] = Field(default_factory=lambda: [0] * 7)  # "MTR modbus u16" (confirmed 7 from live capture)
 
     mtr_hb: bool = False  # "MTR HB" (MTR heartbeat)
     pc_hb: bool = False  # "PC_HB" (PC heartbeat)

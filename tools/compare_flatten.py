@@ -55,9 +55,6 @@ def main() -> int:
         rep.array_mismatch,
         lambda r: f"{r[0]!r} -> {r[1]}: LabVIEW len={r[2]}, model len={r[3]}",
     )
-    if rep.dup_labels:
-        section("Duplicate labels in capture (ambiguous)", rep.dup_labels, lambda r: r)
-
     section(
         "Booleans observed (resolve polarity: note vents are meant 1=closed/0=open)",
         sorted(rep.booleans),
