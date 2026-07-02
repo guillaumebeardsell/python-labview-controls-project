@@ -108,13 +108,17 @@ ZIP*, extract, and skip the `git clone` below — but you lose easy
 cd C:\
 git clone https://github.com/guillaumebeardsell/python-labview-controls-project.git
 cd python-labview-controls-project
-python -m venv .venv
+py -m venv .venv
 .venv\Scripts\activate
 pip install -e .
 ```
 
-- `python -m venv .venv` creates a private Python environment in `.venv\`,
-  so nothing is installed machine-wide on the control-room PC.
+- `py -m venv .venv` creates a private Python environment in `.venv\`, so
+  nothing is installed machine-wide on the control-room PC. We use the `py`
+  launcher (not `python`) because it works even when Python was installed
+  without the "Add to PATH" option — bare `python` on such a machine hits
+  the Microsoft Store alias instead. After `activate`, plain `python` works
+  in that terminal: the venv puts its own `python.exe` first on PATH.
 - `activate` puts that environment on this terminal's PATH — the prompt
   gains a `(.venv)` prefix. It's needed once per new terminal. In
   PowerShell the command is `.venv\Scripts\Activate.ps1`; if that's blocked
