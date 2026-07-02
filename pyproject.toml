@@ -13,7 +13,7 @@ dependencies = ["pydantic>=2.5"]
 dev = ["pytest>=8"]
 
 [tool.setuptools]
-packages = ["supervisory"]
+packages = ["supervisory", "supervisory.monarch"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
