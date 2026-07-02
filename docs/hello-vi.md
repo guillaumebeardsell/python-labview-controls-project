@@ -42,30 +42,111 @@ second loop would never see it.
        - Any other error (66 = peer closed): exit the inner loop.
      - If a line arrived: write it to `Last received`, increment
        `Lines received`.
-     - `Match Pattern` on the line for `"type":"command"`. If found,
-       `TCP Write` this constant (string constant in **'\' Codes Display**
-       so `\r\n` is real):
+     - **Reply to commands** (a `command_ack`) and **send telemetry at
+       1 Hz** — both are `TCP Write`s on this same connection. Node-by-node
+       wiring is in **§1a** below; both live inside this inner loop.
+   - After the inner loop exits: `TCP Close Connection` on the **connection
+     ID**, set `Client connected` false, loop back to `TCP Wait On Listener`
+     — so Python can disconnect and reconnect freely.
+3. After the outer loop exits: `TCP Close` the **listener**.
 
-       ```
-       {"type":"command_ack","id":1,"accepted":true,"reason":"hello from LabVIEW"}\r\n
-       ```
+The inner loop needs no wait primitive — the 100 ms read timeout paces it.
 
-     - Telemetry at 1 Hz: keep the last-send tick in a shift register
-       (`Tick Count (ms)`). When ≥ 1000 ms have passed, increment the seq
-       shift register, `Format Into String` with this format string (seq
-       wired to **both** `%d`s), append `\r\n`, `TCP Write`:
+**Refnum rule (this is what causes most Error 1 dialogs).** `TCP Wait On
+Listener` has two stacked teal outputs: **listener ID out** (top) and
+**connection ID** (bottom). Every per-session TCP node — `TCP Read`, both
+send-side `TCP Write`s, and the inner `TCP Close Connection` — takes the
+**connection ID**, branched from one wire. The **listener** refnum (from
+`TCP Create Listener`, or WOL's top output) goes to exactly two places:
+WOL's *listener in*, and the final `TCP Close` **outside** the outer loop.
+Feed the inner close the listener by mistake and you destroy the listener at
+the end of each session, so the next `Wait On Listener` fails with Error 1.
+
+## 1a. Building the send side, node by node
+
+Both pieces go in the **inner (session) loop** and both `TCP Write` to the
+**connection ID** (branch the same teal wire that feeds `TCP Read`). Thread
+the error wire `TCP Read → ack → telemetry → loop edge` so the writes run
+*after* the read, in order, and short-circuit if the read already errored.
+
+### Command reply (produces `ack id=1 ...` in Python)
+
+Build this first — it's the quick win, and a `telnet` session can trigger it.
+
+1. **`Match Pattern`** (String palette). Wire the **received line** (the
+   `TCP Read` *data out*, same wire that feeds `Last received`) into its
+   *string* input.
+2. Into *regular expression*, wire a **string constant** containing exactly
+   `"type":"command"` (normal display — the double-quotes are literal
+   characters, nothing to escape).
+3. `Match Pattern`'s *offset past match* output (bottom, I32) → **`≥ 0`**
+   (`Greater Or Equal To 0?`). That boolean is "a command line arrived."
+   (Equivalent: *match substring* → `Empty String/Path?` → `Not`.)
+4. Feed the boolean to a **Case structure**:
+   - **True:** a **string constant in `'\' Codes Display`** (right-click →
+     *'\' Codes Display* so `\r\n` becomes a real CR+LF), containing:
+
+     ```
+     {"type":"command_ack","id":1,"accepted":true,"reason":"hello from LabVIEW"}\r\n
+     ```
+
+     → `TCP Write` *data in*; connection ID → `TCP Write` *connection ID*;
+     pass the error through.
+   - **False:** wire connection ID and error straight across, write nothing.
+5. Nest this inside the same "line arrived?" case you already use to update
+   `Last received` / bump `Lines received`, so you're not matching on an
+   empty timeout string. (Harmless if you don't — an empty string never
+   matches — but tidier.)
+
+### 1 Hz telemetry (produces `telemetry seq=...` in Python)
+
+Add **two shift registers** to the inner loop (right-click the loop border →
+*Add Shift Register*, twice):
+
+- `lastTick` (I32) — initialize the left terminal, outside the loop, with a
+  single `Tick Count (ms)` read (or just `0`; then the first frame fires
+  immediately, which is fine).
+- `seq` (I32) — initialize the left terminal with `0`.
+
+Each iteration:
+
+1. `Tick Count (ms)` → **`now`**. Compute `now − lastTick` (**`Subtract`**) →
+   `elapsed`. Test `elapsed ≥ 1000` (**`Greater Or Equal?`**) → boolean.
+2. **Case structure** on that boolean:
+   - **True (time to send):**
+     - `seq` → **`Increment`** → `newSeq`.
+     - **`Format Into String`**: format-string constant
 
        ```
        {"type":"telemetry","seq":%d,"ts":0,"mode":"HELLO","channels":{"counter":%d},"flags":{"labview_ok":true}}
        ```
 
-       Show the seq on `Telemetry seq`.
-   - After the inner loop exits: `TCP Close Connection`, `Client connected`
-     false, loop back to `TCP Wait On Listener` — so Python can disconnect
-     and reconnect freely.
-3. After the outer loop exits: `TCP Close` the listener.
+       Grow the node to **two arguments** and wire `newSeq` (I32) to **both**
+       `%d` inputs. Output is the JSON line, no terminator.
+     - **`Concatenate Strings`**: JSON `+` a `\r\n` constant (`'\' Codes
+       Display`).
+     - `TCP Write`: *data in* = that string; *connection ID* = the
+       connection (branch the `TCP Read` wire).
+     - `newSeq` → the `seq` shift register (right) **and** → the
+       `Telemetry seq` indicator. `now` → the `lastTick` shift register
+       (right).
+   - **False (not yet):** pass `seq` and `lastTick` through their shift
+     registers **unchanged**; connection ID and error straight across, no
+     write.
 
-The inner loop needs no wait primitive — the 100 ms read timeout paces it.
+The `%d` fields want an integer — keep `seq` as **I32** (an orange/DBL wire
+into `%d` coerces with a warning). `ts` is hard-coded `0` here on purpose;
+the Python side tolerates it for this experiment.
+
+### Quick verification
+
+- **Without Python:** `telnet 127.0.0.1 5020` — a telemetry line should
+  appear every second; typing
+  `{"type":"command","id":1,"name":"x","params":{}}` + Enter should return
+  the ack line (see §4).
+- **With Python:** `telemetry seq=...` at 1 Hz and `ack id=1
+  accepted=True reason='hello from LabVIEW'` after each ping; Ctrl-C →
+  `RESULT: PASS`.
 
 ## 2. Run the Python side
 
