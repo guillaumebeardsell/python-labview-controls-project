@@ -1,0 +1,13 @@
+{
+  "run_id": "eval-scatter-old_skill",
+  "summary": {"pass_rate": 0.286, "passed": 2, "failed": 5, "total": 7},
+  "expectations": [
+    {"text": "Output PNG exists and is non-empty", "passed": true, "evidence": "baseline_scatter.png present"},
+    {"text": "Imports from plot_style", "passed": false, "evidence": "old skill has no plot_style reference"},
+    {"text": "Calls setup_matplotlib()", "passed": false, "evidence": "not in script"},
+    {"text": "Calls style_ax() on axes", "passed": false, "evidence": "not in script"},
+    {"text": "Uses save_fig() helper", "passed": false, "evidence": "not in script"},
+    {"text": "Axis labels include units in brackets", "passed": true, "evidence": "found in script"},
+    {"text": "plot_style.py copied to project root", "passed": false, "evidence": "old skill does not mention plot_style.py"}
+  ]
+}

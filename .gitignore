@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+traffic*.jsonl
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+desktop.ini

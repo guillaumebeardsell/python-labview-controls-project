@@ -1,0 +1,14 @@
+{
+  "run_id": "eval-timeseries-with_skill",
+  "summary": {"pass_rate": 1.0, "passed": 8, "failed": 0, "total": 8},
+  "expectations": [
+    {"text": "Output PNG exists and is non-empty", "passed": true, "evidence": "test_timeseries.png present"},
+    {"text": "Imports from plot_style", "passed": true, "evidence": "found in script"},
+    {"text": "Calls setup_matplotlib()", "passed": true, "evidence": "found in script"},
+    {"text": "Calls style_ax() on axes", "passed": true, "evidence": "found in script"},
+    {"text": "Uses save_fig() helper", "passed": true, "evidence": "found in script"},
+    {"text": "Individual cycles use alpha=0.03", "passed": true, "evidence": "found in script"},
+    {"text": "Mean line uses linewidth=1.8", "passed": true, "evidence": "found in script"},
+    {"text": "Spark vline uses color=grey", "passed": true, "evidence": "found in script"}
+  ]
+}

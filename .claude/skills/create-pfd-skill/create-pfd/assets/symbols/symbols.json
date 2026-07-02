@@ -1,0 +1,272 @@
+{
+  "heat_exchanger": {
+    "file": "heat_exchanger.svg",
+    "viewBox": [
+      359.7,
+      359.7,
+      1242.6,
+      1242.6
+    ],
+    "aspect": 1.0,
+    "tag_prefix": "E",
+    "ports": {
+      "in": [
+        0,
+        0.5
+      ],
+      "out": [
+        1,
+        0.5
+      ],
+      "top": [
+        0.5,
+        0
+      ],
+      "bottom": [
+        0.5,
+        1
+      ]
+    }
+  },
+  "pump": {
+    "file": "pump.svg",
+    "viewBox": [
+      62.1,
+      359.7,
+      1841.0,
+      1242.6
+    ],
+    "aspect": 1.482,
+    "tag_prefix": "P",
+    "ports": {
+      "in": [
+        0,
+        0.5
+      ],
+      "out": [
+        1,
+        0.5
+      ],
+      "top": [
+        0.5,
+        0
+      ],
+      "bottom": [
+        0.5,
+        1
+      ]
+    }
+  },
+  "compressor": {
+    "file": "compressor.svg",
+    "viewBox": [
+      62.1,
+      359.7,
+      1841.0,
+      1242.6
+    ],
+    "aspect": 1.482,
+    "tag_prefix": "C",
+    "ports": {
+      "in": [
+        0,
+        0.5
+      ],
+      "out": [
+        1,
+        0.5
+      ],
+      "top": [
+        0.5,
+        0
+      ],
+      "bottom": [
+        0.5,
+        1
+      ]
+    }
+  },
+  "vessel": {
+    "file": "vessel.svg",
+    "viewBox": [
+      362.9,
+      362.9,
+      939.0,
+      1238.2
+    ],
+    "aspect": 0.758,
+    "tag_prefix": "VE",
+    "ports": {
+      "top": [
+        0.5,
+        0
+      ],
+      "bottom": [
+        0.5,
+        1
+      ],
+      "in": [
+        0,
+        0.5
+      ],
+      "out": [
+        1,
+        0.5
+      ]
+    }
+  },
+  "rounded_vessel": {
+    "file": "rounded_vessel.svg",
+    "viewBox": [
+      362.9,
+      362.9,
+      939.0,
+      1836.5
+    ],
+    "aspect": 0.511,
+    "tag_prefix": "VE",
+    "ports": {
+      "top": [
+        0.5,
+        0
+      ],
+      "bottom": [
+        0.5,
+        1
+      ],
+      "in": [
+        0,
+        0.5
+      ],
+      "out": [
+        1,
+        0.5
+      ]
+    }
+  },
+  "membrane_permeate": {
+    "file": "membrane_permeate.svg",
+    "viewBox": [
+      353.1,
+      353.1,
+      2455.8,
+      1259.5
+    ],
+    "aspect": 1.95,
+    "tag_prefix": "M",
+    "ports": {
+      "in": [
+        0,
+        0.5
+      ],
+      "out": [
+        1,
+        0.5
+      ],
+      "permeate": [
+        0.5,
+        1
+      ]
+    }
+  },
+  "general_valve": {
+    "file": "general_valve.svg",
+    "viewBox": [
+      367.7,
+      519.8,
+      626.5,
+      324.6
+    ],
+    "aspect": 1.93,
+    "tag_prefix": "V",
+    "ports": {
+      "in": [
+        0,
+        0.5
+      ],
+      "out": [
+        1,
+        0.5
+      ]
+    }
+  },
+  "globe_valve": {
+    "file": "globe_valve.svg",
+    "viewBox": [
+      0.0,
+      0.0,
+      1362.0,
+      1362.0
+    ],
+    "aspect": 1.0,
+    "tag_prefix": "V",
+    "ports": {
+      "in": [
+        0,
+        0.5
+      ],
+      "out": [
+        1,
+        0.5
+      ]
+    }
+  },
+  "check_valve": {
+    "file": "check_valve.svg",
+    "viewBox": [
+      369.5,
+      369.5,
+      673.1,
+      374.2
+    ],
+    "aspect": 1.799,
+    "tag_prefix": "V",
+    "ports": {
+      "in": [
+        0,
+        0.5
+      ],
+      "out": [
+        1,
+        0.5
+      ]
+    }
+  },
+  "column": {
+    "file": "column.svg",
+    "viewBox": [
+      0,
+      0,
+      100,
+      300
+    ],
+    "aspect": 0.333,
+    "tag_prefix": "T",
+    "ports": {
+      "feed": [
+        0,
+        0.62
+      ],
+      "top": [
+        0.5,
+        0
+      ],
+      "bottom": [
+        0.5,
+        1
+      ],
+      "side": [
+        1,
+        0.3
+      ],
+      "reb_vap": [
+        1,
+        0.72
+      ],
+      "reb_liq": [
+        1,
+        0.8
+      ]
+    }
+  }
+}

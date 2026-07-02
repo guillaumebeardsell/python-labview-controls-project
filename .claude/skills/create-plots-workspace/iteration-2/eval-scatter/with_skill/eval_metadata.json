@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "scatter-plot",
+  "prompt": "Scatter plot of CA50_Fired2_mean vs Spark timing, colored by H2_frac — checking subscripts, axis limits, title font",
+  "assertions": []
+}

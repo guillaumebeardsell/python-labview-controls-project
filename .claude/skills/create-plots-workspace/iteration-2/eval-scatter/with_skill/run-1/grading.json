@@ -1,0 +1,12 @@
+{
+  "run_id": "eval-scatter-with_skill",
+  "summary": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6},
+  "expectations": [
+    {"text": "Output PNG exists and is non-empty", "passed": true, "evidence": "test_scatter2.png present"},
+    {"text": "Legend uses $H_2$ math text for subscript", "passed": true, "evidence": "found '$H_2$' in script"},
+    {"text": "No fontfamily override in set_title()", "passed": true, "evidence": "'fontfamily' not in script"},
+    {"text": "Calls style_ax() on axes", "passed": true, "evidence": "found in script"},
+    {"text": "Uses save_fig() helper", "passed": true, "evidence": "found in script"},
+    {"text": "Explicit axis limits set (multiples of 10)", "passed": true, "evidence": "set_xlim/set_ylim found in script"}
+  ]
+}

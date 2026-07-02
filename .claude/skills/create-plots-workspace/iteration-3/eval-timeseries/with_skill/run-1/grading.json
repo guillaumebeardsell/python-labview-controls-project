@@ -1,0 +1,12 @@
+{
+  "run_id": "eval-timeseries-with_skill",
+  "summary": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6},
+  "expectations": [
+    {"text": "Output PNG exists", "passed": true, "evidence": "test_timeseries2.png present"},
+    {"text": "Uses nice_limits()", "passed": true, "evidence": "found in script"},
+    {"text": "No fontfamily override in set_title", "passed": true, "evidence": "not in script"},
+    {"text": "alpha=0.03 for individual cycles", "passed": true, "evidence": "found in script"},
+    {"text": "linewidth=1.8 for mean", "passed": true, "evidence": "found in script"},
+    {"text": "Grey spark vline", "passed": true, "evidence": "found in script"}
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "eval_id": 0,
+  "eval_name": "scatter-plot",
+  "prompt": "Create a scatter plot of CA50_Fired2_mean vs Spark timing, colored by H2_frac",
+  "assertions": [
+    {"text": "Output PNG exists and is non-empty"},
+    {"text": "Imports from plot_style (from plot_style import ...)"},
+    {"text": "Calls setup_matplotlib()"},
+    {"text": "Calls style_ax() on axes"},
+    {"text": "Uses save_fig() helper"},
+    {"text": "Axis labels include units in brackets"},
+    {"text": "plot_style.py copied to project root"}
+  ]
+}

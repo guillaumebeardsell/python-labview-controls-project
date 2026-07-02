@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "timeseries-ensemble",
+  "prompt": "Plot 50 synthetic pressure cycles as an ensemble (individual + mean) with a spark timing marker",
+  "assertions": []
+}

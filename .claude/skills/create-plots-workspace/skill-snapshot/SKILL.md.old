@@ -1,0 +1,152 @@
+---
+name: create-plots
+description: >
+  Creates consistently high-quality, publication-ready matplotlib plots for
+  optical engine data analysis. Use this skill for ANY data visualization
+  task — whenever the user asks to plot, chart, graph, or visualize data,
+  or requests figures for a report, paper, or presentation. Also use when
+  asked to improve, clean up, or make an existing plot look better. Trigger
+  even for casual requests like "show me X vs Y" or "can you plot the trend".
+metadata:
+  author: Guillaume Beardsell
+  version: 0.2.0
+---
+
+# Create High-Quality Plots
+
+## Setup
+
+This project has a shared `plot_style.py` helper in `scripts/plot_style.py`
+(relative to this skill). **Before writing a new plot script, check whether
+`plot_style.py` already exists in the project root.** If it does not, copy
+the bundled version there.
+
+Every plot script must start with:
+
+```python
+import sys
+sys.stdout.reconfigure(encoding="utf-8")
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from plot_style import setup_matplotlib, style_ax, save_fig, PALETTE
+
+setup_matplotlib()
+```
+
+`setup_matplotlib()` sets the font to **Open Sans** at 10 pt (falls back to
+DejaVu Sans with instructions if not installed).
+
+**To install Open Sans** (one-time):
+1. Download from fonts.google.com/specimen/Open+Sans
+2. Copy the `.ttf` files to matplotlib's font directory:
+   `python -c "import matplotlib; print(matplotlib.get_data_path() + '/fonts/ttf')"`
+3. Rebuild the cache:
+   `python -c "import matplotlib.font_manager as fm; fm._load_fontmanager(try_read_cache=False)"`
+
+---
+
+## Figure sizes
+
+Target letter-size pages with 1-inch margins (usable width ≈ 6.5 in):
+
+| Layout | `figsize` |
+|---|---|
+| Single panel | `(7.5, 4.5)` |
+| Single panel, wide/short | `(8.0, 3.5)` |
+| Two panels, vertical (`sharex`) | `(12, 9)` |
+| Three panels, vertical (`sharex`) | `(14, 13)` |
+
+---
+
+## Axis styling
+
+Call `style_ax(ax)` on **every** axis. It applies:
+- Light grey background (`#f9f9f9`)
+- Major grid: solid, `#cccccc`, 0.8 pt
+- Minor grid: dotted, `#e0e0e0`, 0.4 pt
+- Grey spines (`#cccccc`) and tick marks (`#888888`)
+- 10 pt tick labels
+
+Also set `fig.patch.set_facecolor("#f9f9f9")` on the figure itself so the
+background is consistent when saved.
+
+---
+
+## Color palette
+
+Use `PALETTE` from `plot_style` for sequential series:
+
+```python
+PALETTE = ["#2166ac", "#d6604d", "#4dac26", "#8073ac"]
+#           blue       red        green      purple
+```
+
+These are colorblind-friendly and consistent across all project plots. Use
+them in order; don't pick arbitrary colors unless the data has a specific
+semantic meaning that maps to a color (e.g., blue = 10% CO₂, red = 15% CO₂).
+
+---
+
+## Axis limits
+
+- Minimize empty space: trim limits so data fills the plot area.
+- When the range exceeds 5 units, snap to integers (e.g., `0` to `20`, not
+  `-0.1` to `20.9`).
+- For physical quantities, don't let axes extend below zero unless negative
+  values are meaningful.
+- If a shared y-axis is needed across subplots, compute the global max from
+  all data first, then apply it uniformly.
+
+---
+
+## Labels and titles
+
+- Axis labels must include units in square brackets: `"Pressure [bar]"`,
+  `"Temperature [°C]"`, `"Crank Angle [CAD]"`.
+- Font size 10 pt for all text — this is the `rcParams` default set by
+  `setup_matplotlib()`, so you usually don't need to specify it explicitly.
+- Titles: `fontsize=10, fontweight="bold", pad=8`.
+- For multi-line titles (e.g., main title + subtitle), use `\n`.
+
+---
+
+## Legends
+
+- Check that the legend doesn't cover data. Start with `loc="best"`.
+- If it overlaps data, try corners explicitly: `"upper right"`, `"upper left"`,
+  `"lower right"`, `"lower left"`.
+- If all corners overlap data, extend axis limits to create empty space rather
+  than placing the legend on top of data.
+- Standard options: `framealpha=0.9`, `edgecolor="#cccccc"`.
+
+---
+
+## Saving
+
+Use `save_fig(fig, path)` from `plot_style`. It calls `tight_layout()`,
+saves at 150 dpi with `bbox_inches="tight"`, closes the figure, and prints
+the path. No need to call `plt.close()` or `tight_layout()` separately.
+
+**Output path convention:**
+- Single output file: `output/plots/<name>.png`
+- Batch output: `output/plots/<subdir>/<uid>.png`
+
+---
+
+## Multi-cycle / ensemble data
+
+When many cycles are plotted on the same axis (e.g., pressure traces):
+- Individual cycles: `alpha=0.03`, `linewidth=0.7`
+- Cycle mean: `linewidth=1.8`, full opacity, same color
+
+---
+
+## Reference lines
+
+- Vertical markers (spark timing, TDC, etc.):
+  `color="grey", linestyle="--", linewidth=1.0`
+- Horizontal markers (MFB fractions, thresholds, etc.):
+  `color="#888888"`, choose linestyle to distinguish levels
+  (e.g., `":"` for 10%, `"-."` for 50%, `"--"` for 90%)

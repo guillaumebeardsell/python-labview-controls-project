@@ -1,0 +1,228 @@
+{
+  "metadata": {
+    "skill_name": "create-plots",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-03-31T21:52:48Z",
+    "evals_run": [
+      0,
+      1
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.286,
+        "passed": 2,
+        "failed": 5,
+        "total": 7,
+        "time_seconds": 51.7,
+        "tokens": 14211,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output PNG exists and is non-empty",
+          "passed": true,
+          "evidence": "baseline_scatter.png present"
+        },
+        {
+          "text": "Imports from plot_style",
+          "passed": false,
+          "evidence": "old skill has no plot_style reference"
+        },
+        {
+          "text": "Calls setup_matplotlib()",
+          "passed": false,
+          "evidence": "not in script"
+        },
+        {
+          "text": "Calls style_ax() on axes",
+          "passed": false,
+          "evidence": "not in script"
+        },
+        {
+          "text": "Uses save_fig() helper",
+          "passed": false,
+          "evidence": "not in script"
+        },
+        {
+          "text": "Axis labels include units in brackets",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "plot_style.py copied to project root",
+          "passed": false,
+          "evidence": "old skill does not mention plot_style.py"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 83.9,
+        "tokens": 19228,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output PNG exists and is non-empty",
+          "passed": true,
+          "evidence": "test_scatter.png present"
+        },
+        {
+          "text": "Imports from plot_style",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Calls setup_matplotlib()",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Calls style_ax() on axes",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Uses save_fig() helper",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Axis labels include units in brackets",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "plot_style.py copied to project root",
+          "passed": true,
+          "evidence": "file exists at project root"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 59.4,
+        "tokens": 17360,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output PNG exists and is non-empty",
+          "passed": true,
+          "evidence": "test_timeseries.png present"
+        },
+        {
+          "text": "Imports from plot_style",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Calls setup_matplotlib()",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Calls style_ax() on axes",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Uses save_fig() helper",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Individual cycles use alpha=0.03",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Mean line uses linewidth=1.8",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Spark vline uses color=grey",
+          "passed": true,
+          "evidence": "found in script"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "old_skill": {
+      "pass_rate": {
+        "mean": 0.286,
+        "stddev": 0.0,
+        "min": 0.286,
+        "max": 0.286
+      },
+      "time_seconds": {
+        "mean": 51.7,
+        "stddev": 0.0,
+        "min": 51.7,
+        "max": 51.7
+      },
+      "tokens": {
+        "mean": 14211.0,
+        "stddev": 0.0,
+        "min": 14211,
+        "max": 14211
+      }
+    },
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 71.65,
+        "stddev": 17.3241,
+        "min": 59.4,
+        "max": 83.9
+      },
+      "tokens": {
+        "mean": 18294.0,
+        "stddev": 1320.8755,
+        "min": 17360,
+        "max": 19228
+      }
+    },
+    "delta": {
+      "pass_rate": "-0.71",
+      "time_seconds": "-20.0",
+      "tokens": "-4083"
+    }
+  },
+  "notes": []
+}

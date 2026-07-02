@@ -1,0 +1,140 @@
+{
+  "metadata": {
+    "skill_name": "create-plots",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-03-31T22:17:49Z",
+    "evals_run": [
+      0,
+      1
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 83.1,
+        "tokens": 22611,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output PNG exists",
+          "passed": true,
+          "evidence": "test_scatter2.png present"
+        },
+        {
+          "text": "Uses nice_limits()",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Uses $H_2$ math text in legend",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "No fontfamily override in set_title",
+          "passed": true,
+          "evidence": "not in script"
+        },
+        {
+          "text": "Calls style_ax()",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Uses save_fig()",
+          "passed": true,
+          "evidence": "found in script"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 59.2,
+        "tokens": 19951,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output PNG exists",
+          "passed": true,
+          "evidence": "test_timeseries2.png present"
+        },
+        {
+          "text": "Uses nice_limits()",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "No fontfamily override in set_title",
+          "passed": true,
+          "evidence": "not in script"
+        },
+        {
+          "text": "alpha=0.03 for individual cycles",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "linewidth=1.8 for mean",
+          "passed": true,
+          "evidence": "found in script"
+        },
+        {
+          "text": "Grey spark vline",
+          "passed": true,
+          "evidence": "found in script"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 71.15,
+        "stddev": 16.8999,
+        "min": 59.2,
+        "max": 83.1
+      },
+      "tokens": {
+        "mean": 21281.0,
+        "stddev": 1880.904,
+        "min": 19951,
+        "max": 22611
+      }
+    },
+    "delta": {
+      "pass_rate": "+1.00",
+      "time_seconds": "+71.2",
+      "tokens": "+21281"
+    }
+  },
+  "notes": []
+}
