@@ -76,11 +76,19 @@ run on the same machine and connect over `127.0.0.1`, so Windows Firewall is
 not involved. Use **Command Prompt** for the steps below (Win+R → `cmd` →
 Enter); PowerShell also works with one extra hurdle noted in step 3.
 
-*Step 1 — install Python 3.11+ (once).*
+*Step 1 — install Python 3.10+ (once).*
 
-1. Check what's already there: `py --version`. If it reports 3.11 or newer,
-   skip to step 2. Careful: typing `python` on a machine *without* Python
-   opens the Microsoft Store — that's a Windows alias, not an installation.
+1. Check what's already there: `py --version` (or `py -0p` to list every
+   installed version). If it reports 3.10 or newer, skip to step 2 — the
+   test suite is verified on 3.10. Careful: typing `python` on a machine
+   *without* Python opens the Microsoft Store — that's a Windows alias, not
+   an installation.
+
+   Note for later: Python 3.10 stops receiving security fixes in October
+   2026, so before this layer goes to production, install a current 3.12/3.13
+   alongside it (Windows installs coexist; nothing else on the PC is
+   disturbed) and recreate the venv with `py -3.13 -m venv .venv`. The code
+   runs unchanged.
 2. Download the latest 64-bit installer from
    <https://www.python.org/downloads/windows/>.
 3. Run it. On the first screen **check "Add python.exe to PATH"**, then

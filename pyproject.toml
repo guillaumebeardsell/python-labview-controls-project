@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "supervisory"
 version = "0.1.0"
 description = "Python supervisory layer (state machines + decision logic) for a LabVIEW-based controls stack"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = ["pydantic>=2.5"]
 
 [project.optional-dependencies]
