@@ -23,11 +23,20 @@ Success looks like:
 
 **Block diagram:**
 
+Add a `Stop` button with mechanical action **Switch When Pressed** — not
+latched: both loops read it, and a latch resets on the first read so the
+second loop would never see it.
+
 1. `TCP Create Listener`, port **5020**, outside all loops.
-2. **Outer while loop** — one iteration per client session:
-   - `TCP Wait On Listener` (timeout −1). When it returns a connection ID,
-     set `Client connected` true.
+2. **Outer while loop** — one iteration per client session. Exit condition:
+   `Stop` (via a **local variable**) OR a listener error other than 56.
+   - `TCP Wait On Listener` with timeout **500 ms** — not −1, or the loop
+     blocks inside the primitive and the Stop button is never polled while
+     waiting for a client. Error 56 (timeout) means "no client yet": clear
+     it and loop. When it returns a connection ID, set `Client connected`
+     true.
    - **Inner while loop** — the session:
+     Exit condition: `Stop` (button terminal) OR a read error other than 56.
      - `TCP Read`, mode **CRLF**, max bytes 4096, timeout **100 ms**.
        - Error 56 (timeout) is normal: clear it, treat as "no line".
        - Any other error (66 = peer closed): exit the inner loop.
@@ -54,7 +63,7 @@ Success looks like:
    - After the inner loop exits: `TCP Close Connection`, `Client connected`
      false, loop back to `TCP Wait On Listener` — so Python can disconnect
      and reconnect freely.
-3. Stop button as needed; `TCP Close` the listener on exit.
+3. After the outer loop exits: `TCP Close` the listener.
 
 The inner loop needs no wait primitive — the 100 ms read timeout paces it.
 
