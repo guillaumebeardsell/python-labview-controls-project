@@ -71,18 +71,95 @@ The inner loop needs no wait primitive — the 100 ms read timeout paces it.
 
 Two options, in order of preference:
 
-**A. Python on Windows (matches the production topology).** Install Python
-3.11+ from python.org (check "Add python.exe to PATH"), then:
+**A. Python on Windows (matches the production topology).** Both processes
+run on the same machine and connect over `127.0.0.1`, so Windows Firewall is
+not involved. Use **Command Prompt** for the steps below (Win+R → `cmd` →
+Enter); PowerShell also works with one extra hurdle noted in step 3.
+
+*Step 1 — install Python 3.11+ (once).*
+
+1. Check what's already there: `py --version`. If it reports 3.11 or newer,
+   skip to step 2. Careful: typing `python` on a machine *without* Python
+   opens the Microsoft Store — that's a Windows alias, not an installation.
+2. Download the latest 64-bit installer from
+   <https://www.python.org/downloads/windows/>.
+3. Run it. On the first screen **check "Add python.exe to PATH"**, then
+   *Install Now* (per-user install, no admin rights needed).
+4. Close and reopen Command Prompt — PATH changes don't reach already-open
+   windows — and confirm with `python --version`.
+
+*Step 2 — install Git (once).* `git --version`; if it's missing, install
+from <https://git-scm.com/download/win> (all defaults are fine) and reopen
+the terminal. No-git fallback: on the GitHub repo page, *Code → Download
+ZIP*, extract, and skip the `git clone` below — but you lose easy
+`git pull` updates.
+
+*Step 3 — clone and install (once).*
 
 ```bat
+cd C:\
 git clone https://github.com/guillaumebeardsell/python-labview-controls-project.git
 cd python-labview-controls-project
+python -m venv .venv
+.venv\Scripts\activate
 pip install -e .
-python examples\hello_link.py
 ```
 
-Both processes on the same machine, connecting over `127.0.0.1` — no
-firewall involvement.
+- `python -m venv .venv` creates a private Python environment in `.venv\`,
+  so nothing is installed machine-wide on the control-room PC.
+- `activate` puts that environment on this terminal's PATH — the prompt
+  gains a `(.venv)` prefix. It's needed once per new terminal. In
+  PowerShell the command is `.venv\Scripts\Activate.ps1`; if that's blocked
+  by execution policy, run
+  `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or just use
+  Command Prompt.
+- `pip install -e .` downloads pydantic and installs the `supervisory`
+  package in editable mode: after a `git pull`, code changes take effect
+  with no reinstall. Expect `Successfully installed supervisory-0.1.0`.
+- Offline control-room PC? `pip install` needs internet once. If the
+  machine has none, on a connected PC run
+  `pip download -d wheels pydantic` , copy the `wheels\` folder over, and
+  install with `pip install --no-index --find-links wheels -e .`.
+
+*Step 4 — run the experiment.*
+
+1. Start the hello VI in LabVIEW (and make sure the `stop` button isn't
+   still latched TRUE from a previous run).
+2. In the `(.venv)` terminal:
+
+   ```bat
+   python examples\hello_link.py
+   ```
+
+3. Within a second you should see `connected to gateway at 127.0.0.1:5020`,
+   the VI's `Client Connected` LED on, and `Lines received` climbing about
+   once per second (heartbeats) with an extra bump every 5 s (pings).
+4. Once the VI's send side is built you'll also see `telemetry seq=...` at
+   1 Hz and an `ack id=1 ...` after every ping in the Python window.
+5. Ctrl-C stops the script and prints the summary. `RESULT: PASS` needs
+   both directions — with a receive-only VI you'll get telemetry/ack counts
+   of 0 and a FAIL even though the Python→LabVIEW half is proven by
+   `Lines received`.
+
+*Day-to-day afterwards:* new terminal →
+`cd C:\python-labview-controls-project` → `.venv\Scripts\activate` →
+`git pull` → run.
+
+*Troubleshooting.*
+
+- `'python' is not recognized`, or the Store opens: the PATH box wasn't
+  checked. Rerun the installer → *Modify* → check it, then reopen the
+  terminal. The `py` launcher usually works regardless:
+  `py examples\hello_link.py`.
+- `'git' is not recognized` right after installing: reopen the terminal.
+- Python logs endless `connect ... failed` / `No connection could be made
+  because the target machine actively refused it`: the VI isn't running or
+  isn't listening on 5020. Check the port independently from PowerShell:
+  `Test-NetConnection 127.0.0.1 -Port 5020` (the classic `telnet` client is
+  disabled on Windows by default).
+- Script connects but `Lines received` never moves: the VI is running but
+  stuck before `TCP Read` — check the `Client Connected` LED and the case
+  structure paths.
 
 **B. From the devcontainer (no Windows Python needed).** LabVIEW's listener
 accepts connections on all interfaces by default, so from the container:
