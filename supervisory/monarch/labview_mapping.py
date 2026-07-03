@@ -194,3 +194,57 @@ def compare_flatten(lv_obj) -> Report:
 
     rep.missing = sorted(p for p in model if p not in covered)
     return rep
+
+
+def _walk_values(obj, prefix: tuple[str, ...] = ()):
+    """Yield (path_tuple, value) for every leaf; a list or scalar is a leaf."""
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            yield from _walk_values(v, prefix + (str(k),))
+    else:
+        yield prefix, obj
+
+
+def control_settings_from_labview(lv_obj) -> tuple[ControlSettings, list[str]]:
+    """Reconstruct a ControlSettings model from a LabVIEW `Flatten To JSON`
+    object (raw field labels, any nesting). Returns (model, unmapped_labels).
+
+    Unmapped leaves are skipped (logged by the caller if desired); missing
+    fields fall back to model defaults. This is what lets the gateway VI simply
+    flatten the cluster and send it, with Python doing the label->field mapping.
+    """
+    nested: dict = {}
+    unmapped: list[str] = []
+    for path, value in _walk_values(lv_obj):
+        if not path:
+            continue
+        model_path = resolve_label(path)
+        if model_path is None:
+            unmapped.append(".".join(path))
+            continue
+        parts = model_path.split(".")
+        d = nested
+        for p in parts[:-1]:
+            d = d.setdefault(p, {})
+        d[parts[-1]] = value
+    return ControlSettings.model_validate(nested), unmapped
+
+
+def control_settings_to_labview(cs: ControlSettings) -> dict:
+    """Inverse of control_settings_from_labview: render a ControlSettings model
+    as a LabVIEW-style `Flatten To JSON` object (real field labels, PID
+    references nested under "PID control references"). Used by the MONARCH sim
+    server to emit realistic telemetry, and a reference for the gateway VI."""
+    path_to_label = {v: k for k, v in LABEL_TO_PATH.items()}
+    top: dict = {}
+    pcr: dict = {}
+    for path, value in _walk_values(cs.model_dump(mode="json")):
+        dotted = ".".join(path)
+        label = path_to_label[dotted]
+        inner = label.split("/", 1)[1] if "/" in label else label
+        if dotted.startswith("pid_control_references."):
+            pcr[inner] = value
+        else:
+            top[label] = value
+    top["PID control references"] = pcr
+    return top

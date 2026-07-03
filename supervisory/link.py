@@ -11,11 +11,17 @@ import logging
 import queue
 import socket
 import threading
-from typing import Protocol
+from typing import Callable, Protocol
 
 from pydantic import ValidationError
 
 from .messages import Message, dump, parse
+
+# A parser turns one framed line into a payload object; anything it raises marks
+# the line malformed. Defaults to the generic messages.parse, but a MONARCH
+# observer can pass its own (see supervisory/monarch/telemetry.py).
+Parser = Callable[[bytes], object]
+PARSE_ERRORS = (ValidationError, ValueError, KeyError, TypeError)
 
 log = logging.getLogger(__name__)
 
@@ -55,11 +61,13 @@ class TcpPlantLink:
         port: int = 5020,
         reconnect_min_s: float = 1.0,
         reconnect_max_s: float = 5.0,
+        parser: Parser = parse,
     ) -> None:
         self._host = host
         self._port = port
         self._reconnect_min_s = reconnect_min_s
         self._reconnect_max_s = reconnect_max_s
+        self._parse = parser
         self._inbox: queue.Queue[Message] = queue.Queue()
         self._sock: socket.socket | None = None
         self._send_lock = threading.Lock()
@@ -151,9 +159,9 @@ class TcpPlantLink:
                 if not line:
                     continue
                 try:
-                    self._inbox.put(parse(line))
+                    self._inbox.put(self._parse(line))
                     bad = 0
-                except ValidationError:
+                except PARSE_ERRORS:
                     bad += 1
                     log.warning("discarding malformed message (%d consecutive): %.200s", bad, line)
                     if bad >= MAX_CONSECUTIVE_BAD_MESSAGES:
