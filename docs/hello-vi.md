@@ -62,6 +62,22 @@ WOL's *listener in*, and the final `TCP Close` **outside** the outer loop.
 Feed the inner close the listener by mistake and you destroy the listener at
 the end of each session, so the next `Wait On Listener` fails with Error 1.
 
+**Reconnect rule — clear error 56 *specifically*, never "all errors".** The
+inner loop must exit when the client disconnects, which shows up as `TCP Read`
+**error 66** (connection closed by peer). If you clear the read error with a
+blanket *Clear Errors* / *General Error Handler*, you wipe **66** along with the
+timeout **56**, so the loop never notices the client left, never returns to
+`Wait On Listener`, and never accepts the next connection. The restarted Python
+script then connects at the OS level (its "connected" message prints) but sits
+unserved in the listener backlog — **no telemetry, no acks**. Correct handling:
+- Read `TCP Read`'s error **code** (Unbundle By Name) *before* clearing anything.
+- Inner-loop exit condition = `Stop` **OR** `(error.status AND code ≠ 56)` — so
+  56 keeps looping, 66 (or anything else) exits.
+- Clear the error **only when `code = 56`** (a small Case structure), so 66
+  survives to trigger the exit.
+- On exit: `TCP Close Connection`, then **clear the error** before looping back
+  to `Wait On Listener` (so a leftover 66 doesn't poison the next accept).
+
 ## 1a. Building the send side, node by node
 
 Both pieces go in the **inner (session) loop** and both `TCP Write` to the
