@@ -29,38 +29,96 @@ maps it to the typed model with `control_settings_from_labview()`
 key-renaming** — it just flattens the cluster and drops it in. Unknown labels
 are surfaced (`MonarchTelemetry.unmapped`), never fatal.
 
-## LabVIEW side — extend the hello VI's telemetry write
+## LabVIEW gateway — send the real envelope, node by node
 
-You already send a toy telemetry line at 1 Hz. Swap that one `Format Into
-String` for the real envelope; everything else (the 1 Hz timer, `TCP Write`,
-framing) stays:
+You're editing the working hello VI. You replace **only** the telemetry
+`Format Into String` and add three inputs to it — the 1 Hz timer, `seq` shift
+register, `TCP Write`, framing, the ack reply, and the reconnect handling all
+stay exactly as they are. This exact envelope was verified to decode on the
+Python side (`monarch_parser`), so if the flatten matches (it did — Stage-1 diff
+→ AGREE) there's nothing new to validate.
 
-1. Wire the live **`APC_ControlSettings` cluster** (the `PC_ControlSettings`
-   value) into **`Flatten To JSON`** → a JSON string, call it `settingsJSON`.
-   - You already proved this exact flatten matches the Python contract (the
-     Stage-1 diff → AGREE), so nothing new to validate.
-2. Get the **current system state** as an integer (the `CURRENT SYSTEM STATE`
-   I8 from the StateMachine).
-3. Build the envelope with **`Format Into String`**, format string:
+### Part A — prove the envelope with a constant (do this first)
 
-   ```
-   {"type":"telemetry","seq":%d,"ts":%.3f,"system_state":%d,"settings":%s}
-   ```
+**Step 1 — a ControlSettings value to flatten.** In the Project Explorer open
+`controls`, and **drag `APC_ControlSettings.ctl` onto the block diagram** — it
+drops as a constant of that type. Right-click it → *View Cluster Size* isn't
+needed; just set a couple of visible fields (e.g. `Speed ref`, `Requested mode`,
+`Spark advance`) to non-default values so you can see them change in Python.
 
-   arguments in order: `seq` (I32), `ts` (a timestamp — `Get Date/Time In
-   Seconds` → to DBL, or `0` for now), `system_state` (I8), `settingsJSON`
-   (string, the `%s`). Because `settingsJSON` is already valid JSON, dropping it
-   in as `%s` nests it correctly.
-4. Append `\r\n` and `TCP Write`, exactly as now.
+**Step 2 — `Flatten To JSON`.** Drop it (Programming → Cluster, Class & Variant
+→ JSON), wire the constant from Step 1 into its **value** input. Leave the other
+inputs default. Its output string is your `settingsJSON`. (This is the identical
+flatten you captured for the contract diff — no new work.)
 
-That's the whole change. Keep the command-ack path as-is.
+**Step 3 — system state.** For the test, a **numeric constant**, representation
+**I32**, value `3` (FIRING) — or a front-panel control so you can change it
+live. This becomes the real `CURRENT SYSTEM STATE` in Part B.
 
-**Getting to *real* telemetry:** the hello VI can start by flattening a
-ControlSettings **constant** to prove the pipeline. To stream live data, the
-gateway loop needs read access to the running app's `PC_ControlSettings` (and
-the system state) — via the same queue/FGV/shared-variable the UI already uses.
-That integration (a gateway loop tapping the live cluster) is the point where
-this stops being a toy and starts recording real runs.
+**Step 4 — timestamp (`ts`).** Simplest for now: a **DBL constant `0`**. For a
+real Unix timestamp: `Get Date/Time In Seconds` (Programming → Timing) →
+**To Double Precision Float** → **subtract `2082844800`** → wire that.
+- Why subtract: LabVIEW timestamps count seconds from **1904**-01-01; the wire
+  format (and Python) use the **Unix** epoch (1970-01-01). The offset is
+  2 082 844 800 s. Skip it and Python still records fine — `ts` is informational,
+  the staleness watchdog uses arrival time — but the number won't read as a real
+  date.
+
+**Step 5 — build the envelope with `Format Into String`.** Replace your current
+telemetry format-string constant with this one, in **`'\' Codes Display`** so the
+trailing `\r\n` is a real CR+LF:
+
+```
+{"type":"telemetry","seq":%d,"ts":%.3f,"system_state":%d,"settings":%s}\r\n
+```
+
+Grow the node to **four arguments** and wire them **in this order**:
+
+| # | Format | Wire | Type |
+|---|---|---|---|
+| 1 | `%d` | `seq` (your existing telemetry counter) | I32 |
+| 2 | `%.3f` | `ts` (Step 4) | DBL |
+| 3 | `%d` | `system_state` (Step 3) | I32 / I8 |
+| 4 | `%s` | `settingsJSON` (Step 2) | String |
+
+Key point: `settingsJSON` enters as a **`%s` argument**, so `Format Into String`
+inserts it **verbatim** — its braces, quotes, and any `%` inside are *not*
+re-interpreted, and the nested object lands correctly. (Never build the settings
+by string concatenation; always via `Flatten To JSON`, so it stays locked to the
+typedef.)
+
+**Step 6 — send.** Wire the `Format Into String` output into the **same
+telemetry `TCP Write`** you already have (on the connection ID). That's the whole
+change. Keep the 1 Hz gate and the `seq` increment as-is.
+
+**Test A.** Run the VI, then in the venv: `python examples\monarch_listen.py`.
+You should see `seq` incrementing, `state` = your constant, and the fields you
+set on the constant (e.g. `speed_ref`) — with `unmapped=[]`. If `unmapped` is
+non-empty, the cluster's field labels drifted; capture one flattened line and run
+`python tools\compare_flatten.py <that file>` to see which.
+
+### Part B — switch to live data
+
+Two wire swaps, nothing else:
+
+1. **Step 1's constant → the live `PC_ControlSettings`** value.
+2. **Step 3's constant → the real `CURRENT SYSTEM STATE`** (I8) from the
+   StateMachine.
+
+Both come from wherever the running application already publishes them — the same
+queue / FGV / shared variable / notifier the UI reads. The gateway loop taps a
+**read-only copy**; it must never modify them. Now Python records real runs and
+`monarch.jsonl` becomes a genuine corpus — **that completes Stage 1.**
+
+### Notes
+
+- **Payload size:** the full cluster is ~64 fields ≈ a 1.6 KB line at 1 Hz —
+  trivial; one `TCP Write` sends it.
+- **Keep it in lockstep:** if anyone edits `APC_ControlSettings.ctl`, re-run the
+  flatten diff (`docs/monarch-flatten-diff.md`) so the Python model and the
+  gateway agree again.
+- **Fast check without Python:** `telnet 127.0.0.1 5020` should show a long
+  `{"type":"telemetry",…,"settings":{…}}` line once per second.
 
 ## Python side — the observer
 
