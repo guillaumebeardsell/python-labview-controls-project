@@ -29,11 +29,18 @@ crops). Confirmed semantics:
 - `ForceState` TRUE ⇒ `SYSTEM STATE` = `ManualState` **absolutely** (the
   override case output wires directly to the indicator, after/independent of
   the MIN — bypasses the +1 rule too).
-- `DisregardWarnings` FALSE case is a pass-through (True path affects the
-  warnings contribution only).
-Residual minor unknowns (mark `# ASSUMPTION`, non-blocking): the exact
-comparator condition that triggers `PostMortemSave` (assumed: a forced/downward
-transition), and the `DisregardWarnings` TRUE-path detail.
+- `DisregardWarnings` — **misleading name**: it wraps the controller-level
+  limiter, not the warnings clamp. FALSE case = a For loop taking the
+  element-wise `min(requested_level[i], state_row[i])`; TRUE case = **bypass**
+  (limited = requested, no per-state caps). It does not affect the state
+  arbitration itself.
+- `PostMortemSave` is a **shared-variable write** (TRUE) gated by a `>`
+  comparator AND the per-state forced-transition condition — i.e. it fires on a
+  forced (downward) state transition, presumably triggering the post-mortem
+  file save in the logging loop (matches the logging doc: error/forced-mode
+  transitions trigger the A-file capture).
+Residual (single, cosmetic): the `>` operand order wasn't traceable pixel-level
+— assumed `current > new` (downward). Mark `# ASSUMPTION` in code.
 
 **A1.1 — Data model**
 New module `supervisory/monarch/state_machine.py`:
