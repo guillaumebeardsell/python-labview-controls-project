@@ -153,6 +153,46 @@ live, but issues no commands.
 The `monarch.jsonl` recording is the corpus for Stage 2: the state logic will be
 replayed against real recorded telemetry to check its decisions offline.
 
+## Stage-2 preview — the fuller envelope (optional to pre-wire now)
+
+Stage 1 needs only `system_state` + `settings`. Stage-2 shadow mode also needs
+the rest of the StateMachine's I/O that lives **outside** the ControlSettings
+cluster — each a sibling top-level field, same pattern as `system_state`:
+
+```json
+{"type":"telemetry","seq":42,"ts":1783041300.500,
+ "system_state":2,
+ "warnings_limit":2,"manual_state":-128,"force_state":false,
+ "settings":{ …Flatten To JSON of PC_ControlSettings… },
+ "limited_settings":{ …Flatten To JSON of Limited_ControlSettings… }}
+```
+
+| Field | Type | LabVIEW source | Role |
+|---|---|---|---|
+| `system_state` | int | `CURRENT SYSTEM STATE` (I8) | StateMachine **output** — the decided state (already wired in Stage 1) |
+| `warnings_limit` | int | `STATE LIMITATION FROM WARNINGS` (I8) | input — max state warnings permit (same −1..3 encoding) |
+| `manual_state` | int | `ManualState` (I8) | input — manual state override (send your "no override" sentinel as-is) |
+| `force_state` | bool | `ForceState` | input — force-state override |
+| `settings` | object | `Flatten To JSON` of `PC_ControlSettings` | input — what was requested |
+| `limited_settings` | object | `Flatten To JSON` of `Limited_ControlSettings` | **output** — what the StateMachine allowed |
+
+Why these exact fields: shadow mode has Python recompute the state and the
+limiting from the **inputs** (`settings.requested_mode`, force idling/motoring &
+e-stop inside `settings`, plus `warnings_limit` / `manual_state` / `force_state`)
+and compare against LabVIEW's **outputs** (`system_state`, `limited_settings`).
+That's the whole comparison, so this is the complete set.
+
+To add each in the gateway: one more `Format Into String` argument (a `%d`, `%d`,
+a boolean rendered as `true`/`false`, and a second `%s` for the
+`Limited_ControlSettings` flatten). **The Python side already accepts all of
+them** (`MonarchTelemetry`) — they're optional, so a Stage-1 gateway is
+unaffected, and the moment you wire one it's decoded, logged, and recorded. No
+Python change needed when you pre-wire.
+
+Rendering `force_state` as a boolean in `Format Into String`: use a Select
+(`True`→`true` string, `False`→`false` string) into a `%s`, since `%d` would
+give `1`/`0` — the model accepts JSON `true`/`false`.
+
 ## Status
 
 - [x] `ControlSettings` contract confirmed against a live capture
@@ -160,5 +200,7 @@ replayed against real recorded telemetry to check its decisions offline.
       against the real capture
 - [x] Telemetry envelope + parser (`MonarchTelemetry`, `monarch_parser`)
 - [x] Read-only observer + JSONL recorder; sim gateway for offline testing
-- [ ] Gateway VI change to send the real envelope (recipe above)
+- [x] Gateway Part A verified on the real VI (envelope decodes, 0 unmapped, state propagates)
+- [x] Stage-2 envelope fields Python-ready (optional; decode+record when pre-wired)
 - [ ] Point the gateway at the live cluster → record a real run (completes Stage 1)
+- [ ] (Stage 2) pre-wire `warnings_limit` / `manual_state` / `force_state` / `limited_settings`

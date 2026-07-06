@@ -73,6 +73,49 @@ def test_monarch_parser_decodes_telemetry():
     assert msg.unmapped == ()
 
 
+def test_stage1_envelope_leaves_stage2_fields_none():
+    # A Stage-1 gateway sends only system_state + settings.
+    msg = monarch_parser(_envelope(ControlSettings()))
+    assert msg.warnings_limit is None
+    assert msg.manual_state is None
+    assert msg.force_state is None
+    assert msg.limited_settings is None
+
+
+def test_full_stage2_envelope_decodes():
+    requested = ControlSettings(requested_mode=SystemState.FIRING, ign_enable=True)
+    requested.pid_control_references.ng.mode = 6
+    limited = requested.model_copy(deep=True)
+    limited.ign_enable = False  # what the limiter allowed
+    env = json.dumps({
+        "type": "telemetry", "seq": 3, "ts": 1.0,
+        "system_state": int(SystemState.IDLING),  # decided != requested
+        "warnings_limit": int(SystemState.IDLING),
+        "manual_state": -128,
+        "force_state": False,
+        "settings": control_settings_to_labview(requested),
+        "limited_settings": control_settings_to_labview(limited),
+    })
+    msg = monarch_parser(env)
+    assert msg.system_state is SystemState.IDLING
+    assert msg.settings.requested_mode is SystemState.FIRING       # requested
+    assert msg.warnings_limit == int(SystemState.IDLING)
+    assert msg.force_state is False
+    assert msg.limited_settings is not None
+    assert msg.settings.ign_enable is True and msg.limited_settings.ign_enable is False
+    assert msg.unmapped == ()
+
+
+def test_limited_settings_unmapped_is_prefixed():
+    lv = control_settings_to_labview(ControlSettings())
+    bad = control_settings_to_labview(ControlSettings())
+    bad["Mystery Limited Field"] = 1
+    env = json.dumps({"type": "telemetry", "seq": 1, "ts": 0.0, "system_state": 0,
+                      "settings": lv, "limited_settings": bad})
+    msg = monarch_parser(env)
+    assert any(u.startswith("limited_settings/") for u in msg.unmapped)
+
+
 def test_monarch_telemetry_survives_recorder_dump():
     # the JSONL recorder calls model_dump(); it must serialize the nested model
     cs = ControlSettings(requested_mode=SystemState.FIRING)

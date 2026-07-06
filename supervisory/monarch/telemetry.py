@@ -28,24 +28,46 @@ from .labview_mapping import control_settings_from_labview
 
 
 class MonarchTelemetry(BaseModel):
-    """One decoded 1 Hz telemetry frame."""
+    """One decoded 1 Hz telemetry frame.
+
+    `system_state` and `settings` (PC_ControlSettings) are always present. The
+    remaining fields are the rest of the StateMachine I/O that lives *outside*
+    the cluster; they're optional so a Stage-1 gateway (which sends only
+    system_state + settings) still decodes, and they start populating the moment
+    the gateway pre-wires them for Stage-2 shadow mode.
+    """
 
     type: str = "telemetry"
     seq: int
     ts: float
     system_state: SystemState
-    settings: ControlSettings
+    settings: ControlSettings  # PC_ControlSettings (what was requested)
+
+    # Stage-2 extras (StateMachine I/O not in the cluster; optional):
+    warnings_limit: int | None = None  # STATE LIMITATION FROM WARNINGS (max state warnings allow)
+    manual_state: int | None = None  # ManualState override input
+    force_state: bool | None = None  # ForceState override input
+    limited_settings: ControlSettings | None = None  # Limited_ControlSettings (what was allowed)
+
     unmapped: tuple[str, ...] = ()  # LabVIEW labels with no model field (should be empty)
 
 
 def parse_monarch_telemetry(obj: dict) -> MonarchTelemetry:
     """Build a MonarchTelemetry from a decoded telemetry envelope dict."""
     settings, unmapped = control_settings_from_labview(obj.get("settings", {}))
+    limited = None
+    if obj.get("limited_settings") is not None:
+        limited, lim_unmapped = control_settings_from_labview(obj["limited_settings"])
+        unmapped = unmapped + ["limited_settings/" + u for u in lim_unmapped]
     return MonarchTelemetry(
         seq=obj["seq"],
         ts=obj["ts"],
         system_state=obj["system_state"],
         settings=settings,
+        warnings_limit=obj.get("warnings_limit"),
+        manual_state=obj.get("manual_state"),
+        force_state=obj.get("force_state"),
+        limited_settings=limited,
         unmapped=tuple(unmapped),
     )
 

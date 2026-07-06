@@ -42,10 +42,17 @@ def main() -> None:
                     if msg.system_state != last_state:
                         log.info("system state -> %s", msg.system_state.name)
                         last_state = msg.system_state
+                    extra = ""
+                    if msg.warnings_limit is not None:
+                        extra += f" warn_lim={msg.warnings_limit} force={msg.force_state}"
+                    if msg.limited_settings is not None:
+                        lim = msg.limited_settings
+                        extra += (f" | limited: ign={lim.ign_enable} "
+                                  f"ng_mode={lim.pid_control_references.ng.mode}")
                     log.info(
-                        "seq=%d state=%s speed_ref=%.0f ign=%s ng_mode=%d spark=%.0f%s",
+                        "seq=%d state=%s speed_ref=%.0f ign=%s ng_mode=%d spark=%.0f%s%s",
                         msg.seq, msg.system_state.name, cs.speed_ref, cs.ign_enable,
-                        cs.pid_control_references.ng.mode, cs.spark_advance_cadbtdc,
+                        cs.pid_control_references.ng.mode, cs.spark_advance_cadbtdc, extra,
                         f" UNMAPPED={list(msg.unmapped)}" if msg.unmapped else "",
                     )
                 elif isinstance(msg, CommandAck):

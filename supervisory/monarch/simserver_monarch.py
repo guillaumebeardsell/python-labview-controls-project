@@ -33,19 +33,30 @@ _STATE_CYCLE = [SystemState.STAND_BY, SystemState.MOTORING, SystemState.IDLING, 
 
 
 def _frame(seq: int, state: SystemState) -> dict:
+    # PC_ControlSettings — what the operator/UI requests (IGN always requested on).
     cs = ControlSettings(
         requested_mode=state,
         speed_ref=900.0 + 100.0 * (seq % 5),
-        ign_enable=state in (SystemState.IDLING, SystemState.FIRING),
+        ign_enable=True,
         spark_advance_cadbtdc=float(20 + (seq % 10)),
     )
     cs.pid_control_references.ng.mode = 6 if state == SystemState.FIRING else 0
+
+    # Limited_ControlSettings — a PLACEHOLDER stand-in for the real limiter (Stage 3):
+    # here just gate IGN to IDLING/FIRING, so `limited` visibly differs from `settings`.
+    limited = cs.model_copy(deep=True)
+    limited.ign_enable = state in (SystemState.IDLING, SystemState.FIRING)
+
     return {
         "type": "telemetry",
         "seq": seq,
         "ts": time.time(),
         "system_state": int(state),
+        "warnings_limit": int(SystemState.FIRING),  # no warning limit in the sim
+        "manual_state": -128,  # sentinel: no manual override
+        "force_state": False,
         "settings": control_settings_to_labview(cs),
+        "limited_settings": control_settings_to_labview(limited),
     }
 
 
