@@ -38,11 +38,26 @@ stay exactly as they are. This exact envelope was verified to decode on the
 Python side (`monarch_parser`), so if the flatten matches (it did — Stage-1 diff
 → AGREE) there's nothing new to validate.
 
+### Where this VI lives
+
+The gateway belongs **in the MONARCH project**, not the standalone Hello-VI
+folder — Part A needs the `APC_ControlSettings.ctl` typedef and Part B needs the
+live `PC_ControlSettings` + `CURRENT SYSTEM STATE`, all of which live in MONARCH.
+Save a copy of the working hello VI into `C:\LabVIEW PROJECT\MONARCH\` (e.g.
+`APC_PC_PythonGateway.vi`), and **Add → File** it to the MONARCH project. Keep
+the original `hello-vi.vi` as your throwaway connectivity tester.
+
+Architectural guardrail: the gateway runs as its **own independent loop** reading
+a *read-only copy* of the published settings — it never writes hardware and never
+sits in the control/safety path. If it (or Python) hangs, the control loops are
+untouched. Telemetry-out only.
+
 ### Part A — prove the envelope with a constant (do this first)
 
-**Step 1 — a ControlSettings value to flatten.** In the Project Explorer open
-`controls`, and **drag `APC_ControlSettings.ctl` onto the block diagram** — it
-drops as a constant of that type. Right-click it → *View Cluster Size* isn't
+**Step 1 — a ControlSettings value to flatten.** With the VI in the MONARCH
+project, open `controls` in the Project Explorer and **drag
+`APC_ControlSettings.ctl` onto the block diagram** — it drops as a constant of
+that type. Right-click it → *View Cluster Size* isn't
 needed; just set a couple of visible fields (e.g. `Speed ref`, `Requested mode`,
 `Spark advance`) to non-default values so you can see them change in Python.
 
