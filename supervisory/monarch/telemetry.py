@@ -43,11 +43,12 @@ class MonarchTelemetry(BaseModel):
     system_state: SystemState
     settings: ControlSettings  # PC_ControlSettings (what was requested)
 
-    # Stage-2 extras (StateMachine I/O not in the cluster; optional):
+    # Shadow-mode extras (StateMachine I/O not in the cluster; optional):
     warnings_limit: int | None = None  # STATE LIMITATION FROM WARNINGS (max state warnings allow)
     manual_state: int | None = None  # ManualState override input
     force_state: bool | None = None  # ForceState override input
     limited_settings: ControlSettings | None = None  # Limited_ControlSettings (what was allowed)
+    command_source: str | None = None  # "UI" | "PYTHON" — who writes PC_ControlSettings (ICD v0.2)
 
     unmapped: tuple[str, ...] = ()  # LabVIEW labels with no model field (should be empty)
 
@@ -68,6 +69,7 @@ def parse_monarch_telemetry(obj: dict) -> MonarchTelemetry:
         manual_state=obj.get("manual_state"),
         force_state=obj.get("force_state"),
         limited_settings=limited,
+        command_source=obj.get("command_source"),
         unmapped=tuple(unmapped),
     )
 

@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 
 from .link import PlantLink
-from .messages import Command, CommandAck, Heartbeat, ParamValue, Telemetry
+from .messages import Command, CommandAck, Heartbeat, ParamValue
 from .recorder import NullRecorder, Recorder
 
 log = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class CommandRequest:
 class PlantView:
     """What state machines see each tick."""
 
-    telemetry: Telemetry | None  # latest received; None before the first frame
+    telemetry: object | None  # latest telemetry-typed message; None before the first frame
     stale: bool  # True when telemetry is missing or old — engine drops commands
     connected: bool  # TCP link status
     acks: tuple[CommandAck, ...]  # acks received since the previous tick
@@ -87,7 +87,9 @@ class Supervisor:
         acks: list[CommandAck] = []
         for msg in self._link.poll():
             self._recorder.record("rx", msg)
-            if isinstance(msg, Telemetry):
+            # duck-typed so richer payloads (e.g. MonarchTelemetry via a custom
+            # link parser) count as telemetry without subclassing messages.Telemetry
+            if getattr(msg, "type", None) == "telemetry":
                 self._latest = msg
                 self._latest_at = now
             elif isinstance(msg, CommandAck):

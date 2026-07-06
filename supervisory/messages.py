@@ -12,7 +12,9 @@ from typing import Annotated, Literal, Union
 
 from pydantic import BaseModel, Field, TypeAdapter
 
-ParamValue = Union[float, int, bool, str]
+# Command params are JSON values; nesting is allowed so a command can carry a
+# whole settings object (e.g. MONARCH's set_control_settings, ICD v0.2 draft).
+ParamValue = Union[float, int, bool, str, None, list, dict]
 
 
 class Telemetry(BaseModel):

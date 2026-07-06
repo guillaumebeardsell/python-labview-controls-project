@@ -108,6 +108,11 @@ column says 0. Encode the table as **data** (a dict), not branching code.
 **Definition of done (A1):** suite green; every `# ASSUMPTION` either confirmed
 against the A1.0 export or listed in the shadow-compare report as open.
 
+> **Status: BUILT (2026-07-06).** `supervisory/monarch/state_machine.py` +
+> `tests/test_monarch_state_machine.py` (28 tests incl. the ~30k-case sweep),
+> all green. Two cosmetic `# ASSUMPTION`s remain (the `>` operand order,
+> valve rows reusing feed rows) — both listed in `docs/shadow-findings.md`.
+
 ---
 
 ## A2 — Shadow-compare harness
@@ -153,6 +158,14 @@ named and kept under `recordings/` (add to repo or keep local — team choice).
 
 **Definition of done (A2):** shadow compare runs clean (100% agreement or every
 divergence dispositioned) across all sweep recordings.
+
+> **Status: Python half BUILT (2026-07-06).** `tools/shadow_compare.py`
+> (replay + live modes, session-reset handling, limiter diffing) with its own
+> tests. First replay of `monarch.jsonl`: sim session **247/247 (100%)**; all
+> real-session divergences dispositioned as "StateMachine not running during
+> capture" — see `docs/shadow-findings.md`. Remaining: the A2.1 gateway
+> pre-wire (LabVIEW) and bench sweeps **with the 9056 StateMachine actually
+> running** and writing the SystemState shared variable.
 
 ---
 

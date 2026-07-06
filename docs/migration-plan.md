@@ -29,8 +29,12 @@ Foundations — done and verified on the real system:
       so `PCnotResponding` gates nothing. Building the response is B0 (now concretely
       specified in the phase-B file).
 
-Position: **start of Phase A** (nothing of A1–A3 built yet); B1/B2 can proceed in
-parallel. **All export blockers cleared 2026-07-06**: StateMachine per-frame export
+Position: **Phase A underway.** A1 BUILT (StateMachine port + 28-test matrix incl.
+~30k-case sweep, green). A2's Python half BUILT (`tools/shadow_compare.py`); first
+replay: sim session 100% agreement, real-session divergences dispositioned
+("StateMachine wasn't running during capture" — `docs/shadow-findings.md`). A2
+remaining: gateway pre-wire + bench sweeps with the 9056 StateMachine running.
+A3 next (WarningIntegration export in hand). B1/B2 can proceed in parallel. **All export blockers cleared 2026-07-06**: StateMachine per-frame export
 (A1.0 answered — clamp values, sort-based MIN, absolute ManualState override
 confirmed), `TS_loop` (B0 answered — WatchDog unwired, response must be built) and
 `WarningIntegration` (A3 input) both in `original-labview-codebase/`. Remaining
