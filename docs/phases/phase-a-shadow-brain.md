@@ -189,6 +189,21 @@ SAFE + vent), latching non-yellow until operator clear, producing
 **Definition of done (A3):** ported policy reproduces LabVIEW's
 `STATE LIMITATION FROM WARNINGS` in shadow compare across the warning sweeps.
 
+> **Status: BUILT (2026-07-06).** `supervisory/monarch/warning_policy.py` +
+> `tests/test_warning_policy.py` (18 tests), transcribed from the
+> WarningIntegration per-frame export. Confirmed semantics: levels 0–4
+> (0 none, 1 soft/self-clearing, 2 → idle, 3 → motoring, 4 → safe+vent);
+> per-channel 4-threshold evaluation with a ±sign direction and per-level
+> enables; latch ratchets via feedback max, soft (1) self-clears, ≥2 holds
+> until APC_MASTER/SLAVE_ClearWarnings (multiply-by-0 reset); aggregate =
+> max level → mapping {0/1→3, 2→2, 3→1, 4→−1} (Default→3). Simplification:
+> cylinder warnings enter as pre-merged levels (`extra_levels`) — the
+> CylPres bitfield decode belongs to the 9049 contract. Remaining for A3
+> done-ness: shadow-verify against live sweeps once the gateway pre-wire
+> lands. Finding: the VI's 9049/9056-FPGA heartbeat stall detectors drive
+> indicators only (same detection-without-response pattern as the PC
+> watchdog) — logged in `docs/shadow-findings.md`.
+
 ---
 
 ## Phase exit gate

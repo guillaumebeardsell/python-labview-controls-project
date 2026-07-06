@@ -32,3 +32,10 @@ pre-wired), so warnings/force/manual inputs are assumed inactive.
   warnings clamp (misleading name). Whatever sets it disables per-state caps.
 - **NG-feed FIRING cap = 6** in the table (levels elsewhere are 0–2) — suspected
   typo for 2; ported as-is.
+- **More detection-without-response** (2026-07-06, from `WarningIntegration`):
+  the VI stall-detects the **9049** and **9056-FPGA** heartbeats (counter vs
+  threshold 10), but the resulting "not responding" booleans drive front-panel
+  indicators only — they do not feed `STATE LIMITATION FROM WARNINGS`. Same
+  pattern as the unwired PC watchdog: loss of the 9049 (the engine-synchronous
+  controller!) produces no supervisory reaction. Recommend wiring these into
+  the warnings max alongside the B0 `PCnotResponding` fix.

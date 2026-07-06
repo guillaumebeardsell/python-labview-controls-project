@@ -34,7 +34,10 @@ Position: **Phase A underway.** A1 BUILT (StateMachine port + 28-test matrix inc
 replay: sim session 100% agreement, real-session divergences dispositioned
 ("StateMachine wasn't running during capture" — `docs/shadow-findings.md`). A2
 remaining: gateway pre-wire + bench sweeps with the 9056 StateMachine running.
-A3 next (WarningIntegration export in hand). B1/B2 can proceed in parallel. **All export blockers cleared 2026-07-06**: StateMachine per-frame export
+A3 BUILT (warning_policy.py from the WarningIntegration export: levels 0–4,
+±sign thresholds, soft self-clear vs latched ≥2, operator clear, max→{3,3,2,1,−1};
+18 tests) — remaining: shadow-verify on live sweeps. B1 drafted / B2 built in
+parallel (see phase-B file). **All export blockers cleared 2026-07-06**: StateMachine per-frame export
 (A1.0 answered — clamp values, sort-based MIN, absolute ManualState override
 confirmed), `TS_loop` (B0 answered — WatchDog unwired, response must be built) and
 `WarningIntegration` (A3 input) both in `original-labview-codebase/`. Remaining
