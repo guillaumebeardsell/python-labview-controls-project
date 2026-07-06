@@ -126,12 +126,105 @@ A new TCP connection is a **fresh session** on both sides:
 
 ## 6. Out of scope / future
 
-- **v0.2 (planned, Phase B1 of `docs/migration-plan.md`):** the MONARCH command path —
-  an atomic `set_control_settings` command carrying a complete `PC_ControlSettings`
-  (LabVIEW-label serialization), `pc_hb` toggling for the 9056 watchdog, and the
-  single-writer source-select rules. This document stays at v0.1 until that lands.
+- The MONARCH command path is drafted in **§7 (v0.2 DRAFT)** below — pending joint
+  review before it is frozen.
 - The per-system command list (names, parameters, validation rules) is maintained in a
   separate document as systems are ported.
+
+---
+
+# v0.2 DRAFT — MONARCH command path (§7)
+
+> **Status: DRAFT, pending joint review (Phase B1).** The Python side and the sim
+> gateway implement this today (`supervisory/monarch/commander.py`,
+> `supervisory/monarch/simserver_monarch.py`, `tests/test_monarch_commander.py`);
+> the LabVIEW gateway write path (B3) follows only after this section is agreed.
+> Open decisions are marked **[DECISION]**.
+
+## 7.1 The command
+
+One atomic command carries the complete desired `PC_ControlSettings`:
+
+```json
+{"type":"command","id":7,"name":"set_control_settings",
+ "params":{"settings":{ …raw LabVIEW-label Flatten-To-JSON of PC_ControlSettings… }}}
+```
+
+`params.settings` uses the **real LabVIEW field labels** (the exact shape the
+telemetry `settings` field uses), produced by `control_settings_to_labview()` — so
+the gateway can `Unflatten From JSON` straight into the typedef with **no key
+mapping**, mirroring the telemetry direction.
+
+## 7.2 Stream semantics
+
+- **Whole-cluster, idempotent, 1 Hz.** While in command, Python sends its complete
+  intent every tick — not deltas, not on-change. A lost frame heals on the next tick,
+  and the stream itself is the liveness signal.
+- **`pc_hb` toggling:** Python flips `PID control references.PC_HB` on every send, so
+  the existing `APC_9056_WatchDog` stall counter directly supervises the Python
+  stream. `MTR HB` passes through unchanged from the last telemetry.
+- **Bumpless by construction:** the intent is seeded from the last telemetry frame
+  (and re-seeded after any staleness gap or while not in command), so Python's first
+  commanded frame equals the plant's current settings.
+- **Staleness:** no telemetry for 3 s ⇒ Python stops sending (existing §5 rule) and
+  discards its intent; on recovery it re-seeds from telemetry.
+- `clear_emergency_stop` is **always forced FALSE** by the Python sender (see 7.4).
+
+## 7.3 Validation and ACK/NACK
+
+An ACK means *validated and written to `PC_ControlSettings`* — never "took effect".
+Effects are confirmed by watching `system_state` / `limited_settings` in telemetry.
+Validation order and NACK reasons (machine-readable):
+
+| Order | Check | NACK `reason` |
+|---|---|---|
+| 1 | command name known | `unknown command '<name>'` |
+| 2 | rate ≤ 5 commands / rolling second | `rate` |
+| 3 | source-select is PYTHON | `source is UI` |
+| 4 | `settings` unflattens into the typedef | `parse` |
+| 5 | range checks (initially: `Speed ref` within 0–3000) | `range: <field>` |
+| 6 | `CLEAR EMERGENCY STOP` is FALSE | `operator only` |
+
+Unknown labels inside `settings` are ignored (forward-compat, matching telemetry).
+
+## 7.4 Single writer, source-select, e-stop precedence
+
+- Exactly **one writer** of `PC_ControlSettings` at a time. A gateway-side
+  `CommandSource` selector (`UI` | `PYTHON`), **default UI**, owned by the operator
+  on the HMI — not settable via this protocol. Every telemetry frame echoes it as
+  `"command_source"`.
+- While source = UI, Python emits nothing (it tracks telemetry for bumpless
+  handover); any command that does arrive is NACKed `source is UI`. The UI in turn
+  must not write while source = PYTHON.
+- **E-stop precedence:** e-stop TRUE from *any* source (UI panels or a Python
+  command) latches. **Python can assert e-stop but can never clear it** — a command
+  with `CLEAR EMERGENCY STOP` = TRUE is NACKed `operator only`.
+
+## 7.5 Loss-of-supervisor response (ties to Phase B0)
+
+The 9056 `WatchDog` stall-counts `PC_HB`; when Python freezes/dies, `PC_HB` stops
+changing and `PCnotResponding` trips. The B0 LabVIEW work wires that flag into the
+StateMachine's state limitation as a **−1 (SAFE) clamp**, gated on
+source = PYTHON. The sim gateway implements exactly this behavior.
+
+- **[DECISION] watchdog threshold:** proposal — trip within **5 s** at the TS-loop
+  rate (matches the §5 heartbeat semantics).
+- **[DECISION] `PC_HB` toggling while source = UI:** options — (a) the UI toggles it,
+  (b) the gateway toggles it on the UI's behalf, (c) the clamp stays gated on
+  source = PYTHON (current sim behavior). Pick at review.
+
+## 7.6 Failure matrix (behavior ⇄ verification)
+
+| Failure | Defined behavior | Verified by |
+|---|---|---|
+| Python crash / freeze | `PC_HB` stalls → `PCnotResponding` → SAFE clamp; recovery steps up by 1 | sim test; bench drill B4-1/2 |
+| TCP drop | session ends, gateway re-listens; same watchdog backstop | `test_tcp_link.py`; drill B4-3 |
+| Malformed JSON / garbage | NACK `parse` (or line discarded); state unchanged; session survives | sim test; drill B4-4 |
+| Out-of-range value | NACK `range: <field>`; nothing written | sim test; drill B4-5 |
+| Command flood | NACK `rate` beyond 5/s; telemetry cadence unaffected | sim test; drill B4-6 |
+| Source flip mid-stream | bumpless both ways; `command_source` flips in telemetry | sim test; drill B4-7 |
+| E-stop vs Python | latches from any source; Python clear NACKed `operator only` | sim tests; drill B4-8 |
+| Stale telemetry (Python side) | Python stops commanding ≤ 3 s; re-seeds on recovery | sim test; drill B4-9 |
 - Protocol versioning/negotiation: deferred. The unknown-field and unknown-type rules
   in §3 provide forward compatibility in the meantime.
 - Event/alarm push messages (LabVIEW → Python outside the 1 Hz telemetry): deferred

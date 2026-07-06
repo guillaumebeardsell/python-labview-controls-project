@@ -1,5 +1,13 @@
 # Phase B — Command Path + Watchdog Proof (detailed instructions)
 
+> **Status (2026-07-06):** B0 traced (response absent — LabVIEW work specified
+> below). **B1 drafted** — ICD v0.2 is §7 of `docs/icd.md`, pending joint review
+> (two [DECISION] boxes). **B2 BUILT + VERIFIED** — `commander.py`, the
+> commandable sim gateway running the A1-ported StateMachine, 13 failure-matrix
+> tests green, and an end-to-end TCP run (STAND_BY→FIRING, one step per tick,
+> rate limiter observed firing). Next: B1 review → B3 gateway write path → B4
+> bench drills.
+
 **Objective:** a hardened Python→LabVIEW command channel whose failure modes are
 all proven safe on the bench. This phase *builds* authority plumbing; it grants
 none until its exit gate passes.
@@ -89,6 +97,8 @@ Extend `docs/icd.md` to v0.2 with:
 
 **Definition of done (B1):** v0.2 section merged into `docs/icd.md` after joint
 review; the source-select UX decision recorded.
+*Status: drafted (docs/icd.md §7) — review pending; [DECISION] boxes open:
+watchdog threshold, PC_HB toggling while source=UI.*
 
 ---
 
@@ -113,6 +123,11 @@ review; the source-select UX decision recorded.
    flood, source=UI NACK, e-stop precedence).
 
 **Definition of done (B2):** all failure-matrix rows pass against the sim.
+*Status: DONE (2026-07-06) — `supervisory/monarch/commander.py` +
+`simserver_monarch.py` rebuilt around `MonarchGatewaySim` (runs the real
+A1-ported `state_machine.decide`, ICD v0.2 validation, pc_hb stall→SAFE);
+`tests/test_monarch_commander.py` covers drills 1/2/4/5/6/7/8/9; TCP
+end-to-end verified.*
 
 ---
 
