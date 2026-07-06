@@ -17,23 +17,27 @@ a divergence alarm.
 
 *Owner: you (LabVIEW), with my analysis on the export.*
 
-1. ~~Fix the typedef-update error blocking `APC_9056_TS_loop.vi`~~ **done
-   (2026-07-06).**
-2. Export `APC_9056_TS_loop.vi` to PDF → `original-labview-codebase/`.
-3. I trace what consumes the `APC_9056_WatchDog.vi` outputs
-   (`PCnotResponding` in particular). Also note the four
-   `*watchdogThreshold` values used in practice (they looked default-0 on the
-   panel — confirm what the INI/config loads).
+1. ~~Fix the typedef-update error~~ **done (2026-07-06).**
+2. ~~Export `APC_9056_TS_loop.vi`~~ **done (2026-07-06).**
+3. ~~Trace what consumes the WatchDog outputs~~ **done — OUTCOME: Case 2, worse
+   than expected.** The WatchDog subVI sits on the TS_loop diagram **completely
+   unwired** — no inputs, no outputs. It runs (reads heartbeats via shared
+   variables internally) but `PCnotResponding` is consumed by nothing.
 
-**Outcome decides B3's scope:**
-- **Case 1 — response exists** (flag feeds state limitation / forces SAFE):
-  document trip time = threshold × loop period; B3 just satisfies it.
-- **Case 2 — indicator only:** add the response in LabVIEW: feed
-  `PCnotResponding` into the StateMachine's limitation aggregation as a −1
-  (SAFE) clamp — the same MIN mechanism the other limits use. One case
-  structure + one wire at the TS_loop call site; keep it in LabVIEW (it is
-  FLOOR logic). Also decide the threshold (suggest: trip within 5 s at the
-  loop rate, matching the ICD's existing 5 s heartbeat semantics).
+**Remaining B0 work (LabVIEW, now concretely specified):**
+- Wire the response: WatchDog's `PCnotResponding` output → `Select` (TRUE → −1,
+  FALSE → 3) → `Min` with the warning-integration (DIAG) output that feeds the
+  StateMachine's `STATE LIMITATION FROM WARNINGS` input. One Select + one Min at
+  the existing call site; stays in LabVIEW (FLOOR logic).
+- Set real `*watchdogThreshold` values (front-panel defaults are 0; nothing is
+  known to configure them). Suggest: trip within 5 s at the TS-loop rate,
+  matching the ICD's 5 s heartbeat semantics.
+- Resolve **who toggles `PC_HB`**: it's unknown whether the UI toggles it today
+  (if nothing does, the flag would read permanently tripped — likely why it was
+  left unwired). Decide per command source: UI toggles it while source=UI;
+  Python toggles it while source=PYTHON (B1 already requires this). Until the
+  UI side toggles, gate the clamp on source=PYTHON or have the gateway toggle
+  it on the UI's behalf — decide at B1 review.
 
 **Definition of done (B0):** the sentence "if `PC_ControlSettings` goes stale
 for N seconds, the 9056 does X" is true, written down in

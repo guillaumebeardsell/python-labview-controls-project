@@ -24,9 +24,10 @@ Foundations — done and verified on the real system:
       and records to `monarch.jsonl` (`docs/monarch-telemetry.md`).
 - [x] Shadow-mode envelope fields Python-ready (optional; decode+record on arrival).
 - [x] Seam analysis + this plan (`docs/migration-seam.md`); loss-of-PC **detection**
-      confirmed in `APC_9056_WatchDog.vi` (stall counters on PC_HB/MTR_HB/9049/9056
-      heartbeats → `*notResponding` flags); the **response** is unconfirmed pending
-      `APC_9056_TS_loop.vi`.
+      confirmed in `APC_9056_WatchDog.vi`, and — from the `TS_loop` export
+      (2026-07-06) — the **response confirmed absent**: the WatchDog call is unwired,
+      so `PCnotResponding` gates nothing. Building the response is B0 (now concretely
+      specified in the phase-B file).
 
 Position: **start of Phase A** (nothing of A1–A3 built yet). B1/B2 can proceed in
 parallel. Immediate blockers, all on the LabVIEW-export side: the StateMachine

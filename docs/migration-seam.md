@@ -104,7 +104,7 @@ States: −1 SAFE, 0 STAND_BY, 1 MOTORING, 2 IDLING, 3 FIRING.
 
 Port the current `APC_9056_StateMachine.vi` (2026); `_v2` is an older 2024 draft.
 
-## The safety gap — loss-of-PC watchdog (detection confirmed; response TBD)
+## The safety gap — loss-of-PC watchdog (detection exists; response CONFIRMED ABSENT)
 
 `APC_9056_WatchDog.vi` (2025-12-18) **does monitor loss-of-PC.** It watches four
 heartbeats — `9056_HeartBeat`, `9049_HeartBeat`, and `PC_HB` + `MTR_HB` carried inside
@@ -112,12 +112,22 @@ heartbeats — `9056_HeartBeat`, `9049_HeartBeat`, and `PC_HB` + `MTR_HB` carrie
 value is unchanged and trips a `*notResponding` flag once the counter passes a
 configurable threshold. So **`PCnotResponding` exists** on the 9056 RT.
 
-What's **not yet confirmed is the response**: this VI only outputs the flags. The action
-(does `PCnotResponding` force the StateMachine to SAFE, or feed `STATE LIMITATION FROM
-WARNINGS`, or is it just an indicator?) lives in **`APC_9056_TS_loop.vi`** — the 9056
-main loop that calls WatchDog, StateMachine, and WarningIntegration (`APC_9056_RT_main`
-is only a launcher). That VI hasn't been read yet; confirming that `PCnotResponding`
-drives a safe transition is the remaining item before Python holds command authority.
+**The response does not exist — confirmed from the `APC_9056_TS_loop.vi` export
+(2026-07-06).** The WatchDog subVI sits on the TS_loop diagram **completely unwired**
+(no inputs, no outputs): it executes each iteration (it reads the heartbeats via shared
+variables internally) but its `*notResponding` flags are consumed by **nothing** — no
+state clamp, no warning, not even a caller-level indicator. Two aggravating details:
+its front-panel `*watchdogThreshold` defaults are 0 (actual configured values unknown —
+possibly never set), and it is **unknown whether anything toggles `PC_HB` today** (if
+the UI never toggles it, `PCnotResponding` would read permanently tripped — a plausible
+reason the outputs were left dangling).
+
+**Consequence:** building the loss-of-PC response is Phase B0 work (Case 2 in
+`docs/phases/phase-b-command-path.md`): wire `PCnotResponding` → (Select −1 : 3) →
+`Min` with the warning-integration output feeding the StateMachine's
+`STATE LIMITATION FROM WARNINGS` input, pick real thresholds, and define who toggles
+`PC_HB` per command source. The TS_loop diagram shows exactly where it plugs in (the
+DIAG VI's output into the StateMachine call).
 
 **Python requirement either way:** `PC_HB` is a boolean field inside `PC_ControlSettings`
 (modeled as `pid_control_references.pc_hb`). The watchdog trips when it stops *changing*,
@@ -149,8 +159,9 @@ path.
 - **Operating procedures / sequences** — the single biggest missing spec. The docs
   encode modes and a limit table but **no scripted PURGE / start / light-off / abort
   sequences**. These must be authored (they were never built).
-- **Loss-of-PC response** — detection exists (`APC_9056_WatchDog.vi`); confirm what
-  consumes `PCnotResponding` by reading `APC_9056_TS_loop.vi` (and `WarningIntegration.vi`).
+- ~~Loss-of-PC response~~ **answered (2026-07-06): none exists** — the WatchDog call in
+  `TS_loop` is unwired. Building the response is Phase B0 (see the safety-gap section).
+  Open sub-questions: the real `*watchdogThreshold` values, and who toggles `PC_HB` today.
 - **9056 loop rates** — undocumented except the membrane skid (200 ms).
 - **As-built vs docs** — the overview flags developer TODOs (stroke-volume calc, a
   project/diagram mismatch), so treat the docs as intent, not ground truth; confirm
