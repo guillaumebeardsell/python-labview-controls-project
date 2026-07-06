@@ -97,4 +97,4 @@ feeds *closed*, so **`false` = the safe position** for both: vents `false = open
 (hence `true = open`). This matches the model defaults (all `false`). Worth a
 second capture in an active state (e.g. FIRING, vents commanded closed) to
 remove any doubt before the limiting logic relies on it — polarity affects the
-Stage-3 limiter, not the contract structure.
+limiter port (Phase A1 of `docs/migration-plan.md`), not the contract structure.

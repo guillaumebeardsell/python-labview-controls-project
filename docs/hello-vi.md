@@ -1,5 +1,11 @@
 # Hello VI — LabVIEW ⇄ Python Connectivity Experiment
 
+> **Status: COMPLETED (2026-07-05, RESULT: PASS).** Two-way communication proven
+> against real LabVIEW 2020 SP1, including reconnect resilience. The production
+> gateway (`APC_PC_PythonGateway.vi`, in the MONARCH project) grew out of this
+> VI — see `docs/monarch-telemetry.md`. Kept as the build walkthrough and
+> Windows setup reference.
+
 Goal: prove two-way communication between LabVIEW 2020 SP1 and the Python
 stack while both run, before porting any logic. The LabVIEW side is a
 throwaway VI built from TCP and string primitives only — **no JSONtext, no

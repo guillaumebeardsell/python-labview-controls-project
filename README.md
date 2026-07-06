@@ -1,11 +1,12 @@
 # Python Supervisory Layer for the LabVIEW Controls Stack
 
-This repo holds the Python side of a split controls architecture: supervisory
-state machines and decision logic live here; **LabVIEW permanently owns
-hardware access, hard safety interlocks, command validation, and safe
-fallback**. Every command Python sends is a request the LabVIEW gateway may
-reject, and the system is designed to be safe when the Python process is
-absent, crashed, or wrong.
+The Python supervisory layer for **MONARCH** (a Noble Thermodynamics Argon
+Power Cycle research engine controlled by LabVIEW on two NI cRIOs + a Windows
+PC). Supervisory state machines and decision logic migrate here; **LabVIEW
+permanently owns hardware access, hard safety interlocks, command validation,
+and safe fallback**. Every command Python sends is a request the LabVIEW
+gateway may reject, and the system is designed to be safe when the Python
+process is absent, crashed, or wrong.
 
 ```
 ┌────────────────────┐   TCP, localhost    ┌────────────────────┐        ┌──────────────┐
@@ -15,21 +16,40 @@ absent, crashed, or wrong.
 └────────────────────┘ ◄──── acks ──────── └────────────────────┘        └──────────────┘
 ```
 
-The wire contract is [docs/icd.md](docs/icd.md); LabVIEW-side implementation
-guidance is [docs/labview-notes.md](docs/labview-notes.md).
-
 ## Layout
+
+Two layers, deliberately decoupled — `supervisory/` is generic and knows nothing
+about MONARCH; `supervisory/monarch/` holds the project-specific payloads.
 
 | Path | Contents |
 |---|---|
 | `supervisory/messages.py` | Pydantic models for the ICD message types |
-| `supervisory/link.py` | `PlantLink` protocol + `TcpPlantLink` (real TCP client, auto-reconnect) |
+| `supervisory/link.py` | `PlantLink` protocol + `TcpPlantLink` (auto-reconnect; pluggable `parser=`) |
 | `supervisory/engine.py` | `Supervisor` tick loop, `PlantView`, `StateMachine` base class |
-| `supervisory/sim.py` | `SimPlant`/`SimPlantLink` — socket-free fake gateway for unit tests |
-| `supervisory/simserver.py` | The fake gateway behind real TCP: `python -m supervisory.simserver` |
+| `supervisory/sim.py` / `simserver.py` | Socket-free fake gateway for unit tests / the same behind real TCP |
 | `supervisory/recorder.py` | JSONL traffic recorder for offline replay |
+| `supervisory/monarch/control_settings.py` | The `ControlSettings` cluster + `SystemState` enum (confirmed vs live capture) |
+| `supervisory/monarch/labview_mapping.py` | LabVIEW flatten-label ↔ model bridge; both-way converters; contract diff |
+| `supervisory/monarch/telemetry.py` | `MonarchTelemetry` envelope + `monarch_parser` |
+| `supervisory/monarch/simserver_monarch.py` | Fake MONARCH gateway streaming real-shaped telemetry |
+| `examples/hello_link.py` | Connectivity smoke test (PASS/FAIL) |
+| `examples/monarch_listen.py` | Read-only MONARCH observer → records `monarch.jsonl` |
 | `examples/demo.py` | End-to-end demo state machine (`HeatSoak`) — the porting pattern |
-| `tests/` | pytest suite (runs with no hardware, no LabVIEW, no sockets except one smoke test) |
+| `tools/compare_flatten.py` | Diff a LabVIEW `Flatten To JSON` capture against the contract |
+| `tests/` | pytest suite (no hardware, no LabVIEW, no sockets except one smoke test) |
+| `original-labview-codebase/` | Exports of the MONARCH LabVIEW project (reference only) |
+
+## Docs
+
+| Doc | What it is |
+|---|---|
+| [docs/migration-plan.md](docs/migration-plan.md) | **Phased execution plan A–E + current project status (authoritative)** |
+| [docs/migration-seam.md](docs/migration-seam.md) | FLOOR/MIDDLE/BRAIN boundary analysis + port backlog |
+| [docs/icd.md](docs/icd.md) | Wire protocol v0.1 + failure/reconnect semantics |
+| [docs/monarch-control-settings.md](docs/monarch-control-settings.md) | The `ControlSettings` data contract (confirmed) |
+| [docs/monarch-telemetry.md](docs/monarch-telemetry.md) | Telemetry envelope (live) + gateway build recipe |
+| [docs/monarch-flatten-diff.md](docs/monarch-flatten-diff.md) | Contract-verification workflow (run on typedef changes) |
+| [docs/hello-vi.md](docs/hello-vi.md), [docs/labview-notes.md](docs/labview-notes.md) | LabVIEW gateway build guides (the completed connectivity experiment) |
 
 ## Quickstart
 
@@ -37,13 +57,18 @@ guidance is [docs/labview-notes.md](docs/labview-notes.md).
 pip install -e ".[dev]"                      # package (editable) + pytest
 pytest                                       # full suite, sub-second
 
-# end-to-end demo, two terminals:
+# generic end-to-end demo, two terminals:
 python -m supervisory.simserver --speedup 10
 python examples/demo.py
+
+# MONARCH telemetry offline (no LabVIEW), two terminals:
+python -m supervisory.monarch.simserver_monarch --speedup 5
+python examples/monarch_listen.py            # records monarch.jsonl
 ```
 
-Kill the simserver mid-demo to see staleness handling; restart it to see
-reconnect and recovery.
+On the control-room PC, `examples/monarch_listen.py` alone connects to the real
+gateway. Kill either simserver mid-run to see staleness handling; restart it to
+see reconnect and recovery.
 
 ## Design rules
 
@@ -62,11 +87,9 @@ reconnect and recovery.
    `SimPlantLink` (no sockets), production uses `TcpPlantLink`. At 1 Hz the
    implementation is plain threads + a queue — no asyncio needed.
 
-## Status / next steps
+## Status
 
-- [x] ICD v0.1, message models, TCP link, engine, sim, tests
-- [ ] LabVIEW gateway implementation (see docs/labview-notes.md)
-- [ ] Port the first real state machine; run it in shadow mode (Python
-      decides, LabVIEW's existing logic stays in command) before giving it
-      authority
-- [ ] Per-system command list document as systems are ported
+Current status lives in **[docs/migration-plan.md](docs/migration-plan.md)** (kept
+authoritative there, not here). Snapshot: transport + data contract validated against
+the real LabVIEW system; the read-only telemetry pipeline is **live** and recording;
+next is Phase A — the `APC_9056_StateMachine` port with a shadow-compare harness.

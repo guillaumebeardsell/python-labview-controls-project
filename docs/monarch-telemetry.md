@@ -1,9 +1,20 @@
-# MONARCH Telemetry — Stage 1 read-only pipeline
+# MONARCH Telemetry — the read-only pipeline
 
-Stage 1 streams the real engine state to Python once per second, decoded into
-the confirmed `ControlSettings` contract (docs/monarch-control-settings.md).
-Python only **observes** — no commands, no authority — so it's the safe first
+> **Status: LIVE (2026-07-06).** The gateway (`APC_PC_PythonGateway.vi` in the
+> MONARCH project) streams the real, live `PC_ControlSettings` + system state at
+> 1 Hz; Python decodes and records it (`monarch.jsonl`) with zero unmapped
+> fields. **Remaining on this pipeline:** pre-wire the shadow-mode extras
+> (§ below) — that's Phase A2 of `docs/migration-plan.md`, where overall project
+> status lives.
+
+The pipeline streams the real engine state to Python once per second, decoded
+into the confirmed `ControlSettings` contract (docs/monarch-control-settings.md).
+Python only **observes** — no commands, no authority — so it was the safe first
 step of the migration. This is what `examples/monarch_listen.py` does.
+
+*(Naming note: earlier work called this "Stage 1" and the shadow-mode envelope
+fields "Stage-2 fields". The phased plan supersedes that numbering: this
+pipeline = done; the extras below = Phase A2.)*
 
 ## Wire format
 
@@ -31,12 +42,19 @@ are surfaced (`MonarchTelemetry.unmapped`), never fatal.
 
 ## LabVIEW gateway — send the real envelope, node by node
 
+> **Built and verified.** Part A (constant) passed 2026-07-05; Part B (live
+> data) passed 2026-07-06 — live value changes and real state tracked, 0
+> unmapped. `CURRENT SYSTEM STATE` reaches the PC via a network-published
+> shared variable added to the MONARCH shared-vars library (StateMachine on
+> cRIO-9056 writes it; the PC gateway reads it). Kept as the build/maintenance
+> reference.
+
 You're editing the working hello VI. You replace **only** the telemetry
 `Format Into String` and add three inputs to it — the 1 Hz timer, `seq` shift
 register, `TCP Write`, framing, the ack reply, and the reconnect handling all
 stay exactly as they are. This exact envelope was verified to decode on the
-Python side (`monarch_parser`), so if the flatten matches (it did — Stage-1 diff
-→ AGREE) there's nothing new to validate.
+Python side (`monarch_parser`), so if the flatten matches (it did — the contract
+diff → AGREE) there's nothing new to validate.
 
 ### Where this VI lives
 
@@ -123,7 +141,7 @@ Two wire swaps, nothing else:
 Both come from wherever the running application already publishes them — the same
 queue / FGV / shared variable / notifier the UI reads. The gateway loop taps a
 **read-only copy**; it must never modify them. Now Python records real runs and
-`monarch.jsonl` becomes a genuine corpus — **that completes Stage 1.**
+`monarch.jsonl` becomes a genuine corpus — the read-only pipeline is complete.
 
 ### Notes
 
@@ -138,10 +156,11 @@ queue / FGV / shared variable / notifier the UI reads. The gateway loop taps a
 ## Python side — the observer
 
 ```bash
-# terminal 1 — until the gateway sends real telemetry, use the sim:
-python -m supervisory.monarch.simserver_monarch --speedup 5
-# terminal 2:
+# against the real gateway (on the control-room PC): just run the observer
 python examples/monarch_listen.py
+
+# offline / no LabVIEW: substitute the sim gateway in terminal 1
+python -m supervisory.monarch.simserver_monarch --speedup 5
 ```
 
 `monarch_listen.py` connects (reusing `TcpPlantLink` with `monarch_parser`),
@@ -150,14 +169,16 @@ ControlSettings`), logs a one-line status, and records every frame to
 `monarch.jsonl`. It sends a 1 Hz heartbeat so a watchdog-guarded gateway stays
 live, but issues no commands.
 
-The `monarch.jsonl` recording is the corpus for Stage 2: the state logic will be
-replayed against real recorded telemetry to check its decisions offline.
+The `monarch.jsonl` recordings are the replay corpus for the shadow-compare
+harness (Phase A2): the ported state logic is re-run against recorded telemetry
+and its decisions diffed against LabVIEW's offline.
 
-## Stage-2 preview — the fuller envelope (optional to pre-wire now)
+## Shadow-mode extras — the fuller envelope (Phase A2 gateway task — NEXT)
 
-Stage 1 needs only `system_state` + `settings`. Stage-2 shadow mode also needs
-the rest of the StateMachine's I/O that lives **outside** the ControlSettings
-cluster — each a sibling top-level field, same pattern as `system_state`:
+The read-only pipeline needs only `system_state` + `settings`. Shadow mode
+(Phase A) also needs the rest of the StateMachine's I/O that lives **outside**
+the ControlSettings cluster — each a sibling top-level field, same pattern as
+`system_state`:
 
 ```json
 {"type":"telemetry","seq":42,"ts":1783041300.500,
@@ -169,7 +190,7 @@ cluster — each a sibling top-level field, same pattern as `system_state`:
 
 | Field | Type | LabVIEW source | Role |
 |---|---|---|---|
-| `system_state` | int | `CURRENT SYSTEM STATE` (I8) | StateMachine **output** — the decided state (already wired in Stage 1) |
+| `system_state` | int | `CURRENT SYSTEM STATE` (I8) | StateMachine **output** — the decided state (already wired and live) |
 | `warnings_limit` | int | `STATE LIMITATION FROM WARNINGS` (I8) | input — max state warnings permit (same −1..3 encoding) |
 | `manual_state` | int | `ManualState` (I8) | input — manual state override (send your "no override" sentinel as-is) |
 | `force_state` | bool | `ForceState` | input — force-state override |
@@ -185,22 +206,30 @@ That's the whole comparison, so this is the complete set.
 To add each in the gateway: one more `Format Into String` argument (a `%d`, `%d`,
 a boolean rendered as `true`/`false`, and a second `%s` for the
 `Limited_ControlSettings` flatten). **The Python side already accepts all of
-them** (`MonarchTelemetry`) — they're optional, so a Stage-1 gateway is
+them** (`MonarchTelemetry`) — they're optional, so today's gateway is
 unaffected, and the moment you wire one it's decoded, logged, and recorded. No
-Python change needed when you pre-wire.
+Python change needed when you pre-wire. Note the inputs (`warnings_limit`,
+`manual_state`, `force_state`) live on cRIO-9056 at the StateMachine call site —
+like `system_state`, they'll need publishing to the PC (same shared-variable
+pattern) if they aren't already.
 
 Rendering `force_state` as a boolean in `Format Into String`: use a Select
 (`True`→`true` string, `False`→`false` string) into a `%s`, since `%d` would
 give `1`/`0` — the model accepts JSON `true`/`false`.
 
-## Status
+## Status (this pipeline)
 
-- [x] `ControlSettings` contract confirmed against a live capture
+- [x] `ControlSettings` contract confirmed against a live capture (diff → AGREE)
 - [x] Raw-flatten → typed model decoder (`control_settings_from_labview`), tested
       against the real capture
 - [x] Telemetry envelope + parser (`MonarchTelemetry`, `monarch_parser`)
 - [x] Read-only observer + JSONL recorder; sim gateway for offline testing
-- [x] Gateway Part A verified on the real VI (envelope decodes, 0 unmapped, state propagates)
-- [x] Stage-2 envelope fields Python-ready (optional; decode+record when pre-wired)
-- [ ] Point the gateway at the live cluster → record a real run (completes Stage 1)
-- [ ] (Stage 2) pre-wire `warnings_limit` / `manual_state` / `force_state` / `limited_settings`
+- [x] Gateway Part A — envelope from a constant, verified on the real VI (2026-07-05)
+- [x] Gateway Part B — **live** `PC_ControlSettings` + real `CURRENT SYSTEM STATE`
+      (via new shared variable), verified live-value tracking (2026-07-06)
+- [x] Shadow-mode extras Python-ready (optional fields; decode+record when pre-wired)
+- [ ] **Pre-wire the shadow-mode extras in the gateway** (`warnings_limit`,
+      `manual_state`, `force_state`, `limited_settings`) — Phase A2
+
+For overall project status and what comes after this pipeline, see
+`docs/migration-plan.md`.

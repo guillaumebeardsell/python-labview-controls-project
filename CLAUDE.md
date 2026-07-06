@@ -102,8 +102,8 @@ MONARCH VIs for reference (the HTML files carry terminal labels as grep-able tex
 
 `docs/icd.md` (wire protocol + failure/reconnect semantics), `docs/monarch-control-settings.md`
 (the data contract), `docs/monarch-flatten-diff.md` (contract-verification workflow),
-`docs/monarch-telemetry.md` (telemetry envelope + the gateway build recipe, incl. the Stage-2
-fields), `docs/hello-vi.md` + `docs/labview-notes.md` (LabVIEW gateway build guides);
+`docs/monarch-telemetry.md` (telemetry envelope + the gateway build recipe, incl. the
+shadow-mode fields), `docs/hello-vi.md` + `docs/labview-notes.md` (LabVIEW gateway build guides);
 `docs/migration-seam.md` (the FLOOR/MIDDLE/BRAIN boundary + prioritized port backlog);
 `docs/migration-plan.md` (the phased execution plan A–E: shadow brain → command path +
 watchdog proof → bench command → sequencing → commissioning; authority gates + exit criteria).

@@ -7,6 +7,10 @@ MONARCH Overview.pdf`, the FPGA design decks, and the SCADA/logging/report `.doc
 set under `original-labview-codebase/`). Where the sources are silent or a TODO, this
 doc says so explicitly.
 
+**This is the analysis document.** The executable sequence — phases A–E with authority
+gates, exit criteria, and **current project status** — is `docs/migration-plan.md`;
+the backlog at the bottom of this doc maps 1:1 onto its phases.
+
 ## The one invariant (and why it already holds in hardware)
 
 Hard real-time and safety stay on the cRIO/FPGA; a dead/absent Python side must equal a
@@ -75,9 +79,11 @@ consume it; 9049 publishes `9049_ControlSettings` back.
   confirmed** against a live capture (`supervisory/monarch/control_settings.py`,
   `docs/monarch-control-settings.md`).
 - **`Limited_ControlSettings`** — the StateMachine output; same shape as
-  `PC_ControlSettings`, clamped. (The optional `limited_settings` telemetry field.)
+  `PC_ControlSettings`, clamped. Python decodes it already (the optional
+  `limited_settings` telemetry field); the gateway pre-wire is Phase A2.
 - **`9049_ControlSettings`** — the 9049 command subset (STATE, InjectionEnable,
-  Main{Enable/Duration/SOI}, SparkEnable, SparkTiming, Speed). **Not yet modeled.**
+  Main{Enable/Duration/SOI}, SparkEnable, SparkTiming, Speed). **Not yet modeled**
+  (needed by Phase C at the latest).
 
 ## StateMachine transition rules (consolidated spec)
 
@@ -119,22 +125,24 @@ so whatever sends the settings must **toggle `pc_hb` every cycle** to keep the 9
 flagging the supervisor as dead. This is a concrete, testable requirement for the command
 path.
 
-## Prioritized port backlog
+## Prioritized port backlog (→ phases in `docs/migration-plan.md`)
 
-1. **StateMachine** (in progress) — fully specified, self-contained, foundational; port
-   + exhaustive unit tests. Validates the whole toolchain.
-2. **Command path + stale-command watchdog** (prerequisite for any authority) — build the
-   Python→LabVIEW command channel with ACK/NACK validation (telemetry/read is done), and
-   resolve/implement the cRIO-side stale-`PC_ControlSettings`→SAFE watchdog.
-3. **Warning/diagnostic → state policy** — port the thresholds + warning→max-state clamp
-   + severity→reaction map, and **author the temporal rules** the original dev left
-   unbuilt. Pairs with (1): it produces `STATE LIMITATION FROM WARNINGS`.
-4. **Run sequencing / recipes (greenfield, highest operational value)** — cranking,
-   purge, light-off, venting + recovery, misfire recovery, WF quality check. Needs an
-   operating-procedure **spec from the team** (not in the code/docs). Build in Python,
-   test-first.
-5. **Setpoint scheduling / control-mode selection** — the "what targets, which mode"
-   layer above the 9056 MIDDLE loops.
+1. **StateMachine** → **Phase A1** *(next up)* — fully specified, self-contained,
+   foundational; port + exhaustive unit tests. Validates the whole toolchain.
+2. **Command path + stale-command watchdog** → **Phase B** (prerequisite for any
+   authority) — build the Python→LabVIEW command channel with ACK/NACK validation
+   (telemetry/read is **done and live**), and confirm/implement the cRIO-side response
+   to `PCnotResponding` (detection already exists — see the watchdog section above).
+3. **Warning/diagnostic → state policy** → **Phase A3** — port the thresholds +
+   warning→max-state clamp + severity→reaction map, and **author the temporal rules**
+   the original dev left unbuilt. Pairs with (1): it produces
+   `STATE LIMITATION FROM WARNINGS`.
+4. **Run sequencing / recipes** → **Phase D** (greenfield, highest operational value) —
+   cranking, purge, light-off, venting + recovery, misfire recovery, WF quality check.
+   Needs an operating-procedure **spec from the team** (not in the code/docs). Build in
+   Python, test-first.
+5. **Setpoint scheduling / control-mode selection** → **Phase E** — the "what targets,
+   which mode" layer above the 9056 MIDDLE loops.
 
 ## Open questions to source from the team
 

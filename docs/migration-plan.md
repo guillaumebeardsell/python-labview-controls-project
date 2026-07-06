@@ -5,6 +5,34 @@ phase has a fixed **authority level**, concrete Python and LabVIEW deliverables,
 **verifiable exit criteria**. Phases overlap where dependencies allow; nothing advances
 Python's authority until the phase gating it is closed.
 
+**This document is the authoritative home of project status** — other docs describe
+their own piece and point here.
+
+## Current status (2026-07-06)
+
+Foundations — done and verified on the real system:
+
+- [x] Transport + ICD v0.1 validated end-to-end against real LabVIEW 2020 SP1
+      (hello-VI experiment, PASS), including disconnect/reconnect resilience.
+- [x] `ControlSettings` contract transcribed and confirmed against a live LabVIEW
+      `Flatten To JSON` capture (diff → AGREE, all 64 leaves; `tools/compare_flatten.py`
+      guards future typedef drift).
+- [x] **Read-only telemetry pipeline LIVE**: `APC_PC_PythonGateway.vi` (in the MONARCH
+      project) streams the live `PC_ControlSettings` + `CURRENT SYSTEM STATE` (published
+      via a new network shared variable) at 1 Hz; Python decodes with 0 unmapped fields
+      and records to `monarch.jsonl` (`docs/monarch-telemetry.md`).
+- [x] Shadow-mode envelope fields Python-ready (optional; decode+record on arrival).
+- [x] Seam analysis + this plan (`docs/migration-seam.md`); loss-of-PC **detection**
+      confirmed in `APC_9056_WatchDog.vi` (stall counters on PC_HB/MTR_HB/9049/9056
+      heartbeats → `*notResponding` flags); the **response** is unconfirmed pending
+      `APC_9056_TS_loop.vi`.
+
+Position: **start of Phase A** (nothing of A1–A3 built yet). B1/B2 can proceed in
+parallel. Immediate blockers, all on the LabVIEW-export side: the StateMachine
+per-limitation case frames (A1 exactness), `APC_9056_TS_loop.vi` +
+`APC_9056_WarningIntegration.vi` exports (A3, B0 — currently behind a typedef-update
+error in `APC_9056_TexhControl.vi`), and the operating-procedure spec (D0).
+
 Ground rules that hold in every phase:
 
 - **LabVIEW/cRIO/FPGA keeps the FLOOR** (I/O, interlocks, validation, safe fallback).
@@ -25,7 +53,7 @@ Ground rules that hold in every phase:
 Goal: Python computes every supervisory decision the 9056 makes today, verified
 against spec and bench captures — without sending anything.
 
-**A1. Port `APC_9056_StateMachine`** *(in progress)*
+**A1. Port `APC_9056_StateMachine`** *(next up — not started)*
 - Python `MonarchStateMachine`: MIN-aggregation over {requested mode, warnings limit,
   e-stop → −1, force-motoring → ≤1, force-idling → ≤2}, increase-by-1 rule,
   `ForceState`/`ManualState` override, and the MAX-LEVEL-OF-CONTROL limiter producing
@@ -38,8 +66,9 @@ against spec and bench captures — without sending anything.
   confirmed empty.
 
 **A2. Shadow-compare harness**
-- Pre-wire the Stage-2 envelope fields in the gateway (`warnings_limit`,
-  `manual_state`, `force_state`, `limited_settings` — Python side already decodes).
+- Pre-wire the shadow-mode envelope fields in the gateway (`warnings_limit`,
+  `manual_state`, `force_state`, `limited_settings` — Python side already decodes;
+  see `docs/monarch-telemetry.md` §Shadow-mode extras).
 - `tools/shadow_compare.py`: replay `monarch.jsonl` (or watch live), recompute
   state + limits from inputs, diff against LabVIEW's outputs, report divergences.
 - Bench input sweeps from the UI (requested mode, forces, e-stop, warning injection)

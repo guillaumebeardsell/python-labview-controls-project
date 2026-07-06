@@ -1,5 +1,10 @@
 # LabVIEW Gateway Implementation Notes (LabVIEW 2020 SP1, Windows)
 
+> Generic design notes written before the gateway existed. The concrete builds
+> that came out of them: `docs/hello-vi.md` (connectivity test, completed) and
+> `docs/monarch-telemetry.md` (the live telemetry gateway). Kept for the TCP/
+> JSON/session-loop guidance and the bring-up checklist.
+
 What to build on the LabVIEW side to implement the gateway half of
 [the ICD](icd.md). The Python fake gateway (`python -m supervisory.simserver`,
 source in `supervisory/simserver.py`) is the executable reference for this

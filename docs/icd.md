@@ -126,6 +126,10 @@ A new TCP connection is a **fresh session** on both sides:
 
 ## 6. Out of scope / future
 
+- **v0.2 (planned, Phase B1 of `docs/migration-plan.md`):** the MONARCH command path —
+  an atomic `set_control_settings` command carrying a complete `PC_ControlSettings`
+  (LabVIEW-label serialization), `pc_hb` toggling for the 9056 watchdog, and the
+  single-writer source-select rules. This document stays at v0.1 until that lands.
 - The per-system command list (names, parameters, validation rules) is maintained in a
   separate document as systems are ported.
 - Protocol versioning/negotiation: deferred. The unknown-field and unknown-type rules
