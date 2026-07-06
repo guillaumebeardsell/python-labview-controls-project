@@ -6,7 +6,8 @@ phase has a fixed **authority level**, concrete Python and LabVIEW deliverables,
 Python's authority until the phase gating it is closed.
 
 **This document is the authoritative home of project status** — other docs describe
-their own piece and point here.
+their own piece and point here. Step-by-step instructions for each phase live in
+`docs/phases/` (one file per phase, linked from each section below).
 
 ## Current status (2026-07-06)
 
@@ -50,6 +51,8 @@ Ground rules that hold in every phase:
 
 ## Phase A — Shadow brain (authority: none; read-only)
 
+*Detailed instructions: [phases/phase-a-shadow-brain.md](phases/phase-a-shadow-brain.md)*
+
 Goal: Python computes every supervisory decision the 9056 makes today, verified
 against spec and bench captures — without sending anything.
 
@@ -89,6 +92,8 @@ finding, not automatically a Python defect).
 ---
 
 ## Phase B — Command path + watchdog proof (authority: none until B-exit; this phase *builds* the authority plumbing)
+
+*Detailed instructions: [phases/phase-b-command-path.md](phases/phase-b-command-path.md)*
 
 Goal: a hardened Python→LabVIEW command channel whose failure modes are all proven
 safe on the bench. This is the gate for everything after it.
@@ -148,6 +153,8 @@ proven. Only after this may any phase grant Python authority.
 
 ## Phase C — Python in command on the bench (authority: setpoints + mode requests, behind the LabVIEW limiter)
 
+*Detailed instructions: [phases/phase-c-bench-command.md](phases/phase-c-bench-command.md)*
+
 Goal: Python is the acting supervisor for bench operation — no engine, hardware not
 ready — exercising real authority against the real cRIOs.
 
@@ -169,6 +176,9 @@ unsafe outcomes and zero unexplained limiter divergences.
 ---
 
 ## Phase D — Sequencing engine (greenfield; authority: sequences issue the same commands C already proved)
+
+*Detailed instructions: [phases/phase-d-sequencing.md](phases/phase-d-sequencing.md)
+(includes the procedure-spec template for D0)*
 
 Goal: the layer that doesn't exist in LabVIEW — automated procedures — built
 test-first in Python.
@@ -194,6 +204,8 @@ fault injection in sim, and the non-combustion subset runs on the bench.
 ---
 
 ## Phase E — Commissioning support & expansion (authority: as commissioned, step by step)
+
+*Detailed instructions: [phases/phase-e-commissioning.md](phases/phase-e-commissioning.md)*
 
 - Use D sequences to drive commissioning itself (cold flow → motoring → first fire),
   each new plant capability unlocked only after its bench drill.

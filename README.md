@@ -44,6 +44,7 @@ about MONARCH; `supervisory/monarch/` holds the project-specific payloads.
 | Doc | What it is |
 |---|---|
 | [docs/migration-plan.md](docs/migration-plan.md) | **Phased execution plan A–E + current project status (authoritative)** |
+| [docs/phases/](docs/phases/) | Detailed step-by-step instructions, one file per phase (A–E) |
 | [docs/migration-seam.md](docs/migration-seam.md) | FLOOR/MIDDLE/BRAIN boundary analysis + port backlog |
 | [docs/icd.md](docs/icd.md) | Wire protocol v0.1 + failure/reconnect semantics |
 | [docs/monarch-control-settings.md](docs/monarch-control-settings.md) | The `ControlSettings` data contract (confirmed) |

@@ -106,7 +106,8 @@ MONARCH VIs for reference (the HTML files carry terminal labels as grep-able tex
 shadow-mode fields), `docs/hello-vi.md` + `docs/labview-notes.md` (LabVIEW gateway build guides);
 `docs/migration-seam.md` (the FLOOR/MIDDLE/BRAIN boundary + prioritized port backlog);
 `docs/migration-plan.md` (the phased execution plan A–E: shadow brain → command path +
-watchdog proof → bench command → sequencing → commissioning; authority gates + exit criteria).
+watchdog proof → bench command → sequencing → commissioning; authority gates + exit criteria;
+**authoritative status home**); `docs/phases/` (step-by-step instructions, one file per phase).
 
 ## Conventions
 
