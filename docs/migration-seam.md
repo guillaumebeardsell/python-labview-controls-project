@@ -98,15 +98,26 @@ States: −1 SAFE, 0 STAND_BY, 1 MOTORING, 2 IDLING, 3 FIRING.
 
 Port the current `APC_9056_StateMachine.vi` (2026); `_v2` is an older 2024 draft.
 
-## The safety gap to close before Python-in-command
+## The safety gap — loss-of-PC watchdog (detection confirmed; response TBD)
 
-The docs describe a watchdog on FPGA IGN/DI and an MTR heartbeat, but **do not document
-any watchdog on `PC_ControlSettings` / loss-of-PC.** Whether a stale or absent
-supervisor command auto-decays the cRIO to SAFE is **unspecified**. This is the top
-safety question to resolve: a cRIO-side **stale-command → SAFE watchdog** (analogous to
-the FPGA's) must exist before Python holds command authority (vs. read-only shadow).
-The `9049_HeartBeat` / `9056_HeartBeat` shared variables exist but it's unconfirmed they
-gate `PC_ControlSettings` staleness.
+`APC_9056_WatchDog.vi` (2025-12-18) **does monitor loss-of-PC.** It watches four
+heartbeats — `9056_HeartBeat`, `9049_HeartBeat`, and `PC_HB` + `MTR_HB` carried inside
+`PC_ControlSettings` — each with a stall counter that increments while the heartbeat
+value is unchanged and trips a `*notResponding` flag once the counter passes a
+configurable threshold. So **`PCnotResponding` exists** on the 9056 RT.
+
+What's **not yet confirmed is the response**: this VI only outputs the flags. The action
+(does `PCnotResponding` force the StateMachine to SAFE, or feed `STATE LIMITATION FROM
+WARNINGS`, or is it just an indicator?) lives in **`APC_9056_TS_loop.vi`** — the 9056
+main loop that calls WatchDog, StateMachine, and WarningIntegration (`APC_9056_RT_main`
+is only a launcher). That VI hasn't been read yet; confirming that `PCnotResponding`
+drives a safe transition is the remaining item before Python holds command authority.
+
+**Python requirement either way:** `PC_HB` is a boolean field inside `PC_ControlSettings`
+(modeled as `pid_control_references.pc_hb`). The watchdog trips when it stops *changing*,
+so whatever sends the settings must **toggle `pc_hb` every cycle** to keep the 9056 from
+flagging the supervisor as dead. This is a concrete, testable requirement for the command
+path.
 
 ## Prioritized port backlog
 
@@ -130,8 +141,8 @@ gate `PC_ControlSettings` staleness.
 - **Operating procedures / sequences** — the single biggest missing spec. The docs
   encode modes and a limit table but **no scripted PURGE / start / light-off / abort
   sequences**. These must be authored (they were never built).
-- **Loss-of-PC behavior** — is there (or should there be) a cRIO-side stale-command→SAFE
-  watchdog? (See the safety gap above.)
+- **Loss-of-PC response** — detection exists (`APC_9056_WatchDog.vi`); confirm what
+  consumes `PCnotResponding` by reading `APC_9056_TS_loop.vi` (and `WarningIntegration.vi`).
 - **9056 loop rates** — undocumented except the membrane skid (200 ms).
 - **As-built vs docs** — the overview flags developer TODOs (stroke-volume calc, a
   project/diagram mismatch), so treat the docs as intent, not ground truth; confirm
