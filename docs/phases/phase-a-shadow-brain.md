@@ -16,17 +16,24 @@ recordings available.
 
 *Owner: Python (Claude). LabVIEW input needed: one export (step 0).*
 
-**A1.0 — Pin the last unknowns (LabVIEW export, ~15 min)**
-Export a zoomed PDF/PNG of the current (2026) `APC_9056_StateMachine.vi` block
-diagram showing, readably:
-- the small per-limitation case frames (the `True/False` cases feeding
-  "Aggregate (MIN) State Limitation") — we need the exact clamp value inside each;
-- the `ManualState`/`ForceState` case and the `DisregardWarnings` case contents;
-- what triggers `PostMortemSave`.
-Drop it in `screenshots/`. Until then the port proceeds on these **assumptions**
-(each marked in code with `# ASSUMPTION`): E-STOP → −1; Force Motoring → ≤1;
-Force Idling → ≤2; no-warning sentinel = 3 (no limit); `DisregardWarnings`
-bypasses only the warnings clamp; `PostMortemSave` fires on entry to SAFE.
+**A1.0 — Pin the last unknowns** ✅ **done (2026-07-06)** — resolved from the
+re-exported `APC_9056_StateMachine/` per-frame images (`d1`–`d8` + main diagram
+crops). Confirmed semantics:
+- Per-source limits: E-STOP → −1, Force Motoring → 1, Force Idling → 2 (True
+  cases); each **False case → 3** (no restriction).
+- Arbitration implemented as **Build Array → Sort 1D Array → Index[0]**, i.e.
+  MIN over {requested mode, warnings limit, e-stop, force-motoring,
+  force-idling, current+1}; the `current+1` step-up element is gated by the
+  per-state "forced transition condition" cases, which are **all constant TRUE**
+  (no plant-feedback guards implemented).
+- `ForceState` TRUE ⇒ `SYSTEM STATE` = `ManualState` **absolutely** (the
+  override case output wires directly to the indicator, after/independent of
+  the MIN — bypasses the +1 rule too).
+- `DisregardWarnings` FALSE case is a pass-through (True path affects the
+  warnings contribution only).
+Residual minor unknowns (mark `# ASSUMPTION`, non-blocking): the exact
+comparator condition that triggers `PostMortemSave` (assumed: a forced/downward
+transition), and the `DisregardWarnings` TRUE-path detail.
 
 **A1.1 — Data model**
 New module `supervisory/monarch/state_machine.py`:

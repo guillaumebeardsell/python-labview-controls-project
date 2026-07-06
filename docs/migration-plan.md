@@ -29,12 +29,13 @@ Foundations — done and verified on the real system:
       so `PCnotResponding` gates nothing. Building the response is B0 (now concretely
       specified in the phase-B file).
 
-Position: **start of Phase A** (nothing of A1–A3 built yet). B1/B2 can proceed in
-parallel. Immediate blockers, all on the LabVIEW-export side: the StateMachine
-per-limitation case frames (A1 exactness), `APC_9056_TS_loop.vi` +
-`APC_9056_WarningIntegration.vi` exports (A3, B0 — the typedef-update error that
-blocked `TS_loop` was fixed 2026-07-06; the VIs just need exporting), and the
-operating-procedure spec (D0).
+Position: **start of Phase A** (nothing of A1–A3 built yet); B1/B2 can proceed in
+parallel. **All export blockers cleared 2026-07-06**: StateMachine per-frame export
+(A1.0 answered — clamp values, sort-based MIN, absolute ManualState override
+confirmed), `TS_loop` (B0 answered — WatchDog unwired, response must be built) and
+`WarningIntegration` (A3 input) both in `original-labview-codebase/`. Remaining
+team inputs: the operating-procedure spec (D0), plus B0's threshold/PC_HB-toggling
+decisions at B1 review.
 
 Ground rules that hold in every phase:
 
@@ -236,7 +237,8 @@ D1/D2 (can start on framework + sim before D0 lands, using placeholder sequences
 
 | Input | Blocks | Who |
 |---|---|---|
-| Zoomed export: StateMachine per-limitation case frames | A1 exactness | you (LabVIEW export) |
-| Exports: `APC_9056_TS_loop.vi`, `APC_9056_WarningIntegration.vi` | A3, B0 | you (typedef error fixed 2026-07-06 — ready to export) |
+| ~~Zoomed export: StateMachine per-limitation case frames~~ | A1 exactness | ✅ done 2026-07-06 (per-frame re-export; A1.0 answered) |
+| ~~Exports: `APC_9056_TS_loop.vi`, `APC_9056_WarningIntegration.vi`~~ | A3, B0 | ✅ done 2026-07-06 (B0 answered: response absent, must be built) |
+| B0 decisions: watchdog thresholds + who toggles `PC_HB` per source | B0/B3 | joint, at B1 review |
 | Operating procedures (informal ok) | D0→D1 content | you + team |
 | Decision: source-select UX (where the UI/PYTHON switch lives) | B3 detail | joint, during B1 review |
