@@ -26,6 +26,14 @@ original developer has left. Don't propose capturing a real engine run; drive st
 synthetically. Because the LabVIEW logic is unvalidated and unowned, its value as a shadow-mode
 "ground truth" is limited — favor unit-testing the ported logic against the spec.
 
+The safe-hold invariant is **already enforced in hardware**: the 9049 FPGA watchdog kills spark/DI
+if the RT loop stops toggling it (>4 Hz), so a supervisor dropout is a safe hold — *provided Python
+stays above that RT loop and never pets the watchdog*. Known gap: no documented watchdog on
+`PC_ControlSettings`/loss-of-PC — a cRIO-side stale-command→SAFE watchdog must be resolved before
+Python holds command authority (vs. read-only). See `docs/migration-seam.md` for the full
+FLOOR/MIDDLE/BRAIN boundary and the port backlog; the scope is broader than the state machine
+(sequencing/recipes — which don't exist in LabVIEW yet — plus warning policy and setpoint scheduling).
+
 ## Commands
 
 ```bash
@@ -95,7 +103,8 @@ MONARCH VIs for reference (the HTML files carry terminal labels as grep-able tex
 `docs/icd.md` (wire protocol + failure/reconnect semantics), `docs/monarch-control-settings.md`
 (the data contract), `docs/monarch-flatten-diff.md` (contract-verification workflow),
 `docs/monarch-telemetry.md` (telemetry envelope + the gateway build recipe, incl. the Stage-2
-fields), `docs/hello-vi.md` + `docs/labview-notes.md` (LabVIEW gateway build guides).
+fields), `docs/hello-vi.md` + `docs/labview-notes.md` (LabVIEW gateway build guides);
+`docs/migration-seam.md` (the FLOOR/MIDDLE/BRAIN boundary + prioritized port backlog).
 
 ## Conventions
 
