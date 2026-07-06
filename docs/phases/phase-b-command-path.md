@@ -17,9 +17,8 @@ a divergence alarm.
 
 *Owner: you (LabVIEW), with my analysis on the export.*
 
-1. Fix the typedef-update error blocking `APC_9056_TS_loop.vi` (open
-   `APC_9056_TexhControl.vi` → right-click its `PC_ControlSettings` control →
-   **Review and Update from Type Def** → resolve, save).
+1. ~~Fix the typedef-update error blocking `APC_9056_TS_loop.vi`~~ **done
+   (2026-07-06).**
 2. Export `APC_9056_TS_loop.vi` to PDF → `original-labview-codebase/`.
 3. I trace what consumes the `APC_9056_WatchDog.vi` outputs
    (`PCnotResponding` in particular). Also note the four

@@ -31,8 +31,9 @@ Foundations — done and verified on the real system:
 Position: **start of Phase A** (nothing of A1–A3 built yet). B1/B2 can proceed in
 parallel. Immediate blockers, all on the LabVIEW-export side: the StateMachine
 per-limitation case frames (A1 exactness), `APC_9056_TS_loop.vi` +
-`APC_9056_WarningIntegration.vi` exports (A3, B0 — currently behind a typedef-update
-error in `APC_9056_TexhControl.vi`), and the operating-procedure spec (D0).
+`APC_9056_WarningIntegration.vi` exports (A3, B0 — the typedef-update error that
+blocked `TS_loop` was fixed 2026-07-06; the VIs just need exporting), and the
+operating-procedure spec (D0).
 
 Ground rules that hold in every phase:
 
@@ -235,6 +236,6 @@ D1/D2 (can start on framework + sim before D0 lands, using placeholder sequences
 | Input | Blocks | Who |
 |---|---|---|
 | Zoomed export: StateMachine per-limitation case frames | A1 exactness | you (LabVIEW export) |
-| Exports: `APC_9056_TS_loop.vi`, `APC_9056_WarningIntegration.vi` | A3, B0 | you (fix the typedef-update error first) |
+| Exports: `APC_9056_TS_loop.vi`, `APC_9056_WarningIntegration.vi` | A3, B0 | you (typedef error fixed 2026-07-06 — ready to export) |
 | Operating procedures (informal ok) | D0→D1 content | you + team |
 | Decision: source-select UX (where the UI/PYTHON switch lives) | B3 detail | joint, during B1 review |

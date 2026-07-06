@@ -146,10 +146,8 @@ divergence dispositioned) across all sweep recordings.
 
 *Owner: Python (Claude). LabVIEW input needed: exports.*
 
-**A3.0 — Exports (you)** — blocked behind the `APC_9056_TexhControl.vi` typedef
-error; fix first (LabVIEW: open `APC_9056_TexhControl.vi`, right-click the
-`PC_ControlSettings` front-panel control → **Review and Update from Type Def**,
-resolve the flagged defaults, save). Then export:
+**A3.0 — Exports (you)** — the `APC_9056_TexhControl.vi` typedef-update error
+that blocked these is **fixed (2026-07-06)**; just export:
 - `APC_9056_TS_loop.vi` (also closes B0),
 - `APC_9056_WarningIntegration.vi`,
 - `APC_9056_WarningBool.vi` / `APC_9056_ClearSoftWarning.vi` /
