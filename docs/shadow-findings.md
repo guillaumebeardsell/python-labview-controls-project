@@ -50,6 +50,28 @@ the override. Conclusions:
   commissioning (e.g. publish both SM state and 9049 echo and alarm on
   sustained mismatch).
 
+## 2026-07-07 — requested-mode walk + e-stop = 100%/100% (clamped at MOTORING)
+
+52-frame session: requested_mode walked −1↔0↔1↔2 and an EMERGENCY STOP press
+(seq 39, `state → −1`). **SYSTEM STATE 51/51 (100%) · Limited 51/51 (100%) · AGREE.**
+
+**Operator note — couldn't get past MOTORING (1):** the whole session ran with
+`warnings_limit = 1` (a latched level-3 warning), so `state = min(requested,
+1, …)`. Requesting mode 2 (seq 15, 23) correctly clamped to 1 — **the warning
+clamp working, not a fault**, and the port predicted the same clamp on every
+frame. To reach IDLING(2)/FIRING(3) the latched warning must be cleared first
+(Errors screen: widen the tripped channel's threshold or operator-clear), then
+re-walk. Until then states 2 and 3 are **not yet covered** by shadow evidence.
+
+**e-stop covered:** press → SAFE(−1), release → returns to the requested level;
+port agrees. Step-up-by-one confirmed (0→1 one step per tick).
+
+One transient limiter diff (seq 23) was the echoed `requested_mode` lagging one
+frame at a 1→2 step-change — the same input/output snapshot skew as the
+heartbeats and `wf_oa_002_ref`; added to `IGNORED_LEAVES`. All four exclusions
+share one root cause (the two clusters flattened at different instants); the
+clean permanent fix is a single coherent gateway snapshot.
+
 ## 2026-07-07 — MILESTONE: ForceState/ManualState override sweep = 100%/100%
 
 After the `system_state` re-tap (now the 9056 SM's fresh output, before the

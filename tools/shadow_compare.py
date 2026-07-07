@@ -56,12 +56,20 @@ class Report:
 #                      the 19/137 diffs in the 2026-07-07 sweep were all the
 #                      signal moving by one sample between the two snapshots —
 #                      LabVIEW's frame-N output equals its frame-N+1 input).
-# The real fix lives on the LabVIEW side (flatten both clusters from one loop
-# iteration); until then this keeps the diff to actual clamp decisions.
+#   - requested_mode : the operator's request is echoed into the cluster, not a
+#                      clamp decision (the limiter clamps the derived actuator
+#                      modes, never the request). It skews for exactly one frame
+#                      at each operator step-change, same snapshot cause.
+# All of these trace to ONE LabVIEW-side fact: PC_ControlSettings and
+# Limited_ControlSettings are flattened at slightly different instants. The clean
+# permanent fix is a single coherent snapshot on the gateway side; until then
+# this keeps the diff to actual clamp decisions (the per-actuator modes, enables,
+# vents — which ARE still compared and would still catch a real limiter bug).
 IGNORED_LEAVES = {
     "pid_control_references.pc_hb",
     "pid_control_references.mtr_hb",
     "pid_control_references.ng.wf_oa_002_ref",
+    "requested_mode",
 }
 
 
