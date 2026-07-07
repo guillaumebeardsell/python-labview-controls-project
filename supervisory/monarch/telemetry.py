@@ -49,6 +49,10 @@ class MonarchTelemetry(BaseModel):
     force_state: bool | None = None  # ForceState override input
     limited_settings: ControlSettings | None = None  # Limited_ControlSettings (what was allowed)
     command_source: str | None = None  # "UI" | "PYTHON" — who writes PC_ControlSettings (ICD v0.2)
+    # Plant feedback by tag name (Phase D confirmations; the sim provides it now,
+    # the gateway adds tags per the A2.1 shared-variable pattern as sequences
+    # need them — see docs/phases/phase-d-sequencing.md):
+    plant: dict[str, float] | None = None
 
     unmapped: tuple[str, ...] = ()  # LabVIEW labels with no model field (should be empty)
 
@@ -70,6 +74,7 @@ def parse_monarch_telemetry(obj: dict) -> MonarchTelemetry:
         force_state=obj.get("force_state"),
         limited_settings=limited,
         command_source=obj.get("command_source"),
+        plant=obj.get("plant"),
         unmapped=tuple(unmapped),
     )
 

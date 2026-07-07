@@ -41,6 +41,69 @@ log = logging.getLogger("monarch-sim")
 COMMAND_NAME = "set_control_settings"
 
 
+class SimPlantModel:
+    """Minimal plant dynamics (Phase D2): just enough response for sequences to
+    confirm against — first-order lags, not physics. Driven by the LIMITED
+    settings (what the plant would actually receive). Readings are published in
+    the telemetry `plant` dict under P&ID-ish tag names.
+    """
+
+    AMBIENT_BAR = 1.0
+    AMBIENT_C = 25.0
+    AIR_O2_PCT = 21.0
+
+    def __init__(self) -> None:
+        self.wf_pressure_bar = self.AMBIENT_BAR
+        self.coolant_c = self.AMBIENT_C
+        self.oil_c = self.AMBIENT_C
+        self.exh_c = self.AMBIENT_C
+        self.o2_pct = self.AIR_O2_PCT
+
+    @staticmethod
+    def _lag(value: float, target: float, dt: float, tau: float) -> float:
+        return value + (target - value) * min(1.0, dt / tau)
+
+    def step(self, dt: float, limited) -> None:
+        p = limited.pid_control_references
+        vents_open = not (p.intake_vent or p.cross_vent or p.exhaust_vent)  # False = open
+        ar_feeding = p.ar.mode > 0
+        # working-fluid pressure: Ar feed pressurizes toward its ref (or a
+        # nominal 5 bar if no ref set); open vents bleed toward ambient
+        if ar_feeding and not vents_open:
+            target = p.ar.wf_pt_004_ref if p.ar.wf_pt_004_ref > 0 else 5.0
+            self.wf_pressure_bar = self._lag(self.wf_pressure_bar, target, dt, 8.0)
+        elif vents_open:
+            self.wf_pressure_bar = self._lag(self.wf_pressure_bar, self.AMBIENT_BAR, dt, 5.0)
+        # O2 fraction: argon flow displaces air; open intake readmits it
+        if ar_feeding:
+            self.o2_pct = self._lag(self.o2_pct, 0.0, dt, 10.0)
+        elif not p.intake_vent:  # intake open
+            self.o2_pct = self._lag(self.o2_pct, self.AIR_O2_PCT, dt, 60.0)
+        # thermal loops: mode>0 pulls toward the loop ref (sane default target
+        # when the ref is 0), else drifts to ambient
+        self.coolant_c = self._lag(
+            self.coolant_c,
+            (p.tcoolant.ec_tt_001_ref or 60.0) if p.tcoolant.mode > 0 else self.AMBIENT_C,
+            dt, 8.0)
+        self.oil_c = self._lag(
+            self.oil_c,
+            (p.toil.eo_tt_001_ref or 70.0) if p.toil.mode > 0 else self.AMBIENT_C,
+            dt, 12.0)
+        self.exh_c = self._lag(
+            self.exh_c,
+            (p.texh.wf_tt_004_ref or 80.0) if p.texh.mode > 0 else self.AMBIENT_C,
+            dt, 10.0)
+
+    def readings(self) -> dict[str, float]:
+        return {
+            "WF-PT-004_bar": round(self.wf_pressure_bar, 4),
+            "WF-OA-001_O2pct": round(self.o2_pct, 3),
+            "EC-TT-001_degC": round(self.coolant_c, 2),
+            "EO-TT-001_degC": round(self.oil_c, 2),
+            "WF-TT-004_degC": round(self.exh_c, 2),
+        }
+
+
 class MonarchGatewaySim:
     """Socket-free gateway + supervisory core for Phase-B testing.
 
@@ -70,6 +133,7 @@ class MonarchGatewaySim:
         self._seq = 0
         self.post_mortem_saves = 0
         self.accepted_count = 0
+        self.plant = SimPlantModel()
 
     # ---- operator / UI side --------------------------------------------
     def set_source(self, source: str) -> None:
@@ -149,6 +213,7 @@ class MonarchGatewaySim:
         self.current_state = int(d.system_state)
         if d.post_mortem:
             self.post_mortem_saves += 1
+        self.plant.step(dt, d.limited_settings)
         self._seq += 1
         return {
             "type": "telemetry",
@@ -161,6 +226,7 @@ class MonarchGatewaySim:
             "command_source": self.source,
             "settings": control_settings_to_labview(self.requested),
             "limited_settings": control_settings_to_labview(d.limited_settings),
+            "plant": self.plant.readings(),
         }
 
 
