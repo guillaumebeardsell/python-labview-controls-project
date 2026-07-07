@@ -23,6 +23,27 @@ validate the pipeline, not the state logic.
 Also noted in these captures: coverage is reduced (shadow extras not yet
 pre-wired), so warnings/force/manual inputs are assumed inactive.
 
+## Open question — is `STATE LIMITATION FROM WARNINGS` actually wired? (2026-07-07)
+
+Raised by the user: the StateMachine's `STATE LIMITATION FROM WARNINGS` may be
+running on its **front-panel default** rather than a live `WarningIntegration`
+output — which, given the WatchDog/heartbeat precedents, is plausible. It is a
+**subVI input terminal**, so the answer lives at the caller (`APC_9056_TS_loop`),
+not inside the StateMachine. From the TS_loop export the StateMachine has several
+inputs wired and a `DIAG` VI adjacent that appears to feed it, so it looks
+*plausibly* wired — but the specific terminal can't be resolved from the export.
+
+- **To confirm (LabVIEW):** on the StateMachine node in `TS_loop`, follow the
+  `STATE LIMITATION FROM WARNINGS` input wire (Find → Wire Source). Live if it
+  comes from `WarningIntegration`/`DIAG`; dead if the terminal is empty.
+- **Self-answering via telemetry:** the A2.1 pre-wire should publish **both**
+  (a) the value on the StateMachine's warnings input and (b) WarningIntegration's
+  output. Same wire ⇒ one variable; different ⇒ telemetry proves the clamp is
+  disconnected, and shadow compare will show LabVIEW ignoring warnings while the
+  port honors them.
+- **Port impact: none.** The port consumes `warnings_limit` as designed; this is
+  an as-built LabVIEW fact for shadow mode to surface.
+
 ## Standing observations for the team (from the port itself)
 
 - **`ForceState` overrides EMERGENCY STOP** (wired directly to the SYSTEM STATE

@@ -125,7 +125,15 @@ Per `docs/monarch-telemetry.md` §Shadow-mode extras. Concretely:
    `SystemState`): add network-published shared variables for
    `STATE LIMITATION FROM WARNINGS` (I8), `ManualState` (I8), `ForceState`
    (bool), and `Limited_ControlSettings` (the typedef) to the shared-vars
-   library; write them at the StateMachine call site on 9056; deploy.
+   library; **write them from the actual wire feeding the StateMachine's
+   inputs** (tap the exact terminal wires, not the WarningIntegration output
+   in isolation); deploy.
+   - **Warnings caveat (see `docs/shadow-findings.md`):** it's unconfirmed the
+     StateMachine's warnings input is even wired to `WarningIntegration`. Publish
+     the value **on the StateMachine's input terminal** as `warnings_limit`
+     (that's what shadow mode must match). If that turns out to be a dead
+     default, also publish `WarningIntegration`'s output separately — the
+     difference is the finding.
 2. In `APC_PC_PythonGateway.vi`, extend the envelope `Format Into String`:
    ```
    {"type":"telemetry","seq":%d,"ts":%.3f,"system_state":%d,"warnings_limit":%d,"manual_state":%d,"force_state":%s,"settings":%s,"limited_settings":%s}\r\n
