@@ -260,6 +260,17 @@ inputs wired and a `DIAG` VI adjacent that appears to feed it, so it looks
 - **Port impact: none.** The port consumes `warnings_limit` as designed; this is
   an as-built LabVIEW fact for shadow mode to surface.
 
+## 2026-07-07 — the wired watchdog, live PC-drop episode: 100%/100%
+
+The B0 consequence is wired (`PCnotResponding` OR `9049notResponding` →
+Select(−1:3) → Min → StateMachine warnings input; the UI toggles `PC_HB` from
+`UI_System`). A real PC drop was captured: telemetry resumes with
+`warnings_limit = −1` (watchdog still tripped), clears once the heartbeat
+relay resumes, `system_state` held at SAFE, then steps up one per tick.
+`shadow_compare` on the 51-frame episode: **SYSTEM STATE 50/50,
+Limited_ControlSettings 50/50 — RESULT: AGREE.** The port models the new
+safety response exactly; drills B4-1/2 are effectively banked early.
+
 ## Standing observations for the team (from the port itself)
 
 - **`ForceState` overrides EMERGENCY STOP** (wired directly to the SYSTEM STATE

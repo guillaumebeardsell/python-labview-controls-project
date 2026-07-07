@@ -104,7 +104,19 @@ States: −1 SAFE, 0 STAND_BY, 1 MOTORING, 2 IDLING, 3 FIRING.
 
 Port the current `APC_9056_StateMachine.vi` (2026); `_v2` is an older 2024 draft.
 
-## The safety gap — loss-of-PC watchdog (detection exists; response CONFIRMED ABSENT)
+## The safety gap — loss-of-PC watchdog — **CLOSED (2026-07-07, live-verified)**
+
+> **As-built resolution:** the WatchDog VI was refreshed (four stall counters,
+> threshold controls, an `Iteration Time [ms]` indicator) and wired at the
+> `TS_loop` call site: **`PCnotResponding` OR `9049notResponding` → Select
+> (−1 : 3) → Min into the StateMachine's `STATE LIMITATION FROM WARNINGS`
+> input** (MTR flag = indicator/alert only, per review). The UI toggles `PC_HB`
+> (feedback-node → NOT in `APC_PC_UI_System.vi`, relayed through the PID-refs
+> global and `UI_Main` — the heartbeat supervises the whole UI app), so the
+> clamp arms ungated in both command modes. **Live-verified:** a real PC drop
+> drove `warnings_limit → −1` and `SYSTEM STATE → SAFE`, with step-by-1
+> recovery on return; `tools/shadow_compare.py` agreed **100%/100%** across the
+> whole episode. The text below is kept as the historical finding.
 
 `APC_9056_WatchDog.vi` (2025-12-18) **does monitor loss-of-PC.** It watches four
 heartbeats — `9056_HeartBeat`, `9049_HeartBeat`, and `PC_HB` + `MTR_HB` carried inside
