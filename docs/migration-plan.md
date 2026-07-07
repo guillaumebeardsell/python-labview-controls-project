@@ -26,8 +26,14 @@ internally consistent), NOT a port defect. Full evidence + dispositions in
 coherent single-snapshot gateway publish (`current_state` + SM-consumed inputs)
 to eliminate the residual skew before command timing matters.
 
-Next: **B1 joint ICD v0.2 review** (open decisions: watchdog thresholds; PC_HB
-toggler while source=UI) → B0 loss-of-PC response build → B3 gateway write path.
+B-progress (2026-07-07): **B1 decisions frozen** (watchdog threshold 5 s = 250
+loop-counts at ~20 ms; PC_HB toggler = option (a), UI also toggles) — the only
+soft B1 item left is the `CommandSource` HMI switch. **B0 loss-of-PC response is
+built, wired, and live-verified** (`PCnotResponding`/`9049notResponding` → Select
+(−1:3) → Min into the SM warnings input; a real PC drop drove SYSTEM STATE→SAFE,
+shadow compare 100%; see `docs/migration-seam.md`); threshold being finalized at
+250 counts (5 s) — re-run the drill at that value to re-confirm. Next real build:
+**B3 gateway write path**.
 
 <details><summary>Prior status (2026-07-06)</summary>
 
@@ -90,7 +96,7 @@ Ground rules that hold in every phase:
 Goal: Python computes every supervisory decision the 9056 makes today, verified
 against spec and bench captures — without sending anything.
 
-**A1. Port `APC_9056_StateMachine`** *(next up — not started)*
+**A1. Port `APC_9056_StateMachine`** *(DONE — validated live, all 5 states)*
 - Python `MonarchStateMachine`: MIN-aggregation over {requested mode, warnings limit,
   e-stop → −1, force-motoring → ≤1, force-idling → ≤2}, increase-by-1 rule,
   `ForceState`/`ManualState` override, and the MAX-LEVEL-OF-CONTROL limiter producing
@@ -102,7 +108,7 @@ against spec and bench captures — without sending anything.
   (2026) VI to pin exact clamp values; the empty "specific conditions" case is
   confirmed empty.
 
-**A2. Shadow-compare harness**
+**A2. Shadow-compare harness** *(DONE — envelope pre-wired + re-tapped; live 100%)*
 - Pre-wire the shadow-mode envelope fields in the gateway (`warnings_limit`,
   `manual_state`, `force_state`, `limited_settings` — Python side already decodes;
   see `docs/monarch-telemetry.md` §Shadow-mode extras).
@@ -111,7 +117,7 @@ against spec and bench captures — without sending anything.
 - Bench input sweeps from the UI (requested mode, forces, e-stop, warning injection)
   to generate coverage.
 
-**A3. Port the warning → state policy**
+**A3. Port the warning → state policy** *(DONE — WarningIntegration ported + wired live)*
 - Model `APC_9056_WarningIntegration` (+ the severity map: yellow=info self-clearing,
   orange→IDLING cap, red→MOTORING cap, black→SAFE+vent; latching until operator clear)
   producing `STATE LIMITATION FROM WARNINGS` in Python.
@@ -122,6 +128,14 @@ against spec and bench captures — without sending anything.
 unexplained divergences across bench sweeps; any real divergence is dispositioned
 (LabVIEW bug vs. port bug — with the LabVIEW side unvalidated, disagreement is a
 finding, not automatically a Python defect).
+
+**MET (2026-07-07).** Live shadow compare agreed across all five states via both
+the requested-mode and force-override paths, plus e-stop and the warning clamp
+(latest walk: state 208/209, limiter 209/209). Every residual is dispositioned in
+`docs/shadow-findings.md` as a telemetry-timing artifact, not a port defect. **One
+known limit:** the 1-per-tick step-up *rate limiter* is not observable at the 1 Hz
+sample of the ~50 Hz loop (both converge between samples) — carried to Phase B
+(iterate `decide()` to a fixed point, or sample faster). Logic validation complete.
 
 ---
 

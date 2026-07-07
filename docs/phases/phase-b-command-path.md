@@ -1,12 +1,17 @@
 # Phase B — Command Path + Watchdog Proof (detailed instructions)
 
-> **Status (2026-07-07):** B0 traced (response absent — LabVIEW work specified
-> below). **B1 FROZEN** — ICD v0.2 §7 agreed at joint review: 5 s threshold;
-> UI toggles `PC_HB` too (clamp armed in both modes); `UI_HeartBeat` specified
-> as a follow-on channel. **B2 BUILT + VERIFIED** — `commander.py`, the
-> commandable sim gateway running the A1-ported StateMachine, 13 failure-matrix
-> tests green, and an end-to-end TCP run. Next: **B0+B3 LabVIEW builds** (all
-> instructions final) → B4 bench drills.
+> **Status (2026-07-07):** **B0 BUILT + WIRED + LIVE-VERIFIED** — the refreshed
+> WatchDog is wired (`PCnotResponding`/`9049notResponding` → Select (−1:3) → Min
+> into the SM warnings input); a real PC drop drove `SYSTEM STATE → SAFE` with
+> step-by-1 recovery, shadow compare 100% (`docs/migration-seam.md`). Threshold
+> being finalized at **250 counts (5 s)** — note the sizing trap: the count is
+> ~20 ms control-loop ticks and must be several `PC_HB` (~1 Hz) periods, so 50
+> counts (1 s) false-trips; 250 = 5 s is correct. **B1 FROZEN** — ICD v0.2 §7:
+> 5 s threshold; UI toggles `PC_HB` too; `UI_HeartBeat` follow-on. Only soft B1
+> item left: the `CommandSource` HMI switch. **B2 BUILT + VERIFIED** —
+> `commander.py`, the commandable sim gateway running the A1 StateMachine, 13
+> failure-matrix tests green, end-to-end TCP run. Next real build: **B3 gateway
+> write path** → B4 bench drills (re-run the loss-of-PC drill at 250 counts).
 
 **Objective:** a hardened Python→LabVIEW command channel whose failure modes are
 all proven safe on the bench. This phase *builds* authority plumbing; it grants

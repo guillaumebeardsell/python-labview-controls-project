@@ -22,7 +22,9 @@ One JSON object per line (the ICD framing, LF/CRLF terminated):
 
 ```json
 {"type":"telemetry","seq":42,"ts":1783041300.5,"system_state":3,
- "settings":{ …LabVIEW Flatten To JSON of the ControlSettings cluster… }}
+ "warnings_limit":3,"manual_state":0,"force_state":false,
+ "settings":{ …raw Flatten To JSON of PC_ControlSettings… },
+ "limited_settings":{ …raw Flatten To JSON of Limited_ControlSettings… }}
 ```
 
 | Field | Type | Meaning |
@@ -30,8 +32,26 @@ One JSON object per line (the ICD framing, LF/CRLF terminated):
 | `type` | `"telemetry"` | — |
 | `seq` | int | Per-connection frame counter |
 | `ts` | float | LabVIEW wall-clock time (seconds since epoch) |
-| `system_state` | int | `CURRENT SYSTEM STATE`: −1 SAFE, 0 STAND_BY, 1 MOTORING, 2 IDLING, 3 FIRING |
-| `settings` | object | **Raw** `Flatten To JSON` of the ControlSettings cluster |
+| `system_state` | int | The 9056 StateMachine's `SYSTEM STATE` output (this-tick decision, tapped *before* the feedback node): −1 SAFE, 0 STAND_BY, 1 MOTORING, 2 IDLING, 3 FIRING |
+| `settings` | object | **Raw** `Flatten To JSON` of `PC_ControlSettings` (the request) |
+| `warnings_limit` | int | Shadow extra (A2.1): `STATE LIMITATION FROM WARNINGS` feeding the SM (−1…3) |
+| `manual_state` | int | Shadow extra (A2.1): `ManualState_SM` |
+| `force_state` | bool | Shadow extra (A2.1): `ForceState_SM` (lowercase `true`/`false` via a Select — a bare boolean formats as `TRUE`/`FALSE` and breaks JSON) |
+| `limited_settings` | object | Shadow extra (A2.1): **raw** `Flatten To JSON` of `Limited_ControlSettings` (the SM's clamped output) |
+
+**Envelope history:** the read-only pipeline (Part A/B) shipped `system_state` +
+`settings` only. Phase A2.1 added the four **shadow extras** above (grew
+`Format Into String` from 3 → 8 args) and **re-tapped `system_state`** from the
+old 9049-side `9049_Global_SYSTEMSTATE` echo (which froze when the 9049 loops
+weren't running) to the 9056 StateMachine's own `SYSTEM STATE` output — so state,
+warnings, and `limited_settings` are all the same source and same tick. The
+node-by-node A2.1 wiring recipe (incl. the exact target string) lives in
+`docs/phases/phase-a-shadow-brain.md`.
+
+**Cadence note:** the gateway samples at 1 Hz, but the 9056 SM/limiter loop it
+reads runs at ~50 Hz (DAQ-paced) — so each frame is a 1 Hz *sample* of a converged
+state, not the loop rate. See the shadow-compare convergence caveat in
+`docs/shadow-findings.md`.
 
 The key idea: **`settings` is LabVIEW's raw flatten** — original field labels,
 PID references nested under `"PID control references"`, quirks and all. Python
@@ -44,10 +64,13 @@ are surfaced (`MonarchTelemetry.unmapped`), never fatal.
 
 > **Built and verified.** Part A (constant) passed 2026-07-05; Part B (live
 > data) passed 2026-07-06 — live value changes and real state tracked, 0
-> unmapped. `CURRENT SYSTEM STATE` reaches the PC via a network-published
-> shared variable added to the MONARCH shared-vars library (StateMachine on
-> cRIO-9056 writes it; the PC gateway reads it). Kept as the build/maintenance
-> reference.
+> unmapped. **A2.1 extended the envelope to the 8-field shadow form** (see the
+> field table above) and re-tapped `system_state` to the 9056 StateMachine's
+> `SYSTEM STATE` output; live shadow compare then agreed 100% across all five
+> states (`docs/shadow-findings.md`). The 9056 StateMachine writes `SYSTEM STATE`
+> via a network-published shared variable; the PC gateway reads it. This section
+> is the *original* 4-field build history — for the shadow-extras additions
+> follow `docs/phases/phase-a-shadow-brain.md` A2.1.
 
 This is the build history of the gateway (the hello VI became
 `APC_PC_PythonGateway.vi`). You replace **only** the telemetry
