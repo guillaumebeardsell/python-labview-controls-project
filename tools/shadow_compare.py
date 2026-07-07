@@ -45,15 +45,35 @@ class Report:
     sessions: int = 0
 
 
+# Heartbeat bits toggle between LabVIEW's two cluster reads (requested vs
+# limited are flattened at slightly different instants), so they legitimately
+# differ frame-to-frame; they are liveness bits, not limited fields.
+IGNORED_LEAVES = {
+    "pid_control_references.pc_hb",
+    "pid_control_references.mtr_hb",
+}
+
+
+def _leaf_equal(a, b) -> bool:
+    if a != b:
+        # NaN != NaN by float semantics; treat both-NaN as equal
+        if isinstance(a, float) and isinstance(b, float) and a != a and b != b:
+            return True
+        return False
+    return True
+
+
 def leaf_diff(a: dict, b: dict, prefix=""):
     """Dotted-path diffs between two nested dicts (model_dump output)."""
     out = []
     for key in a:
         pa, pb = a[key], b.get(key)
         path = f"{prefix}{key}"
+        if path in IGNORED_LEAVES:
+            continue
         if isinstance(pa, dict) and isinstance(pb, dict):
             out += leaf_diff(pa, pb, path + ".")
-        elif pa != pb:
+        elif not _leaf_equal(pa, pb):
             out.append((path, pb, pa))  # (path, labview, python)
     return out
 

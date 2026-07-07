@@ -23,6 +23,25 @@ validate the pipeline, not the state logic.
 Also noted in these captures: coverage is reduced (shadow extras not yet
 pre-wired), so warnings/force/manual inputs are assumed inactive.
 
+## 2026-07-07 — MILESTONE: first full-envelope live session = 100% agreement
+
+With the complete A2.1 pre-wire live (WarningIntegration → StateMachine wire made;
+`warnings_limit` / `manual_state` / `force_state` / `limited_settings` all in the
+envelope; the force_state Select fixed), the newest session compares:
+
+**SYSTEM STATE: 81/81 (100%) · Limited_ControlSettings: 81/81 (100%) · AGREE**
+
+- The full input set was live, including a real warnings clamp
+  (`warnings_limit = 1` — some channel is latched at level 3 with the plant cold,
+  capping the state at MOTORING; identify/clear it before mode-walk sweeps).
+- Two comparator artifacts were fixed to get a clean read (not LabVIEW/port
+  disagreements): NaN==NaN now compares equal (LabVIEW emits NaN for some live
+  refs, e.g. `WF-OA-002-REF`), and the `pc_hb`/`mtr_hb` heartbeat bits are
+  excluded from the limiter diff (they toggle between LabVIEW's two cluster
+  flattens — liveness bits, not limited fields).
+- Remaining for Phase A exit: bench input sweeps (mode walk, forces, e-stop,
+  warning provocation/clear) — agreement must hold across the swept space.
+
 ## 2026-07-07 — second replay, now with `limited_settings` (360 frames)
 
 Ran `tools/shadow_compare.py monarch.jsonl` on a fresh recording that includes the

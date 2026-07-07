@@ -93,6 +93,30 @@ def test_limited_divergence_reports_paths():
     assert "ign_enable" in paths
 
 
+def test_nan_leaves_compare_equal():
+    # LabVIEW emits NaN for some live refs; NaN==NaN must not count as divergence
+    cs = ControlSettings()
+    cs.pid_control_references.ng.wf_oa_002_ref = float("nan")
+    lim = limit_settings(cs, 0)
+    frames = [frame(1, 0, 0),
+              MonarchTelemetry(seq=2, ts=2.0, system_state=0,
+                               settings=cs, limited_settings=lim)]
+    rep = compare_stream(frames, Report())
+    assert rep.limited_matches == 1 and not rep.limited_divergences
+
+
+def test_heartbeat_bits_ignored_in_limited_diff():
+    # pc_hb toggles between LabVIEW's two cluster reads; not a limiter field
+    cs = ControlSettings()
+    lim = limit_settings(cs, 0)
+    lim.pid_control_references.pc_hb = True  # differs from requested (False)
+    frames = [frame(1, 0, 0),
+              MonarchTelemetry(seq=2, ts=2.0, system_state=0,
+                               settings=cs, limited_settings=lim)]
+    rep = compare_stream(frames, Report())
+    assert rep.limited_matches == 1 and not rep.limited_divergences
+
+
 def test_extras_used_when_present():
     # warnings_limit=1 must cap the prediction (and mark extras_seen)
     frames = [frame(1, 0, 0, warnings=3), frame(2, 1, 3, warnings=1)]
