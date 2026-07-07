@@ -23,6 +23,31 @@ validate the pipeline, not the state logic.
 Also noted in these captures: coverage is reduced (shadow extras not yet
 pre-wired), so warnings/force/manual inputs are assumed inactive.
 
+## 2026-07-07 — second replay, now with `limited_settings` (360 frames)
+
+Ran `tools/shadow_compare.py monarch.jsonl` on a fresh recording that includes the
+`limited_settings` envelope field. **SYSTEM STATE: 303/352 (86.1%)** — same
+disposition as the first replay (real-session divergences are captures where the
+9056 StateMachine wasn't driving `system_state`). **Limited_ControlSettings: 0/13**,
+and the diagnosis is definitive:
+
+- LabVIEW's published `Limited_ControlSettings` is the **unwritten shared-variable
+  default** in all 13 frames: `activate_cylinder = []` (empty), `speed_ref = 0`,
+  `ca50_setpoint = 0`, `mtr_modbus_* = []`. The real limiter only clamps the
+  mode/enable/vent fields and passes scalars + arrays through (the port does:
+  speed 900, activate_cylinder 6-elem, ca50 22.6). An **empty** array is the
+  signature of a cluster shared variable that was created but never written.
+- **Port not at fault.** The harness correctly flagged that LabVIEW's limited
+  output isn't reaching telemetry.
+- **Action (LabVIEW):** at the `TS_loop` StateMachine call site, confirm the
+  StateMachine's `Limited_ControlSettings` **output** terminal wires to the new
+  shared variable (not a default constant), and that the 9056 supervisory loop
+  is actually running during the capture. Then the limiter comparison becomes
+  meaningful — and should agree with the port.
+- Also observed: `warnings_limit` / `manual_state` / `force_state` /
+  `command_source` still parse as `None` in these frames — only `limited_settings`
+  was added to the envelope so far; the other three A2.1 fields aren't wired yet.
+
 ## Open question — is `STATE LIMITATION FROM WARNINGS` actually wired? (2026-07-07)
 
 Raised by the user: the StateMachine's `STATE LIMITATION FROM WARNINGS` may be
