@@ -48,6 +48,32 @@ and the diagnosis is definitive:
   `command_source` still parse as `None` in these frames — only `limited_settings`
   was added to the envelope so far; the other three A2.1 fields aren't wired yet.
 
+## `ForceState` / `ManualState` are unbound dev controls (2026-07-07)
+
+Where they're defined/changed: **front-panel controls on `APC_9056_TS_loop.vi`**
+(`ForceState` = Boolean, `ManualState` = I8), wired directly into the
+StateMachine. They are **not** shared/global variables (a project-wide search
+confirms none exist — shared-var names like `PostMortemSave`/`9056_HeartBeat`
+grep fine; these return nothing) and **not** in `PC_ControlSettings` (that
+carries Force idling/motoring + Requested mode, a different mechanism). Nothing
+on the diagram feeds them.
+
+Consequence: `TS_loop` runs **headless on the cRIO-9056** (RT target, no runtime
+front panel), so these controls hold their compiled defaults forever —
+`ForceState = False`, `ManualState = 0`. The absolute manual-override path
+(`ForceState → SYSTEM STATE = ManualState`) is therefore **inert as-built** —
+likely leftover developer/debug controls. Fifth instance of the provisioned-but-
+not-driven pattern.
+
+- **For A2.1:** `ForceState_SM` / `ManualState_SM` telemetry will read `false`/`0`
+  — correct (that's what the StateMachine receives), and shadow mode's
+  `force_state=False` assumption is validated.
+- **If a real operator override is wanted:** create `ForceState`/`ManualState`
+  network shared variables, have the PC UI write them, and feed the *same*
+  variables to both the StateMachine inputs and telemetry (one source). Or —
+  cleaner long-term — let Python own the override once it holds authority
+  (`decide_state` already implements it).
+
 ## Open question — is `STATE LIMITATION FROM WARNINGS` actually wired? (2026-07-07)
 
 Raised by the user: the StateMachine's `STATE LIMITATION FROM WARNINGS` may be
