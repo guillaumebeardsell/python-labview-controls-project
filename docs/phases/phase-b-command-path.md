@@ -40,16 +40,18 @@ shared variable, UI single-writer gate). B1/B2/B4 need no LabVIEW edits
 **Remaining B0 work — LabVIEW changes required (node-by-node, in
 `APC_9056_TS_loop.vi` at the StateMachine call site):**
 
-1. **Wire the WatchDog call.** The `APC_9056_WatchDog.vi` node is currently
-   bare. Wire its connector:
-   - *Inputs:* the four `*watchdogThreshold` terminals. Create I32 constants —
-     threshold counts loop iterations with an unchanged heartbeat, so
-     `threshold = ceil(5 s / TS-loop period)` (the main timed loop showed a
-     300 ms period in the export — verify, then 5 s ⇒ **17**). Wire at least
-     `PCwatchdogThreshold`; give the 9049/9056/MTR ones real values too while
-     you're there (front-panel defaults are 0, and 0 means "trip on the first
-     unchanged sample").
-   - *Output:* `PCnotResponding` (Boolean).
+1. **Wire the WatchDog call.** *(Updated 2026-07-07: the VI internals were
+   refreshed — four proper stall counters + a new `Iteration Time [ms]`
+   indicator — and the UI now toggles `PC_HB` (B3.c step 4 done), so only the
+   call-site wiring remains.)*
+   - *Inputs:* the four `*watchdogThreshold` terminals. The threshold counts
+     **iterations** of the ~50 Hz control loop, so use the new indicator:
+     `5000 / Iteration Time [ms]` → `To I32` → the threshold inputs (≈ **250**
+     at ~20 ms) — the 5 s intent stays explicit on the diagram and survives
+     loop-rate changes. Wire all four channels (defaults are 0 = trip on the
+     first unchanged sample).
+   - *Output:* `PCnotResponding` (Boolean). No source gate needed — the UI
+     toggle is live, so the clamp arms in both modes per ICD §7.5.
 2. **Build the clamp:** `PCnotResponding` → **`Select`** (TRUE → I8 constant
    `−1`, FALSE → I8 constant `3`) → one input of a **`Min`** (Comparison →
    Max & Min, use the min output).
@@ -250,14 +252,18 @@ UI gets the single-writer gate; the shared-vars library gets one variable.
    current control values win again — brief the operators that controls should
    match telemetry before handing back (the C3 handover procedure makes this
    explicit).
-4. **UI heartbeat toggle (DECIDED 2026-07-07, ICD §7.5 option (a)):** in the
-   UI's write path, toggle `PC_HB` (`PID control references.PC_HB`) on every
-   write, and make sure that write happens **periodically (~1 Hz from the main
-   loop), not only on operator change** — an on-change-only writer freezes the
-   flag between interactions and false-trips the 5 s watchdog. Concretely:
-   NOT gate on a feedback node → bundle into the cluster → the (gated) write,
-   once per UI loop iteration. Verify the UI's current write cadence first;
-   if it already writes every iteration, this is just the NOT + bundle.
+4. **UI heartbeat toggle** ✅ **done (2026-07-07)** — implemented in
+   **`APC_PC_UI_System.vi`** (verified in the per-frame export): feedback node
+   → NOT → `PC_HB` in the PID-references bundle, once per System-loop
+   iteration, relayed via the `PC_GlobalVariables_PIDsyst2main` global through
+   `UI_Main` into the `PC_ControlSettings` shared variable. Placement bonus:
+   the flag only reaches the 9056 changing if the System loop, the global
+   relay, AND `UI_Main`'s write loop are all alive — it supervises the whole
+   UI application. Residual check: confirm `UI_Main` forwards the cluster
+   continuously (watch `settings…pc_hb` alternate in `monarch_listen`
+   frames); if it's on-change-only, the toggle stalls between operator
+   actions and will false-trip. Consequence: the B0 clamp can be armed
+   **ungated** (no interim source=PYTHON gate needed).
 5. **Follow-on, response TBD (ICD §7.5): `UI_HeartBeat`** — add a standalone
    network shared variable (house pattern, like `9049_HeartBeat`) toggled by
    the UI main loop regardless of source; watch it as a fifth WatchDog channel
