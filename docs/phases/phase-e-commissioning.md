@@ -16,14 +16,30 @@ it tracks the commissioning campaign, which the team owns.
 **LabVIEW changes in this phase** (all optional-but-recommended hardening;
 none block E1–E3, which are Python/data work):
 
-1. **Close the remaining detection-without-response gaps** — if not already
-   done as B0 step 5: in `APC_9056_TS_loop.vi`, route WarningIntegration's
-   `9049 not responding` and `9056 FPGA not responding` booleans through
-   `Select`(−1 : 3) nodes into the same `Min` chain that feeds the
-   StateMachine's `STATE LIMITATION FROM WARNINGS` input (Build Array → Array
-   Max & Min's *min* output scales past two inputs). Loss of the
-   engine-synchronous controller then produces a supervisory SAFE clamp, not
-   just a lamp. Re-run the affected B4 drills after wiring.
+1. **Close the remaining detection-without-response gaps.** As-built status
+   (2026-07-07): the B0 wiring already clamps on **`PCnotResponding` OR
+   `9049notResponding`** (both from the WatchDog VI) — so PC loss and 9049
+   loss are covered. Remaining candidate: WarningIntegration's
+   **`9056 FPGA not responding`** stall detector (indicator-only today).
+   Click level, in `APC_9056_TS_loop.vi`:
+   1. Get the flag onto a wire: if the WarningIntegration subVI exposes it as
+      a connector-pane output, branch it; if it only drives a front-panel
+      indicator *inside* the subVI, first open `APC_9056_WarningIntegration.vi`
+      and wire that indicator's value to a spare connector-pane terminal
+      (right-click the pane → choose a free terminal → click terminal, click
+      indicator), save, then wire it at the call site.
+   2. Add it to the existing B0 clamp: the `Select`(−1:3) + `Min` chain is
+      already there. Drop one more `Select` (TRUE → I8 `−1`, FALSE → I8 `3`),
+      wire the new flag to its selector. Past two clamp sources, replace the
+      chained `Min`s with **`Build Array` → `Array Max & Min`** (Array
+      palette) and use the **min** output into the StateMachine's
+      `STATE LIMITATION FROM WARNINGS` input.
+   3. Threshold: WarningIntegration's internal stall threshold is a constant
+      10 — at the ~50 Hz control loop that's 0.2 s, much hotter than the 5 s
+      house standard. Consider raising it toward `5000 / Iteration Time` for
+      consistency before arming the clamp.
+   4. Re-run the affected B4 drills after wiring; capture one episode and
+      check `shadow_compare` still agrees 100%.
 2. **Warning-limit table hygiene** — E2's temporal rules live in Python, but
    the *instantaneous* per-channel limits stay in the LabVIEW XML/INI
    (`WarningLevels.xml` on the 9056). When commissioning tunes thresholds,

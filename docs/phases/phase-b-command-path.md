@@ -368,20 +368,39 @@ A2.1 — two more `%s` in the format string, two more inputs):
 
 **Step 7 —** B3.a is testable before touching the UI: do B3.d steps 1–3 now.
 
-### B3.b — the `CommandSource` operator switch
+### B3.b — the `CommandSource` operator switch, click by click
 
-- **Placement (soft default from the B1 review): the HMI System screen**
-  (`APC_PC_UI_System.vi`) — it's an operating-mode control and belongs next to
-  e-stop. A latching switch labeled *"Python in command"* writing
-  `CommandSource_IsPython`, plus a **read-back LED** wired from a *read* of
-  the same variable — the operator sees the effective value, not the switch
-  position (this doubles as the C0 visibility item).
-- **Operator-owned, absolutely:** nothing in the gateway, the command path, or
-  Python ever writes this variable. The only writer is the operator's switch —
-  deliberately, there isn't even an ICD command for it.
-- Flip semantics need nothing extra here: the Python commander seeds its
-  intent from telemetry before its first send (bumpless) and goes silent the
-  moment the echo says `UI`. Drill B4-7 proves both directions.
+Where: **`APC_PC_UI_System.vi`** (soft default from the B1 review — it's an
+operating-mode control and belongs on the System screen, next to e-stop).
+
+1. **Front panel — the switch:** drop a toggle (palette *Modern → Boolean →
+   Vertical Toggle Switch*), label it **`Python in command`**. Right-click →
+   *Mechanical Action* → **Switch When Pressed** — it must be a *Switch…*
+   action, not a *Latch…* one (latch actions snap back after one read; wrong
+   for a mode selector).
+2. **Front panel — the read-back:** drop a *Round LED*, label
+   **`PYTHON (effective)`**.
+3. **Diagram — the write:** inside `UI_System`'s **main loop** (the one with
+   your `PC_HB` toggle): the switch's terminal → a **`CommandSource_IsPython`
+   shared-variable write** (drag the variable from the Project Explorer;
+   right-click → *Access Mode → Write*). Unconditional, every iteration.
+4. **Diagram — the LED:** a separate **`CommandSource_IsPython` read** node →
+   the LED terminal. Deliberately from the *variable*, not a local of the
+   switch — the LED then shows the **effective** value, and goes stale/off if
+   the variable engine has a problem (this doubles as the C0 visibility item).
+5. **Restart semantics — deliberate and fail-safe:** the switch's default is
+   OFF (with the switch off: right-click → *Data Operations → Make Current
+   Value Default*, then save). Consequence: **a UI restart writes FALSE and
+   reverts the plant to UI command** — Python's next send NACKs and it goes
+   silent. That is the intended direction (a restarted UI should never
+   silently re-grant Python authority); it goes in the C3 handover text.
+6. **Operator-owned, absolutely:** nothing in the gateway, the command path,
+   or Python ever writes this variable — deliberately, there isn't even an
+   ICD command for it. The switch is the only writer.
+
+Flip semantics need nothing extra: the Python commander seeds its intent from
+telemetry before its first send (bumpless) and goes silent the moment the
+echo says `UI`. Drill B4-7 proves both directions.
 
 ### B3.c — `APC_PC_UI_Main.vi`: the single-writer redirect
 
@@ -412,10 +431,16 @@ A2.1 — two more `%s` in the format string, two more inputs):
      (harmless — the mirror only acts while commanding; it just makes
      handovers smoother).
    - **`PC_ControlSettings` write — inside a Case structure** on a
-     `CommandSource_IsPython` read: **FALSE (UI) case** = the existing write
-     node, moved inside, untouched — the fallback path stays direct and never
-     depends on Python or the gateway; **TRUE (PYTHON) case** = empty (wire
-     the error line through).
+     `CommandSource_IsPython` read. The clicks: drop a *Case Structure*
+     (palette *Programming → Structures*) next to the write node; wire a
+     `CommandSource_IsPython` **read** to the `?` selector terminal; click the
+     case label ring so the **False** case is showing; `Ctrl-X` the existing
+     write node → paste it inside the False case; re-wire the cluster branch
+     and the error line to it through input tunnels. **FALSE (UI) case** = the
+     existing write, untouched — the fallback path stays direct and never
+     depends on Python or the gateway. **TRUE (PYTHON) case** = empty; wire
+     the error line straight across (both cases must wire the error output
+     tunnel — no *Use Default If Unwired*).
    Net effect: the operator's inputs flow in both modes; while Python
    commands they arrive in telemetry as `operator_requests` and
    `supervisory/monarch/operator_mirror.py` mirrors them into Python's intent
@@ -439,13 +464,26 @@ A2.1 — two more `%s` in the format string, two more inputs):
    frames); if it's on-change-only, the toggle stalls between operator
    actions and will false-trip. Consequence: the B0 clamp can be armed
    **ungated** (no interim source=PYTHON gate needed).
-5. **Follow-on, response TBD (ICD §7.5): `UI_HeartBeat`** — add a standalone
-   network shared variable (house pattern, like `9049_HeartBeat`) toggled by
-   the UI main loop regardless of source; watch it as a fifth WatchDog channel
-   so a dead UI is detectable **while Python holds authority** (the case
-   `PC_HB` can't cover). Phase-in: lamp + Python-side reaction first; the
-   LabVIEW clamp value is a commissioning decision (conservative default:
-   SAFE).
+5. **Follow-on, response TBD (ICD §7.5): `UI_HeartBeat`** — a fifth heartbeat
+   so a dead UI is detectable **while Python holds authority** (the one case
+   `PC_HB` can't cover). Build, click by click:
+   1. Variable: `APC_SharedVars.lvlib` (9049 target) → *New → Variable* →
+      **`UI_HeartBeat`**, Boolean, Network-Published (house pattern, like
+      `9049_HeartBeat`). *Deploy All*.
+   2. Toggle: in `UI_System`'s main loop, duplicate the exact three-node
+      pattern you built for `PC_HB` — **Feedback Node → `Not` → a
+      `UI_HeartBeat` shared-variable write** — but *outside* any case, so it
+      toggles regardless of source, every iteration.
+   3. Detection: in `APC_9056_WatchDog.vi`, add a fifth channel by copying an
+      existing one — select a whole channel block (SV read → changed? →
+      counter case → `>` threshold → Boolean out), copy-paste, re-point the
+      read at `UI_HeartBeat`, add a `UIwatchdogThreshold` input (same
+      `5000 / Iteration Time` feed as the others) and a `UInotResponding`
+      output.
+   4. Response: **stop here until the team decides.** Phase-in: front-panel
+      lamp + a Python temporal rule first; the LabVIEW clamp value (add
+      another `Select`(−1:3) into the B0 `Min` chain) is a commissioning
+      decision — conservative default SAFE while the plant is unproven.
 
 ### B3.d — Verify as you build (each step has a ready-made Python check)
 

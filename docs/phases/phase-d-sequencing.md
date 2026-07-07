@@ -12,13 +12,41 @@ Phase C exit. D-content (real procedures) requires D0.
 
 **LabVIEW changes in this phase: none required.** Sequences are pure Python,
 issuing the same `set_control_settings` commands Phase C proved, confirmed by
-the same telemetry. The one foreseeable exception: if a D0 procedure's
-*confirmation* needs a signal that isn't in telemetry yet (e.g. a valve
-position feedback or a plant sensor outside the ControlSettings cluster),
-the fix is the established A2.1 pattern — publish it as a shared variable on
-the owning cRIO, add one field to the gateway envelope, `capture_line.py` to
-verify — and nothing else. Log any such addition in `docs/monarch-telemetry.md`
-so the envelope stays documented.
+the same telemetry. The one foreseeable exception: a D0 procedure's
+*confirmation* needs a plant signal that isn't in telemetry yet (a pressure,
+a temperature, a valve feedback). The fix is one repeatable recipe — click
+level, using `WF-PT-004` (working-fluid pressure, the venting sequence's
+confirmation) as the worked example:
+
+1. **Find the signal on the 9056.** In `APC_9056_TS_loop.vi`, locate the
+   scaled value's wire (the AI-loop output feeding that sensor's indicator /
+   control loop — `Ctrl-H` + hover to confirm which wire carries the scaled
+   engineering value, not raw counts).
+2. **Publish it:** `APC_SharedVars.lvlib` (9049 target) → *New → Variable* →
+   name it after the tag (`WF_PT_004_bar`), **DBL**, Network-Published →
+   *Deploy All*. Branch the scaled wire (click it, drag a branch) → a
+   shared-variable **write** (*Access Mode → Write*), outside any case so it
+   publishes every iteration. Redeploy the 9056 from the project.
+3. **Envelope:** in the gateway's telemetry `Format Into String`, add a
+   `plant` object. First tag:
+   `,"plant":{"WF-PT-004_bar":%g}` — one new `%g` argument wired from the
+   shared-variable read. More tags extend the same object:
+   `,"plant":{"WF-PT-004_bar":%g,"EC-TT-001_degC":%g}` etc.
+   **NaN caveat (the A2.1 lesson):** a channel that isn't being written — DAQ
+   loop stopped, sensor task not running — flattens as `NaN`, which is
+   invalid JSON and kills every frame. Only publish channels the running DAQ
+   writes every iteration, and check with `python tools/capture_line.py`
+   after each tag you add.
+4. **Tag names must match the sim** so a sequence runs unchanged against sim
+   and bench. The sim's current tags (`SimPlantModel.readings()` in
+   `supervisory/monarch/simserver_monarch.py`): `WF-PT-004_bar`,
+   `WF-OA-001_O2pct`, `EC-TT-001_degC`, `EO-TT-001_degC`, `WF-TT-004_degC`.
+   Adding a tag the sim doesn't have? Add it to `SimPlantModel` too (a
+   first-order lag is fine) — sequences confirm on `tm.plant["<tag>"]` via
+   `plant_below()`/`plant_within()` and won't pass in sim otherwise.
+5. **Python side needs nothing:** `MonarchTelemetry.plant` already parses any
+   tags that appear. Log each addition in `docs/monarch-telemetry.md` so the
+   envelope stays documented.
 
 ---
 
