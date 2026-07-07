@@ -9,7 +9,27 @@ Python's authority until the phase gating it is closed.
 their own piece and point here. Step-by-step instructions for each phase live in
 `docs/phases/` (one file per phase, linked from each section below).
 
-## Current status (2026-07-06)
+## Current status (2026-07-07)
+
+**Phase A logic validation COMPLETE (2026-07-07).** With the full A2.1 pre-wire
+live (WarningIntegration→StateMachine warnings wire made; `warnings_limit`/
+`manual_state`/`force_state`/`limited_settings` in the envelope; `system_state`
+re-tapped to the 9056 StateMachine's fresh output), live shadow compare now
+agrees across the **entire input space and all five states**: ForceState/
+ManualState override sweep (incl. SAFE), requested-mode walk 0→3 to FIRING (after
+clearing the latched warning), e-stop press→SAFE, and the warning clamp. Latest
+210-frame walk: **SYSTEM STATE 208/209 (99.5%), Limited_ControlSettings 209/209
+(100%)** — the sole state miss is a one-frame gateway snapshot-coherency artifact
+on the e-stop press (input vs output cluster flattened a sample apart; LabVIEW
+internally consistent), NOT a port defect. Full evidence + dispositions in
+`docs/shadow-findings.md`. Suite 108 green. **Recommended before Phase B:** the
+coherent single-snapshot gateway publish (`current_state` + SM-consumed inputs)
+to eliminate the residual skew before command timing matters.
+
+Next: **B1 joint ICD v0.2 review** (open decisions: watchdog thresholds; PC_HB
+toggler while source=UI) → B0 loss-of-PC response build → B3 gateway write path.
+
+<details><summary>Prior status (2026-07-06)</summary>
 
 Foundations — done and verified on the real system:
 
@@ -43,6 +63,8 @@ confirmed), `TS_loop` (B0 answered — WatchDog unwired, response must be built)
 `WarningIntegration` (A3 input) both in `original-labview-codebase/`. Remaining
 team inputs: the operating-procedure spec (D0), plus B0's threshold/PC_HB-toggling
 decisions at B1 review.
+
+</details>
 
 Ground rules that hold in every phase:
 

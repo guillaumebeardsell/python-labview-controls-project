@@ -50,6 +50,43 @@ the override. Conclusions:
   commissioning (e.g. publish both SM state and 9049 echo and alarm on
   sustained mismatch).
 
+## 2026-07-07 — PHASE A COVERAGE COMPLETE: all 5 states, all inputs
+
+Warning cleared (`warnings_limit` 1→3 at seq 86), then a 210-frame full-envelope
+walk reached **every state {−1, 0, 1, 2, 3}** via BOTH paths: requested-mode
+(seq 175–181 walked 1→2→3 to FIRING) and force-override (seq 41–43, ManualState
+1→2→3). E-stop press→SAFE and release→recover. Warning clamp exercised at both
+1 and 3.
+
+**SYSTEM STATE: 208/209 (99.5%) · Limited_ControlSettings: 209/209 (100%).**
+
+The single state miss (**seq 189**) is the two-snapshot skew landing on the
+e-stop press, proven frame-by-frame:
+
+| seq | input estop | LabVIEW *output* estop | published state |
+|----|----|----|----|
+| 188 | False | False | 0 |
+| 189 | **True** | **False** | **0** |
+| 190 | True | True | −1 |
+
+LabVIEW is internally consistent — its output-cluster e-stop predicts its state
+exactly (False→0, True→−1) — but the gateway's `PC_ControlSettings` *input*
+flatten ran one sample ahead of the StateMachine's consumption, so the port
+(which derives from the input cluster) predicted −1 one frame early. They agree
+at seq 190. **Not a port defect — a gateway snapshot-coherency artifact**, now
+demonstrated on the safety-critical e-stop. Echoed `emergency_stop` added to
+`IGNORED_LEAVES` (the state check already validates e-stop).
+
+**Disposition: Phase A logic validation is COMPLETE.** The port reproduces the
+LabVIEW StateMachine across the full input space and all five states; the sole
+residual is a one-frame telemetry-timing artifact with a fully-understood cause.
+
+**Motivates the Phase-B coherent-snapshot publish:** this is the *second*
+manifestation of the input/output flatten skew (first on limiter fields, now on
+a state transition). Publishing `current_state` + the SM's actually-consumed
+inputs in one coherent snapshot makes the comparison immune to it — recommended
+before command timing matters in Phase B.
+
 ## 2026-07-07 — requested-mode walk + e-stop = 100%/100% (clamped at MOTORING)
 
 52-frame session: requested_mode walked −1↔0↔1↔2 and an EMERGENCY STOP press

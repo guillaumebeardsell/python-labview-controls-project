@@ -60,6 +60,11 @@ class Report:
 #                      clamp decision (the limiter clamps the derived actuator
 #                      modes, never the request). It skews for exactly one frame
 #                      at each operator step-change, same snapshot cause.
+#   - emergency_stop : likewise echoed, not a clamp decision (it *drives* the
+#                      state via the e-stop source; the state check validates
+#                      e-stop). Skews one frame at the press — proven 2026-07-07:
+#                      output-cluster estop lags input by 1 frame, and LabVIEW's
+#                      state tracks the OUTPUT cluster (False→0, True→−1) exactly.
 # All of these trace to ONE LabVIEW-side fact: PC_ControlSettings and
 # Limited_ControlSettings are flattened at slightly different instants. The clean
 # permanent fix is a single coherent snapshot on the gateway side; until then
@@ -70,6 +75,7 @@ IGNORED_LEAVES = {
     "pid_control_references.mtr_hb",
     "pid_control_references.ng.wf_oa_002_ref",
     "requested_mode",
+    "emergency_stop",
 }
 
 
