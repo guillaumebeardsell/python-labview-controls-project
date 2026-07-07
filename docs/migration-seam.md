@@ -122,15 +122,18 @@ possibly never set), and it is **unknown whether anything toggles `PC_HB` today*
 the UI never toggles it, `PCnotResponding` would read permanently tripped — a plausible
 reason the outputs were left dangling).
 
-**Cadence (2026-07-07):** the WatchDog subVI is in the TS_loop *supervisory* loop,
-whose period is a `Wait Until Next ms Multiple` fed **`1000` → 1 Hz** (the whole 9056
-StateMachine/limiter/warnings decision loop runs once per second; consistent with the
-1 Hz telemetry cadence and the 1-state-per-tick step-up rule). So the watchdog is
-evaluated ~1×/s. **Design implication for B0:** thresholds are effectively counted in
-whole seconds, and any response built here reacts in ~1 s steps — fine against the 5 s
-LabVIEW-safe-hold budget, but do not expect sub-second loss-of-PC reaction from this
-loop. Sub-second safety remains the FPGA watchdog's job on the 9049 (>4 Hz), which is a
-separate, faster mechanism.
+**Cadence (2026-07-07, corrected — confirmed with the user):** the WatchDog subVI is in
+the fast control loop (StateMachine + limiter + actuator refs), which is **paced by the
+NI9205 DAQmx block read** (`Analog 2D DBL NChan NSamp`, 20 samples/read) → **~20 ms per
+iteration, ~50 Hz**. So the watchdog is evaluated ~50×/s. *(The `1000` `Wait Until Next
+ms Multiple` elsewhere in the VI belongs to a separate, slower housekeeping/streaming
+loop — TS_loop runs ~5 parallel loops — not the control loop.)* **Design implications:**
+(1) a wired B0 loss-of-PC response reacts in ~20 ms granularity — far inside the 5 s
+safe-hold budget; thresholds count in ~20 ms ticks, not seconds. (2) The 1 Hz telemetry
+cadence is purely the **PC gateway's** sample rate; the 9056 decision loop underneath
+runs ~50× faster. (3) Because ~50 SM ticks occur between two 1 Hz telemetry samples, the
+state has **converged** by each sample — see the shadow-compare convergence caveat in
+`docs/shadow-findings.md` (the 1-per-tick step-up rate limit is not observable at 1 Hz).
 
 **Consequence:** building the loss-of-PC response is Phase B0 work (Case 2 in
 `docs/phases/phase-b-command-path.md`): wire `PCnotResponding` → (Select −1 : 3) →

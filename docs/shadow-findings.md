@@ -50,6 +50,33 @@ the override. Conclusions:
   commissioning (e.g. publish both SM state and 9049 echo and alarm on
   sustained mismatch).
 
+## 2026-07-07 — CAVEAT: 9056 loop is ~50 Hz, so 1 Hz shadow-compare sees converged state
+
+Corrected fact (confirmed with the user): the 9056 control loop (StateMachine +
+limiter) runs at **~20 ms / ~50 Hz** (DAQ-block-paced), not 1 Hz. The 1 Hz
+telemetry is only the PC gateway's sample rate. Consequence for shadow compare:
+**~50 SM ticks happen between two telemetry samples**, so LabVIEW's published
+state has always **converged** to `min(inputs)` by the time we sample it.
+
+`shadow_compare` applies the port's `decide()` **once** per frame (seeding
+`current = previous frame's state`). That matches LabVIEW whenever the target is
+≤1 state above the previous sample — which is every transition Phase A actually
+exercised (the operator moved `requested_mode` one step at a time; drops and
+clamps are immediate). **But the 1-per-tick step-up *rate limit* is invisible at
+1 Hz**: a fast ≥2-step request jump would converge in ~60 ms on the 9056 while
+the single-tick port predicts only +1 → a spurious divergence that is a
+*sampling-methodology* mismatch, not a port-logic bug.
+
+**Impact on the "Phase A complete" claim:** the min-arbitration, clamps,
+overrides, e-stop, and the full limiter ARE validated. The step-up *rate limit*
+is **not** validated by 1 Hz sampling (both sides converge between samples).
+Two ways to close it, for Phase B:
+- iterate the port's `decide()` to a fixed point per frame before comparing (models
+  "inputs held ~1 s → converged state") — makes multi-step climbs agree too; or
+- sample the 9056 at ~its own rate to catch mid-climb states and check +1 directly.
+Neither changes the current 100% result (Phase A had no ≥2-step jumps), but the
+distinction should be stated rather than implied.
+
 ## 2026-07-07 — PHASE A COVERAGE COMPLETE: all 5 states, all inputs
 
 Warning cleared (`warnings_limit` 1→3 at seq 86), then a 210-frame full-envelope
