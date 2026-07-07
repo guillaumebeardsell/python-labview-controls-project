@@ -203,7 +203,7 @@ variable per mode):
 | Variable | Writer while source=UI | Writer while source=PYTHON | Readers |
 |---|---|---|---|
 | `PC_ControlSettings` | `UI_Main` (as today) | gateway (validated commands only) | 9056 SM, gateway telemetry |
-| `PC_OperatorRequests` | `UI_Main` (init write at startup) | `UI_Main` (the redirect) | gateway telemetry → Python mirror |
+| `PC_OperatorRequests` | `UI_Main` (every iteration, unconditional) | `UI_Main` (same — unconditional) | gateway telemetry → Python mirror |
 | `CommandSource_IsPython` | operator's HMI switch — **only** | operator — **only** | gateway validation, `UI_Main` gate, telemetry echo |
 
 Work in this order: **B3.0 → B3.a → B3.b → B3.c → B3.d** — variables first,
@@ -228,12 +228,15 @@ because every later step drags them onto a diagram.
 3. **The unwritten-variable NaN trap (you hit this at A2.1 with
    `Limited_ControlSettings`):** a freshly deployed cluster variable that has
    never been written can flatten with `NaN` in DBL fields — invalid JSON, and
-   the Python observer discards every frame. Before the gateway includes
-   `operator_requests` in the envelope, make sure something writes
-   `PC_OperatorRequests` once: simplest is an **init write in `UI_Main`**
-   (before its main loop starts, write the same cluster it writes to
-   `PC_ControlSettings`). If frames go malformed anyway, diagnose with
-   `python tools/capture_line.py`.
+   the Python observer discards every frame. (`PC_ControlSettings` never had
+   this problem because `UI_Main`'s main loop writes it every iteration from
+   startup; `Limited_ControlSettings` NaN'd because its writer — the 9056
+   StateMachine — wasn't running yet.) The B3.c redirect design eliminates the
+   trap by construction: `UI_Main` writes `PC_OperatorRequests`
+   **unconditionally every loop iteration** (see B3.c step 2), so it is
+   written milliseconds after the UI starts. Just do B3.c's write wiring
+   before (or together with) B3.a step 6's envelope addition. If frames go
+   malformed anyway, diagnose with `python tools/capture_line.py`.
 
 ### B3.a — `APC_PC_PythonGateway.vi`: the command branch, node by node
 
@@ -328,36 +331,42 @@ constant goes away; this branch replaces it.
 
 ### B3.c — `APC_PC_UI_Main.vi`: the single-writer redirect
 
-1. **Find every write node** targeting the `PC_ControlSettings` shared
-   variable: Project Explorer → right-click the variable → *Find → Search
-   Scope: project* (or Edit → Find on the UI diagrams). A binary scan of the
-   raw codebase narrows the hunt: on the PC side only **`APC_PC_UI_Main.vi`**
-   (and the gateway, read-only) reference the variable at all —
-   `APC_PC_UI_System.vi`/`_Errors.vi` don't — so expect the writer(s) there.
-   (Recall the data path you confirmed with the `PC_HB` toggle: `UI_System`
-   writes the `PC_GlobalVariables_PIDsyst2main` global; `UI_Main` bundles the
-   globals into the cluster and writes the shared variable. The redirect goes
-   at that **final shared-variable write**, not at the globals.) If there are
-   several writes, every one gets the same treatment.
+1. **The write point (located, 2026-07-07, from the `UI_Main` per-frame
+   export):** inside `UI_Main`'s **main While loop** there is one big
+   `Bundle By Name` (≈20 fields: `EMERGENCY STOP` … `Requested mode`,
+   `PID control references`) whose output feeds the **`PC_ControlSettings`
+   shared-variable write node** (right of the bundle, near the
+   `Listbox`/`PC_Global_ListboxVarBroadcast` nodes). It runs **every loop
+   iteration** — which is why `pc_hb` alternates in telemetry, and why this
+   variable never had the NaN problem. Sanity-check it's the only writer:
+   Project Explorer → right-click the variable → *Find → Search Scope:
+   project* (`UI_System`/`_Errors` don't reference it; they feed `UI_Main`
+   through globals — the redirect goes at this final write, not at the
+   globals).
    - **Build-spec caveat (verified in `MONARCH.lvproj`):** `APC_PC_UI_Main.vi`
      is the source of the **`APC_Monarch` EXE** build spec. If the control room
      runs the built executable rather than the VI in the dev environment, this
      change requires **rebuilding and redeploying `APC_Monarch`** — decide
      which mode operations uses and keep it consistent through Phase B/C.
-2. **The redirect — a Case structure per write, not a suppression (ICD §7.7).**
-   Read `CommandSource_IsPython` once per loop iteration → wire to the case
-   selector; the bundled cluster wire enters **both** cases:
-   - **FALSE (UI) case:** the existing `PC_ControlSettings` write node, moved
-     inside, untouched — the fallback path stays direct, exactly as today, and
-     never depends on Python or the gateway.
-   - **TRUE (PYTHON) case:** the same cluster wire → a **`PC_OperatorRequests`
-     write** node (drag the B3.0 variable in, *Access Mode → Write*).
-   The operator's inputs keep flowing in both modes; while Python commands,
-   they arrive in telemetry as `operator_requests` and
+2. **The redirect — fan the bundle to two nodes (ICD §7.7).** Take the
+   `Bundle By Name` output wire and branch it:
+   - **`PC_OperatorRequests` write — unconditional**, every iteration, next to
+     the existing write (drag the B3.0 variable in, *Access Mode → Write*).
+     Always-on: this kills the NaN trap by construction, matches the sim
+     exactly (`ui_write()` updates `operator_requests` regardless of source),
+     and gives Python a live view of the operator panel even in UI mode
+     (harmless — the mirror only acts while commanding; it just makes
+     handovers smoother).
+   - **`PC_ControlSettings` write — inside a Case structure** on a
+     `CommandSource_IsPython` read: **FALSE (UI) case** = the existing write
+     node, moved inside, untouched — the fallback path stays direct and never
+     depends on Python or the gateway; **TRUE (PYTHON) case** = empty (wire
+     the error line through).
+   Net effect: the operator's inputs flow in both modes; while Python
+   commands they arrive in telemetry as `operator_requests` and
    `supervisory/monarch/operator_mirror.py` mirrors them into Python's intent
    (safety inputs always; everything else when no sequence is running). Keep
-   the case structure visually obvious — one case around each write, nothing
-   clever.
+   it visually obvious — one case around one write node, nothing clever.
 3. **Displays are untouched.** All UI *reads* stay as they are — while
    source=PYTHON the operator keeps seeing live values; only the write target
    changes. Handback note for C3: on flip-back to UI the panel's current
