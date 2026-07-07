@@ -50,6 +50,33 @@ the override. Conclusions:
   commissioning (e.g. publish both SM state and 9049 echo and alarm on
   sustained mismatch).
 
+## 2026-07-07 — MILESTONE: ForceState/ManualState override sweep = 100%/100%
+
+After the `system_state` re-tap (now the 9056 SM's fresh output, before the
+feedback node), a 137-frame session swept the override live: `ForceState=TRUE`
+with `ManualState` walked through **2, 1, 0, −1** (every state incl. SAFE), then
+`ForceState=FALSE` with `ManualState=2` (correctly **ignored** — state stayed 0).
+
+**SYSTEM STATE: 136/136 (100%) · Limited_ControlSettings: 136/136 (100%) · AGREE**
+
+This validates against live hardware the port's most safety-relevant, previously
+unverifiable behavior: the **absolute ForceState override** — state follows
+ManualState when force is on, and ManualState is inert when force is off. (This
+is the exact experiment that "diverged" on 2026-07-07 when state was tapped from
+the stale 9049 echo; the re-tap resolved it.)
+
+Limiter divergences before the fix were all **one field**,
+`pid_control_references.ng.wf_oa_002_ref`: a live-jittering O2-analyzer
+reference the limiter **passes through**. LabVIEW flattens the input
+(`PC_ControlSettings`) and output (`Limited_ControlSettings`) clusters a sample
+apart, so a moving passthrough value differs between them — proven: when the
+field holds still, in==out to the last digit; on the 19/137 moving frames,
+LabVIEW's frame-N output equals its frame-N+1 input. Same class as the
+`pc_hb`/`mtr_hb` heartbeat skew. **Disposition: not a port bug, not a limiter
+disagreement** — added to `IGNORED_LEAVES` in `shadow_compare.py` with a test.
+The real fix (optional) is LabVIEW flattening both clusters from one loop
+iteration; until then the diff is limited to actual clamp decisions.
+
 ## 2026-07-07 — MILESTONE: first full-envelope live session = 100% agreement
 
 With the complete A2.1 pre-wire live (WarningIntegration → StateMachine wire made;

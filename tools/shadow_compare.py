@@ -45,12 +45,23 @@ class Report:
     sessions: int = 0
 
 
-# Heartbeat bits toggle between LabVIEW's two cluster reads (requested vs
-# limited are flattened at slightly different instants), so they legitimately
-# differ frame-to-frame; they are liveness bits, not limited fields.
+# The gateway flattens PC_ControlSettings (input) and Limited_ControlSettings
+# (output) at slightly different instants, so any field that (a) the limiter
+# passes through verbatim and (b) is live-varying will legitimately differ
+# frame-to-frame — the two snapshots simply caught the signal at different
+# samples. These are not limiter decisions, so exclude them from the leaf diff:
+#   - pc_hb / mtr_hb : heartbeat toggle bits
+#   - wf_oa_002_ref  : a live-jittering O2-analyzer reference the limiter passes
+#                      through (confirmed: when it holds still, in==out exactly;
+#                      the 19/137 diffs in the 2026-07-07 sweep were all the
+#                      signal moving by one sample between the two snapshots —
+#                      LabVIEW's frame-N output equals its frame-N+1 input).
+# The real fix lives on the LabVIEW side (flatten both clusters from one loop
+# iteration); until then this keeps the diff to actual clamp decisions.
 IGNORED_LEAVES = {
     "pid_control_references.pc_hb",
     "pid_control_references.mtr_hb",
+    "pid_control_references.ng.wf_oa_002_ref",
 }
 
 

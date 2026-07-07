@@ -117,6 +117,20 @@ def test_heartbeat_bits_ignored_in_limited_diff():
     assert rep.limited_matches == 1 and not rep.limited_divergences
 
 
+def test_live_passthrough_ref_jitter_ignored():
+    # wf_oa_002_ref is a live passthrough the limiter doesn't clamp; a one-sample
+    # snapshot skew between input and output clusters must not count as divergence
+    cs = ControlSettings()
+    cs.pid_control_references.ng.wf_oa_002_ref = 0.0014308
+    lim = limit_settings(cs, 0)
+    lim.pid_control_references.ng.wf_oa_002_ref = 0.0013816  # one sample later
+    frames = [frame(1, 0, 0),
+              MonarchTelemetry(seq=2, ts=2.0, system_state=0,
+                               settings=cs, limited_settings=lim)]
+    rep = compare_stream(frames, Report())
+    assert rep.limited_matches == 1 and not rep.limited_divergences
+
+
 def test_extras_used_when_present():
     # warnings_limit=1 must cap the prediction (and mark extras_seen)
     frames = [frame(1, 0, 0, warnings=3), frame(2, 1, 3, warnings=1)]
