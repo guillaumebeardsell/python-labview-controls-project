@@ -23,6 +23,33 @@ validate the pipeline, not the state logic.
 Also noted in these captures: coverage is reduced (shadow extras not yet
 pre-wired), so warnings/force/manual inputs are assumed inactive.
 
+## 2026-07-07 — ForceState/ManualState experiment: resolved (telemetry state source)
+
+Bench experiment: `ForceState=TRUE`, `ManualState` walked 0→1→2. Telemetry
+`system_state` stayed 0 while LabVIEW's `limited_settings` enabled IGN/DI (a
+state≥2 row) — the two outputs looked internally inconsistent.
+
+**Resolution (user):** telemetry's `system_state` is sourced from
+**`9049_Global_SYSTEMSTATE`, written by `APC_9049_CAS_loop.vi`** — a 9049-side
+*echo* of the state — and the 9049 loops weren't running, so it sat frozen at 0.
+`limited_settings` is tapped directly at the 9056 StateMachine, and it followed
+the override. Conclusions:
+
+- **The SM honors ForceState→ManualState absolutely — the A1 port reading and
+  code are correct.** The state "divergences" in this session were a telemetry-
+  source artifact, not logic disagreement.
+- **Action (LabVIEW):** re-tap telemetry `system_state` to the **9056
+  StateMachine's `SYSTEM STATE` output** at the TS_loop call site (same place as
+  the `limited_settings`/warnings taps) so all compared fields are same-source
+  and same-tick. This also removes any 9049 dependency from Phase-A testing.
+- **Team finding — state-echo skew:** the 9049's state copy (used in its local
+  spark/DI enable gate, `SYSTEMSTATE ≥ 2`) can diverge from the SM's actual
+  state when the relay chain (CAS_loop polling) is stale or down. Observed skew
+  here was fail-safe (low copy blocks actuation), and the SM's limited enables
+  provide a second gate — but consider a relay-staleness check during
+  commissioning (e.g. publish both SM state and 9049 echo and alarm on
+  sustained mismatch).
+
 ## 2026-07-07 — MILESTONE: first full-envelope live session = 100% agreement
 
 With the complete A2.1 pre-wire live (WarningIntegration → StateMachine wire made;

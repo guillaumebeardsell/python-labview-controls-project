@@ -171,6 +171,14 @@ variables silently read defaults.
 
 *Part 2 — write them on cRIO-9056, inside `APC_9056_TS_loop.vi`.*
 At the `APC_9056_StateMachine.vi` call site (main loop, next to the DIAG VI):
+
+> **Also re-tap `system_state` here (2026-07-07).** The existing telemetry
+> `system_state` comes from `9049_Global_SYSTEMSTATE` (a 9049-side echo written
+> by `APC_9049_CAS_loop`), which is frozen when the 9049 loops aren't running
+> and lags the SM in general. For shadow compare, add a write from the **9056
+> StateMachine's `SYSTEM STATE` output** to the state variable the gateway reads
+> — so state, limited_settings, and the extras are all same-source/same-tick and
+> Phase-A testing needs no 9049. Keep the 9049 echo for its own local gate.
 0. **First make the warning wire — recipe (do this cleanly).** Goal: a single
    direct wire, `WarningIntegration.STATE LIMITATION FROM WARNINGS` output →
    `StateMachine.STATE LIMITATION FROM WARNINGS` input, both inside `TS_loop`.
