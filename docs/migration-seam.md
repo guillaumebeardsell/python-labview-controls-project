@@ -117,6 +117,16 @@ Port the current `APC_9056_StateMachine.vi` (2026); `_v2` is an older 2024 draft
 > drove `warnings_limit → −1` and `SYSTEM STATE → SAFE`, with step-by-1
 > recovery on return; `tools/shadow_compare.py` agreed **100%/100%** across the
 > whole episode. The text below is kept as the historical finding.
+>
+> **Threshold sizing (2026-07-07).** The threshold is a **count of ~20 ms control-loop
+> ticks** while the heartbeat is unchanged, so trip time = `count × 20 ms`. It must be
+> **several heartbeat periods**, and the binding heartbeat is `PC_HB` at **~1 Hz** in
+> both modes (Python Supervisor 1 Hz; UI toggle ~1 Hz) — i.e. one heartbeat period ≈ 50
+> ticks. The agreed **5 s = 250 counts** (5 missed beats of margin). **Do not set 50
+> counts (=1 s ≈ one heartbeat period): it false-trips to SAFE on normal jitter.** A
+> faster clamp (e.g. 1 s / 50 counts) is only safe if `PC_HB` is first sped up to ≥5 Hz
+> in *both* command modes. The threshold is bound by the slow 1 Hz heartbeat, not the
+> fast 20 ms loop (the loop only sets detection *granularity*).
 
 `APC_9056_WatchDog.vi` (2025-12-18) **does monitor loss-of-PC.** It watches four
 heartbeats — `9056_HeartBeat`, `9049_HeartBeat`, and `PC_HB` + `MTR_HB` carried inside
