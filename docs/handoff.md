@@ -66,7 +66,7 @@ pattern and to run `pytest` before claiming done.
 
 | Input | Unblocks | Where specified |
 |---|---|---|
-| B1 joint review: 2 [DECISION] boxes (watchdog thresholds, PC_HB toggling while source=UI, CommandSource placement) | B0 wiring, B3 build | `docs/icd.md` §7, `docs/phases/phase-b-command-path.md` |
+| ~~B1 joint review~~ **done 2026-07-07**: 5 s threshold; UI toggles `PC_HB` (option a); `UI_HeartBeat` follow-on specified. Soft default remaining: `CommandSource` switch on the HMI System screen | ~~B0 wiring, B3 build~~ unblocked | `docs/icd.md` §7 (frozen) |
 | LabVIEW B0 + B3 edits (fully specified, node-level) | B4 drills → any authority | phase-B file |
 | A2.1 remaining gateway pre-wire (warnings/manual/force vars) + sweeps with the 9056 StateMachine running | Phase A exit | phase-A file |
 | **D0 operating-procedure sheets** (template at the bottom of phase-D file) | Real sequences | phase-D file |

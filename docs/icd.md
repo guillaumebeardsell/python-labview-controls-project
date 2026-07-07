@@ -1,6 +1,7 @@
 # Interface Control Document — Python Supervisor ⇄ LabVIEW Gateway
 
-**Version 0.1 (draft)** — 2026-07-02
+**Version 0.2** — §§1–6 unchanged from v0.1 (2026-07-02); §7 (MONARCH command
+path) **frozen 2026-07-07** after joint review.
 
 ## 1. Scope and roles
 
@@ -126,20 +127,19 @@ A new TCP connection is a **fresh session** on both sides:
 
 ## 6. Out of scope / future
 
-- The MONARCH command path is drafted in **§7 (v0.2 DRAFT)** below — pending joint
-  review before it is frozen.
+- The MONARCH command path is specified in **§7** (frozen 2026-07-07).
 - The per-system command list (names, parameters, validation rules) is maintained in a
   separate document as systems are ported.
 
 ---
 
-# v0.2 DRAFT — MONARCH command path (§7)
+# v0.2 — MONARCH command path (§7)
 
-> **Status: DRAFT, pending joint review (Phase B1).** The Python side and the sim
-> gateway implement this today (`supervisory/monarch/commander.py`,
+> **Status: FROZEN (joint review 2026-07-07).** The Python side and the sim
+> gateway implement this (`supervisory/monarch/commander.py`,
 > `supervisory/monarch/simserver_monarch.py`, `tests/test_monarch_commander.py`);
-> the LabVIEW gateway write path (B3) follows only after this section is agreed.
-> Open decisions are marked **[DECISION]**.
+> the LabVIEW gateway write path (B3) builds against this section as written.
+> Changing §7 now requires moving both sides in lockstep.
 
 ## 7.1 The command
 
@@ -216,11 +216,27 @@ One flag therefore supervises the entire command path, not just the Python
 process. (The same applies to `MTR_HB`, which the PC's Modbus code relays into
 the cluster: that channel watches the membrane PLC *and* its PC-side relay.)
 
-- **[DECISION] watchdog threshold:** proposal — trip within **5 s** at the TS-loop
-  rate (matches the §5 heartbeat semantics).
-- **[DECISION] `PC_HB` toggling while source = UI:** options — (a) the UI toggles it,
-  (b) the gateway toggles it on the UI's behalf, (c) the clamp stays gated on
-  source = PYTHON (current sim behavior). Pick at review.
+**Decisions (resolved at joint review, 2026-07-07):**
+
+- **Watchdog threshold: 5 s.** `PCnotResponding` trips within 5 s of `PC_HB`
+  freezing (threshold = ceil(5 s / TS-loop period) iterations).
+- **`PC_HB` toggling: option (a)** — the **UI toggles `PC_HB`** while
+  source = UI (from its main loop at ~1 Hz, **not** on-change — an on-change-only
+  write would freeze the flag between operator interactions and false-trip);
+  Python toggles it while source = PYTHON. Consequence: the SAFE clamp is armed
+  in **both** modes, no source gating. *Interim:* until the UI toggle is
+  implemented (B3.c), the clamp is gated on source = PYTHON — which is what the
+  sim gateway currently models.
+- **Follow-on (specified, response TBD during commissioning): `UI_HeartBeat`** —
+  a standalone network shared variable (house pattern, like `9049_HeartBeat`),
+  toggled by the UI's main loop regardless of source, watched as a fifth
+  WatchDog channel. It covers the one case `PC_HB` cannot: the UI (the
+  operator's monitoring surface and software e-stop) dying while **Python**
+  holds authority. Response phase-in: alert + Python-side reaction (abort
+  running sequences, cap state via a temporal rule) first; LabVIEW-side clamp
+  value decided by the team (conservative default while the plant is unproven:
+  SAFE). Deliberately NOT a second field in `PC_ControlSettings` — no typedef
+  change, independent threshold/response.
 
 ## 7.6 Failure matrix (behavior ⇄ verification)
 

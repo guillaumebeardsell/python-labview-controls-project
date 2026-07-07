@@ -1,12 +1,12 @@
 # Phase B — Command Path + Watchdog Proof (detailed instructions)
 
-> **Status (2026-07-06):** B0 traced (response absent — LabVIEW work specified
-> below). **B1 drafted** — ICD v0.2 is §7 of `docs/icd.md`, pending joint review
-> (two [DECISION] boxes). **B2 BUILT + VERIFIED** — `commander.py`, the
+> **Status (2026-07-07):** B0 traced (response absent — LabVIEW work specified
+> below). **B1 FROZEN** — ICD v0.2 §7 agreed at joint review: 5 s threshold;
+> UI toggles `PC_HB` too (clamp armed in both modes); `UI_HeartBeat` specified
+> as a follow-on channel. **B2 BUILT + VERIFIED** — `commander.py`, the
 > commandable sim gateway running the A1-ported StateMachine, 13 failure-matrix
-> tests green, and an end-to-end TCP run (STAND_BY→FIRING, one step per tick,
-> rate limiter observed firing). Next: B1 review → B3 gateway write path → B4
-> bench drills.
+> tests green, and an end-to-end TCP run. Next: **B0+B3 LabVIEW builds** (all
+> instructions final) → B4 bench drills.
 
 **Objective:** a hardened Python→LabVIEW command channel whose failure modes are
 all proven safe on the bench. This phase *builds* authority plumbing; it grants
@@ -60,13 +60,13 @@ shared variable, UI single-writer gate). B1/B2/B4 need no LabVIEW edits
    and the `Min` output into the StateMachine terminal. Net effect: warnings
    path unchanged in normal operation; a PC stall clamps the state to SAFE via
    the exact mechanism every other limit uses.
-4. **[DECISION — B1 review] gate by source:** if the UI does not toggle
-   `PC_HB` while source=UI (nothing is known to today; a permanently-tripped
-   flag is likely why the WatchDog was left unwired), either (a) gate the
-   Select on `CommandSource = PYTHON` (clamp active only under Python
-   command), or (b) make the **gateway** toggle `PC_HB` on the UI's behalf
-   whenever source=UI, keeping the clamp always-armed. (b) is safer; (a) is
-   less LabVIEW work.
+4. **DECIDED (2026-07-07, ICD §7.5): the UI toggles `PC_HB` too**, so the
+   clamp is armed in **both** modes — no source gating. Threshold: 5 s
+   (= ceil(5 s / TS-loop period) iterations). Implementation of the UI toggle
+   is in B3.c step 4; **sequencing note:** if B0's clamp wiring lands before
+   the UI toggle does, gate the Select on `CommandSource = PYTHON` temporarily
+   and remove the gate in the same change-set as B3.c (otherwise a frozen
+   `PC_HB` under source=UI would trip immediately).
 5. **Recommended while in the diagram** (from `docs/shadow-findings.md`): the
    WarningIntegration VI's `9049 not responding` / `9056 FPGA not responding`
    booleans are indicator-only. Two more `Select`(−1:3) → include in the same
@@ -130,8 +130,11 @@ Extend `docs/icd.md` to v0.2 with:
 
 **Definition of done (B1):** v0.2 section merged into `docs/icd.md` after joint
 review; the source-select UX decision recorded.
-*Status: drafted (docs/icd.md §7) — review pending; [DECISION] boxes open:
-watchdog threshold, PC_HB toggling while source=UI.*
+*Status: **FROZEN 2026-07-07** (docs/icd.md §7). Decisions: 5 s threshold;
+option (a) — UI toggles `PC_HB` (clamp ungated once B3.c lands);
+`UI_HeartBeat` follow-on specified. Remaining soft default: the
+`CommandSource` switch lives on the HMI System screen unless the team
+objects during B3.*
 
 ---
 
@@ -239,6 +242,21 @@ UI gets the single-writer gate; the shared-vars library gets one variable.
    current control values win again — brief the operators that controls should
    match telemetry before handing back (the C3 handover procedure makes this
    explicit).
+4. **UI heartbeat toggle (DECIDED 2026-07-07, ICD §7.5 option (a)):** in the
+   UI's write path, toggle `PC_HB` (`PID control references.PC_HB`) on every
+   write, and make sure that write happens **periodically (~1 Hz from the main
+   loop), not only on operator change** — an on-change-only writer freezes the
+   flag between interactions and false-trips the 5 s watchdog. Concretely:
+   NOT gate on a feedback node → bundle into the cluster → the (gated) write,
+   once per UI loop iteration. Verify the UI's current write cadence first;
+   if it already writes every iteration, this is just the NOT + bundle.
+5. **Follow-on, response TBD (ICD §7.5): `UI_HeartBeat`** — add a standalone
+   network shared variable (house pattern, like `9049_HeartBeat`) toggled by
+   the UI main loop regardless of source; watch it as a fifth WatchDog channel
+   so a dead UI is detectable **while Python holds authority** (the case
+   `PC_HB` can't cover). Phase-in: lamp + Python-side reaction first; the
+   LabVIEW clamp value is a commissioning decision (conservative default:
+   SAFE).
 
 **Definition of done (B3):** with source=UI, Python commands are NACKed and
 nothing changes; with source=PYTHON, a command round-trips to a telemetry
