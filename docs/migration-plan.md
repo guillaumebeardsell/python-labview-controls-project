@@ -31,9 +31,9 @@ loop-counts at ~20 ms; PC_HB toggler = option (a), UI also toggles) — the only
 soft B1 item left is the `CommandSource` HMI switch. **B0 loss-of-PC response is
 built, wired, and live-verified** (`PCnotResponding`/`9049notResponding` → Select
 (−1:3) → Min into the SM warnings input; a real PC drop drove SYSTEM STATE→SAFE,
-shadow compare 100%; see `docs/migration-seam.md`); threshold being finalized at
-250 counts (5 s) — re-run the drill at that value to re-confirm. Next real build:
-**B3 gateway write path**.
+shadow compare 100%; see `docs/migration-seam.md`); threshold **set to 250 counts
+(5 s) and the loss-of-PC drill re-verified at it** (pc_hb freeze → SAFE in ~5 s,
+100%/100%; `docs/shadow-findings.md`). Next real build: **B3 gateway write path**.
 
 <details><summary>Prior status (2026-07-06)</summary>
 

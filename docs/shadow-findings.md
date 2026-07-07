@@ -50,6 +50,21 @@ the override. Conclusions:
   commissioning (e.g. publish both SM state and 9049 echo and alarm on
   sustained mismatch).
 
+## 2026-07-07 — B0 loss-of-PC drill CONFIRMED at 250 counts (5 s)
+
+Captured a full loss-of-PC episode at the final watchdog threshold (250 counts =
+5 s at the ~20 ms loop). `pc_hb` last toggled at **seq 33**, then froze;
+`warnings_limit → −1` and `system_state → SAFE(−1)` at **seq 38** — **~5 frames
+(~5 s) latency**, matching the threshold. The same session shows the round trip:
+SAFE → step-by-1 recovery to FIRING while the heartbeat was alive (seq 21→29),
+then the freeze clamps back to SAFE.
+
+**SYSTEM STATE 50/50 (100%) · Limited 50/50 (100%) · AGREE.** The watchdog *logic*
+(pc_hb freeze → `warnings_limit=−1`) is LabVIEW-side and not in the port, but the
+port consumes the resulting `warnings_limit=−1` and clamps to SAFE identically —
+so the supervisory brain stays consistent with LabVIEW through a loss-of-PC hold.
+This closes B0's exit at the finalized threshold (previously "re-confirm pending").
+
 ## 2026-07-07 — CAVEAT: 9056 loop is ~50 Hz, so 1 Hz shadow-compare sees converged state
 
 Corrected fact (confirmed with the user): the 9056 control loop (StateMachine +

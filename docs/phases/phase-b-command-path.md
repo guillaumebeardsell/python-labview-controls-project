@@ -4,14 +4,16 @@
 > WatchDog is wired (`PCnotResponding`/`9049notResponding` → Select (−1:3) → Min
 > into the SM warnings input); a real PC drop drove `SYSTEM STATE → SAFE` with
 > step-by-1 recovery, shadow compare 100% (`docs/migration-seam.md`). Threshold
-> being finalized at **250 counts (5 s)** — note the sizing trap: the count is
-> ~20 ms control-loop ticks and must be several `PC_HB` (~1 Hz) periods, so 50
-> counts (1 s) false-trips; 250 = 5 s is correct. **B1 FROZEN** — ICD v0.2 §7:
-> 5 s threshold; UI toggles `PC_HB` too; `UI_HeartBeat` follow-on. Only soft B1
-> item left: the `CommandSource` HMI switch. **B2 BUILT + VERIFIED** —
+> **set to 250 counts (5 s) and the loss-of-PC drill re-verified at it**: `pc_hb`
+> freeze → `warnings_limit=−1` → `SYSTEM STATE→SAFE` in ~5 s, step-by-1 recovery,
+> shadow compare **100%/100%** (`docs/shadow-findings.md`). Sizing trap noted: the
+> count is ~20 ms control-loop ticks and must be several `PC_HB` (~1 Hz) periods,
+> so 50 counts (1 s) false-trips; 250 = 5 s is correct. **B1 FROZEN** — ICD v0.2
+> §7: 5 s threshold; UI toggles `PC_HB` too; `UI_HeartBeat` follow-on. Only soft
+> B1 item left: the `CommandSource` HMI switch. **B2 BUILT + VERIFIED** —
 > `commander.py`, the commandable sim gateway running the A1 StateMachine, 13
 > failure-matrix tests green, end-to-end TCP run. Next real build: **B3 gateway
-> write path** → B4 bench drills (re-run the loss-of-PC drill at 250 counts).
+> write path** → B4 bench drills.
 
 **Objective:** a hardened Python→LabVIEW command channel whose failure modes are
 all proven safe on the bench. This phase *builds* authority plumbing; it grants
@@ -176,87 +178,190 @@ end-to-end verified.*
 
 ## B3 — LabVIEW gateway write path
 
-*Owner: you, with node-level guidance. Prereq: B0 outcome + B1 frozen.*
+*Owner: you, with node-level guidance. Prereq: B0 outcome (✅ done) + B1 frozen
+(✅ 2026-07-07).*
 
-**LabVIEW changes required — three VIs.** The gateway gets the write path; the
-UI gets the single-writer gate; the shared-vars library gets one variable.
+**What exists before B3:** the gateway is read-only — it flattens
+`PC_ControlSettings` + extras into the 1 Hz telemetry envelope, and its receive
+path answers any `"type":"command"` line with a hardcoded ack constant (the
+hello build). **What exists after B3:** validated Python commands write
+`PC_ControlSettings`; the UI's writes redirect by source; telemetry carries
+`command_source` and `operator_requests`. The finished data flow:
 
-*B3.a — `APC_PC_PythonGateway.vi`: the command branch, node by node.*
-1. **Route by name.** Inside the existing `"type":"command"` match (the ack
-   branch from the hello build): add a second `Match Pattern` on the line for
-   `"name":"set_control_settings"` → Case structure. (The old hardcoded-ack
-   reply is replaced by this branch.)
-2. **Parse id + settings with `Unflatten From JSON` + its `path` input** (no
-   string surgery):
-   - id: `Unflatten From JSON` — *JSON string* = the received line, *path* =
-     string array `["id"]`, *type* = I32 constant.
-   - settings: second `Unflatten From JSON` — *path* = `["params","settings"]`,
-     *type* = an `APC_ControlSettings.ctl` constant (drag the typedef onto the
-     diagram). This inverts the telemetry flatten exactly — no key mapping.
-   - Either node's error out ⇒ NACK reason `"parse"` (clear the error after).
-3. **Validation chain** (a ladder of Case structures, first failure wins;
-   each failure produces a reason string, no write):
-   - `CommandSource` ≠ PYTHON ⇒ `"source is UI"`.
-   - Unbundle `CLEAR EMERGENCY STOP` = TRUE ⇒ `"operator only"`.
-   - Range checks: unbundle `Speed ref` → `In Range and Coerce`-style
-     comparison against constants (start with just speed; the StateMachine
-     limiter remains the real clamp) ⇒ `"range: Speed ref"`.
-   - Optional rate limit: count commands in the last second (Tick Count shift
-     register); >5 ⇒ `"rate"`.
-4. **Accept path:** write the unflattened cluster to the **`PC_ControlSettings`
-   shared variable** (the same variable the UI writes; drag from the library,
-   Access Mode → Write). Nothing else — the 9056 consumes it exactly as it
-   consumes UI writes.
-5. **Dynamic ACK/NACK** (replaces the hardcoded ack constant):
-   `Format Into String`, format
-   `{"type":"command_ack","id":%d,"accepted":%s,"reason":"%s"}\r\n`
-   ('\' Codes Display), args: parsed id (I32), accepted boolean → Select
-   `true`/`false` (%s), reason string (empty when accepted). → the existing
-   `TCP Write` on the connection ID.
-6. **Echo the source in telemetry:** extend the telemetry format string with
-   `,"command_source":"%s"` (note the quotes — it's a JSON string) and wire
-   `CommandSource` → Select (`UI`/`PYTHON` string constants). Python already
-   decodes this field.
+```
+                       source = UI                 source = PYTHON
+UI_Main write  ──────► PC_ControlSettings          PC_OperatorRequests
+Python command ──────► NACK "source is UI"         validate → PC_ControlSettings
+9056 consumes  ──────► PC_ControlSettings (unchanged either way)
+```
 
-*B3.b — `CommandSource` itself.*
-- Create it as a **shared variable** (`APC_SharedVars.lvlib`, type: Boolean or
-  a UI|PYTHON enum typedef, network-published) so the gateway, the UI, and the
-  9056 (if B0 option (a) is chosen) all read one value. Deploy.
-- **[DECISION — B1 review]:** where the operator flips it — the UI System
-  screen (recommended: it's an operating-mode control, and the HMI is where
-  e-stop lives) vs. the gateway front panel (simpler, but hidden). Either way
-  it is operator-owned: nothing in the command path may write it.
+Single-writer matrix — the invariant B3 must end with (exactly one writer per
+variable per mode):
 
-*B3.c — `APC_PC_UI_Main.vi` (and any other UI writer): the single-writer gate.*
-1. Find **every** write node targeting the `PC_ControlSettings` shared
-   variable (Project Explorer → right-click the variable → *Find → Search
-   Scope: project*, or Edit → Find on the UI diagrams). A binary scan of the
-   raw codebase narrows the hunt: on the PC side, only **`APC_PC_UI_Main.vi`**
+| Variable | Writer while source=UI | Writer while source=PYTHON | Readers |
+|---|---|---|---|
+| `PC_ControlSettings` | `UI_Main` (as today) | gateway (validated commands only) | 9056 SM, gateway telemetry |
+| `PC_OperatorRequests` | `UI_Main` (init write at startup) | `UI_Main` (the redirect) | gateway telemetry → Python mirror |
+| `CommandSource_IsPython` | operator's HMI switch — **only** | operator — **only** | gateway validation, `UI_Main` gate, telemetry echo |
+
+Work in this order: **B3.0 → B3.a → B3.b → B3.c → B3.d** — variables first,
+because every later step drags them onto a diagram.
+
+### B3.0 — Create and deploy the two shared variables (~10 min)
+
+1. Project Explorer → `cRIO-9049` target → `APC_SharedVars.lvlib` (the library
+   lives under the 9049 target — same place the A2.1 variables went) →
+   right-click → *New → Variable*:
+   - **`PC_OperatorRequests`** — Variable Type *Network-Published*; Data Type
+     *From Custom Control…* → `APC_ControlSettings.ctl`. Configure identically
+     to `PC_ControlSettings` (no buffering, no RT FIFO).
+   - **`CommandSource_IsPython`** — Network-Published, **Boolean**. Polarity:
+     **FALSE = UI (the default), TRUE = PYTHON.** A Boolean beats a
+     string/enum: the deploy-time default is automatically the safe mode (UI),
+     nothing can be typo'd, and telemetry turns it into the ICD's
+     `"UI"`/`"PYTHON"` string with one `Select`.
+2. Right-click the library → *Deploy All*. Nothing on the cRIOs consumes
+   either variable (the B0 clamp is ungated), so no cRIO redeploy — this is a
+   variable-engine update only.
+3. **The unwritten-variable NaN trap (you hit this at A2.1 with
+   `Limited_ControlSettings`):** a freshly deployed cluster variable that has
+   never been written can flatten with `NaN` in DBL fields — invalid JSON, and
+   the Python observer discards every frame. Before the gateway includes
+   `operator_requests` in the envelope, make sure something writes
+   `PC_OperatorRequests` once: simplest is an **init write in `UI_Main`**
+   (before its main loop starts, write the same cluster it writes to
+   `PC_ControlSettings`). If frames go malformed anyway, diagnose with
+   `python tools/capture_line.py`.
+
+### B3.a — `APC_PC_PythonGateway.vi`: the command branch, node by node
+
+Everything here lives in the session loop's receive path — the case that today
+matches `"type":"command"` and replies with the hardcoded ack constant. The
+constant goes away; this branch replaces it.
+
+1. **Extract the command name and id** with `Unflatten From JSON` + its *path*
+   input (more robust than `Match Pattern` — immune to key order and
+   whitespace):
+   - name: *JSON string* = the received line; *path* = a 1-element
+     string-array constant `["name"]`; *type* = an empty **string** constant.
+   - id: same node again; *path* = `["id"]`; *type* = an **I32** constant.
+   - name → `Equal?` vs a `set_control_settings` string constant → Case
+     structure. **False case** = NACK, reason built with `Format Into String`
+     `unknown command '%s'`. If the *id* itself fails to parse, the line is
+     garbage: per ICD §7.3 discard it silently or NACK with id −1 — and
+     **`Clear Errors` either way**, so the session survives (drill B4-4).
+2. **Parse the settings cluster:** another `Unflatten From JSON` — *path* =
+   `["params","settings"]` (2-element string array); *type* = an
+   **`APC_ControlSettings.ctl` constant** (drag the typedef from the project
+   onto the diagram; verify it stays typedef-linked). This exactly inverts the
+   telemetry `Flatten To JSON` — no key renaming on the LabVIEW side, ever.
+   Leave *enable strict validation?* unwired: Python always sends the complete
+   cluster, and extra unknown fields must not error. Node error ⇒ NACK
+   `parse` (then `Clear Errors`).
+3. **Validation ladder** — nested Case structures, first failure wins. The
+   Python tests and B4 drills compare NACK reasons against the sim
+   (`simserver_monarch.py handle_command`), so match the strings **verbatim
+   and in this order**:
+
+   | # | Check | LabVIEW | NACK reason (verbatim) |
+   |---|---|---|---|
+   | 1 | name ≠ `set_control_settings` | step 1 | `unknown command '<name>'` |
+   | 2 | >5 commands in the last rolling second | recipe below | `rate` |
+   | 3 | `CommandSource_IsPython` = FALSE | shared-variable read | `source is UI` |
+   | 4 | settings failed to unflatten | step 2 | `parse` |
+   | 5 | `Speed ref` outside 0–3000 | Unbundle By Name → two comparisons. **Reject, don't coerce** — the StateMachine limiter stays the real clamp | `range: Speed ref <value>` (`range: Speed ref %g`) |
+   | 6 | `CLEAR EMERGENCY STOP` = TRUE | Unbundle By Name | `operator only` |
+
+   Wiring pattern: each level's fail case outputs its reason constant +
+   accepted=FALSE; its pass case contains the next check; the innermost pass
+   case is the accept path. Tunnel `accepted` (Boolean) and `reason` (string)
+   out of **every** level — wire both in every case, no unwired defaults.
+
+   **Rate-limit recipe (same algorithm as the sim):** a U32-array shift
+   register on the session loop, initialized empty. Per received command:
+   `Tick Count (ms)` → `Build Array` (append) → small For loop over the array
+   with the **conditional terminal** keeping elements where
+   `now − element ≤ 1000` → back to the shift register. `Array Size` > 5 ⇒
+   NACK `rate`. (U32 rollover is ~49 days; the worst case is one harmless
+   false NACK — ignore it.)
+4. **Accept path — one node:** the unflattened cluster → the
+   **`PC_ControlSettings` shared-variable write** (drag from the project,
+   *Access Mode → Write*). Write it **unmodified**: don't touch `PC_HB`
+   (Python toggles it — the 9056 watchdog must see *Python's* toggling,
+   that's the point), don't re-clamp values (the 9056 limiter does that).
+   Nothing else happens on accept.
+5. **Dynamic ACK/NACK** (replaces the constant): `Format Into String`, format
+   string in *'\' Codes Display*:
+   `{"type":"command_ack","id":%d,"accepted":%s,"reason":"%s"}\n`
+   - `%d` ← parsed id (I32)
+   - `%s` ← accepted → `Select` of string constants `true` / `false`
+     (JSON booleans: lowercase, no quotes)
+   - `%s` ← reason (empty string when accepted; all reasons are fixed ASCII —
+     nothing needs JSON escaping)
+   → the existing `TCP Write` for this connection. Use the same terminator as
+   the telemetry writer (Python accepts `\n` and `\r\n`).
+6. **Telemetry envelope additions** (in the telemetry `Format Into String`,
+   same pattern as `limited_settings` from A2.1):
+   - `,"command_source":"%s"` — **with quotes** (JSON string);
+     `CommandSource_IsPython` → `Select`(`PYTHON`/`UI`).
+   - `,"operator_requests":%s` — **no quotes** (JSON object); a
+     `PC_OperatorRequests` read → `Flatten To JSON`.
+   Python already decodes both fields — no Python change needed.
+7. B3.a is testable before touching the UI — do B3.d steps 1–3 now.
+
+### B3.b — the `CommandSource` operator switch
+
+- **Placement (soft default from the B1 review): the HMI System screen**
+  (`APC_PC_UI_System.vi`) — it's an operating-mode control and belongs next to
+  e-stop. A latching switch labeled *"Python in command"* writing
+  `CommandSource_IsPython`, plus a **read-back LED** wired from a *read* of
+  the same variable — the operator sees the effective value, not the switch
+  position (this doubles as the C0 visibility item).
+- **Operator-owned, absolutely:** nothing in the gateway, the command path, or
+  Python ever writes this variable. The only writer is the operator's switch —
+  deliberately, there isn't even an ICD command for it.
+- Flip semantics need nothing extra here: the Python commander seeds its
+  intent from telemetry before its first send (bumpless) and goes silent the
+  moment the echo says `UI`. Drill B4-7 proves both directions.
+
+### B3.c — `APC_PC_UI_Main.vi`: the single-writer redirect
+
+1. **Find every write node** targeting the `PC_ControlSettings` shared
+   variable: Project Explorer → right-click the variable → *Find → Search
+   Scope: project* (or Edit → Find on the UI diagrams). A binary scan of the
+   raw codebase narrows the hunt: on the PC side only **`APC_PC_UI_Main.vi`**
    (and the gateway, read-only) reference the variable at all —
    `APC_PC_UI_System.vi`/`_Errors.vi` don't — so expect the writer(s) there.
-   If there are several writes, they all get the same gate.
+   (Recall the data path you confirmed with the `PC_HB` toggle: `UI_System`
+   writes the `PC_GlobalVariables_PIDsyst2main` global; `UI_Main` bundles the
+   globals into the cluster and writes the shared variable. The redirect goes
+   at that **final shared-variable write**, not at the globals.) If there are
+   several writes, every one gets the same treatment.
    - **Build-spec caveat (verified in `MONARCH.lvproj`):** `APC_PC_UI_Main.vi`
      is the source of the **`APC_Monarch` EXE** build spec. If the control room
-     runs the built executable rather than the VI in the dev environment, the
-     gate change requires **rebuilding and redeploying `APC_Monarch`** — decide
+     runs the built executable rather than the VI in the dev environment, this
+     change requires **rebuilding and redeploying `APC_Monarch`** — decide
      which mode operations uses and keep it consistent through Phase B/C.
-2. Wrap each write in a Case structure on `CommandSource` — **a redirect, not
-   a suppression (ICD §7.7)**: **UI case** = existing write to
-   `PC_ControlSettings`, untouched; **PYTHON case** = the same cluster value
-   writes to the new **`PC_OperatorRequests`** shared variable instead (create
-   it in `APC_SharedVars.lvlib` under the 9049 target, bound to
-   `APC_ControlSettings.ctl`, exactly like `PC_ControlSettings`). The
-   operator's inputs keep flowing in both modes; Python consumes them from
-   telemetry and decides. Keep the case visually obvious.
-   - Gateway side: forward it — add `,"operator_requests":%s` to the telemetry
-     envelope with a `Flatten To JSON` of the `PC_OperatorRequests` read (same
-     pattern as `limited_settings`). Python already decodes and mirrors it
-     (`supervisory/monarch/operator_mirror.py`).
-3. While source=PYTHON the UI keeps *displaying* everything (reads are
-   untouched); only its write is suspended. On flip-back to UI the panel's
-   current control values win again — brief the operators that controls should
-   match telemetry before handing back (the C3 handover procedure makes this
-   explicit).
+2. **The redirect — a Case structure per write, not a suppression (ICD §7.7).**
+   Read `CommandSource_IsPython` once per loop iteration → wire to the case
+   selector; the bundled cluster wire enters **both** cases:
+   - **FALSE (UI) case:** the existing `PC_ControlSettings` write node, moved
+     inside, untouched — the fallback path stays direct, exactly as today, and
+     never depends on Python or the gateway.
+   - **TRUE (PYTHON) case:** the same cluster wire → a **`PC_OperatorRequests`
+     write** node (drag the B3.0 variable in, *Access Mode → Write*).
+   The operator's inputs keep flowing in both modes; while Python commands,
+   they arrive in telemetry as `operator_requests` and
+   `supervisory/monarch/operator_mirror.py` mirrors them into Python's intent
+   (safety inputs always; everything else when no sequence is running). Keep
+   the case structure visually obvious — one case around each write, nothing
+   clever.
+3. **Displays are untouched.** All UI *reads* stay as they are — while
+   source=PYTHON the operator keeps seeing live values; only the write target
+   changes. Handback note for C3: on flip-back to UI the panel's current
+   control values win again, so controls should match telemetry before
+   handing back (with the mirror active they normally will — Python has been
+   following the operator's requests all along).
 4. **UI heartbeat toggle** ✅ **done (2026-07-07)** — implemented in
    **`APC_PC_UI_System.vi`** (verified in the per-frame export): feedback node
    → NOT → `PC_HB` in the PID-references bundle, once per System-loop
@@ -277,9 +382,55 @@ UI gets the single-writer gate; the shared-vars library gets one variable.
    LabVIEW clamp value is a commissioning decision (conservative default:
    SAFE).
 
+### B3.d — Verify as you build (each step has a ready-made Python check)
+
+1. **After B3.0 + B3.a step 6 (envelope):** run `python examples/monarch_listen.py`
+   — frames must keep decoding (no "malformed message"; if malformed, it's the
+   NaN trap — B3.0 step 3), and each frame should now show
+   `command_source="UI"`. `python tools/capture_line.py` pinpoints any framing
+   or JSON problem to the character.
+2. **NACK ladder, one reason at a time** (source still UI). Send one raw
+   command and print the reply — from the control-room PC:
+
+   ```
+   python - <<"EOF"
+   import socket, json
+   s = socket.create_connection(("127.0.0.1", 5020), timeout=5)
+   cmd = {"type": "command", "id": 1, "name": "set_control_settings",
+          "params": {"settings": {}}}   # empty settings -> expect "parse"
+   s.sendall((json.dumps(cmd) + "\n").encode())
+   buf = b""
+   while b"command_ack" not in buf:
+       buf += s.recv(4096)
+   print([l for l in buf.decode().splitlines() if "command_ack" in l][0])
+   EOF
+   ```
+
+   Vary it to hit each rung: any other `name` ⇒ `unknown command '...'`;
+   6 sends in one second ⇒ `rate`; a full valid settings dict (copy the
+   `settings` object out of a telemetry line) ⇒ `source is UI`; garbage bytes
+   ⇒ discarded/NACK **and the session must survive** (telemetry keeps
+   flowing — that's drill B4-4's core).
+3. **Flip to PYTHON (B3.b done):** telemetry echo flips to
+   `command_source="PYTHON"` within a frame. Now the real client:
+   `python examples/monarch_operate.py` → `status` shows `commanding=True` →
+   `mode motoring` → watch `system_state` step up in telemetry. Repeat the
+   step-2 rungs that should still NACK (`operator only`, `range: Speed ref`,
+   `rate`).
+4. **After B3.c (redirect):** with source=PYTHON, move a control on the HMI —
+   `PC_ControlSettings` must NOT change directly (no bypass), but telemetry's
+   `operator_requests` shows the new value and, with `monarch_operate`
+   running, the mirror carries it into Python's next command — the value
+   arrives in `PC_ControlSettings` *via Python*, one tick later. Flip back to
+   UI: direct writes resume, Python goes silent (its sends NACK
+   `source is UI`).
+5. Then run the full **B4 drill table** — B4-1/2 are already banked from the
+   B0 live verification.
+
 **Definition of done (B3):** with source=UI, Python commands are NACKed and
 nothing changes; with source=PYTHON, a command round-trips to a telemetry
-effect on the real system.
+effect on the real system; with the redirect in place, the single-writer
+matrix at the top of this section is true — verified per B3.d.
 
 ---
 
