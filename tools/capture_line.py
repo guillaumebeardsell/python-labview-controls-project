@@ -67,6 +67,10 @@ def main() -> int:
             print(f"  offending char: {text[pos]!r}; preceding: {text[max(0,pos-1):pos]!r}")
         print("\nLikely causes: missing ',' between two fields, a '%s' arg that isn't valid "
               "JSON (empty/wrong wire), or a truncated message (error near the very end).")
+        if "NaN" in text or "Infinity" in text:
+            print("Found NaN/Infinity in the line — LabVIEW Flatten To JSON emits these for "
+                  "uninitialized/invalid floats (e.g. an unwritten Limited_ControlSettings "
+                  "shared variable); they are not valid JSON.")
         return 1
 
     print("\nJSON parses OK. Trying the MONARCH decoder...")

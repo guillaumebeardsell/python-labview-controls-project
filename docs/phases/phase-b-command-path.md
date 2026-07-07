@@ -19,6 +19,11 @@ the sim and with `source-select = UI` (Python's writes ignored) before that.
 for B1/B2 (they can run in parallel); B4 wants A2's shadow compare available as
 a divergence alarm.
 
+**LabVIEW changes in this phase:** B0 (wire the WatchDog + SAFE clamp in
+`APC_9056_TS_loop.vi`) and B3 (gateway command branch, `CommandSource`
+shared variable, UI single-writer gate). B1/B2/B4 need no LabVIEW edits
+(B4 *exercises* the B0/B3 work).
+
 ---
 
 ## B0 — Close the loss-of-PC question (FIRST — it shapes B3)
@@ -32,20 +37,45 @@ a divergence alarm.
    unwired** — no inputs, no outputs. It runs (reads heartbeats via shared
    variables internally) but `PCnotResponding` is consumed by nothing.
 
-**Remaining B0 work (LabVIEW, now concretely specified):**
-- Wire the response: WatchDog's `PCnotResponding` output → `Select` (TRUE → −1,
-  FALSE → 3) → `Min` with the warning-integration (DIAG) output that feeds the
-  StateMachine's `STATE LIMITATION FROM WARNINGS` input. One Select + one Min at
-  the existing call site; stays in LabVIEW (FLOOR logic).
-- Set real `*watchdogThreshold` values (front-panel defaults are 0; nothing is
-  known to configure them). Suggest: trip within 5 s at the TS-loop rate,
-  matching the ICD's 5 s heartbeat semantics.
-- Resolve **who toggles `PC_HB`**: it's unknown whether the UI toggles it today
-  (if nothing does, the flag would read permanently tripped — likely why it was
-  left unwired). Decide per command source: UI toggles it while source=UI;
-  Python toggles it while source=PYTHON (B1 already requires this). Until the
-  UI side toggles, gate the clamp on source=PYTHON or have the gateway toggle
-  it on the UI's behalf — decide at B1 review.
+**Remaining B0 work — LabVIEW changes required (node-by-node, in
+`APC_9056_TS_loop.vi` at the StateMachine call site):**
+
+1. **Wire the WatchDog call.** The `APC_9056_WatchDog.vi` node is currently
+   bare. Wire its connector:
+   - *Inputs:* the four `*watchdogThreshold` terminals. Create I32 constants —
+     threshold counts loop iterations with an unchanged heartbeat, so
+     `threshold = ceil(5 s / TS-loop period)` (the main timed loop showed a
+     300 ms period in the export — verify, then 5 s ⇒ **17**). Wire at least
+     `PCwatchdogThreshold`; give the 9049/9056/MTR ones real values too while
+     you're there (front-panel defaults are 0, and 0 means "trip on the first
+     unchanged sample").
+   - *Output:* `PCnotResponding` (Boolean).
+2. **Build the clamp:** `PCnotResponding` → **`Select`** (TRUE → I8 constant
+   `−1`, FALSE → I8 constant `3`) → one input of a **`Min`** (Comparison →
+   Max & Min, use the min output).
+3. **Splice into the warnings input:** delete the segment of the wire feeding
+   the StateMachine's `STATE LIMITATION FROM WARNINGS` terminal (from the DIAG
+   VI — or the front-panel control if that input turns out to be unwired, per
+   `docs/shadow-findings.md`); wire that source into the `Min`'s other input,
+   and the `Min` output into the StateMachine terminal. Net effect: warnings
+   path unchanged in normal operation; a PC stall clamps the state to SAFE via
+   the exact mechanism every other limit uses.
+4. **[DECISION — B1 review] gate by source:** if the UI does not toggle
+   `PC_HB` while source=UI (nothing is known to today; a permanently-tripped
+   flag is likely why the WatchDog was left unwired), either (a) gate the
+   Select on `CommandSource = PYTHON` (clamp active only under Python
+   command), or (b) make the **gateway** toggle `PC_HB` on the UI's behalf
+   whenever source=UI, keeping the clamp always-armed. (b) is safer; (a) is
+   less LabVIEW work.
+5. **Recommended while in the diagram** (from `docs/shadow-findings.md`): the
+   WarningIntegration VI's `9049 not responding` / `9056 FPGA not responding`
+   booleans are indicator-only. Two more `Select`(−1:3) → include in the same
+   `Min` (Min accepts only 2 inputs — chain two Mins, or Build Array → Array
+   Max & Min). That closes the same detection-without-response gap for the
+   engine controller.
+6. Redeploy the 9056 app; verify on the bench: stop toggling `PC_HB` (or kill
+   Python once B2's commander is driving) ⇒ telemetry shows
+   `warnings_limit = −1` and `system_state → −1` within ~5 s.
 
 **Definition of done (B0):** the sentence "if `PC_ControlSettings` goes stale
 for N seconds, the 9056 does X" is true, written down in
@@ -135,24 +165,69 @@ end-to-end verified.*
 
 *Owner: you, with node-level guidance. Prereq: B0 outcome + B1 frozen.*
 
-In `APC_PC_PythonGateway.vi` (structure mirrors the proven read side):
-1. In the session loop's command branch (where `"type":"command"` is matched
-   today): parse `name`; for `set_control_settings`, extract the `settings`
-   object string.
-2. Validate: `Unflatten From JSON` into an `APC_ControlSettings.ctl` constant
-   type. Unflatten error ⇒ NACK `"parse"`. Then range/sanity checks (limits
-   from an INI or constants — keep the list small; the StateMachine limiter is
-   still the real clamp downstream). Source ≠ PYTHON ⇒ NACK `"source is UI"`.
-   `clear_emergency_stop` TRUE from Python ⇒ NACK `"operator only"`.
-3. On pass: write the cluster to the `PC_ControlSettings` shared variable
-   (the same one the UI writes) and ACK with the command id (dynamic id now —
-   `Format Into String` on the parsed id, replacing the hello-VI's hardcoded
-   ack).
-4. Source-select: a `CommandSource` control on the gateway/HMI panel gates the
-   write; echo its value into the telemetry envelope (`"command_source":"%s"`).
-5. The UI must stop writing `PC_ControlSettings` while source=PYTHON —
-   implement in the UI write path (case structure on the same source variable).
-   This is the one change outside the gateway; keep it minimal and obvious.
+**LabVIEW changes required — three VIs.** The gateway gets the write path; the
+UI gets the single-writer gate; the shared-vars library gets one variable.
+
+*B3.a — `APC_PC_PythonGateway.vi`: the command branch, node by node.*
+1. **Route by name.** Inside the existing `"type":"command"` match (the ack
+   branch from the hello build): add a second `Match Pattern` on the line for
+   `"name":"set_control_settings"` → Case structure. (The old hardcoded-ack
+   reply is replaced by this branch.)
+2. **Parse id + settings with `Unflatten From JSON` + its `path` input** (no
+   string surgery):
+   - id: `Unflatten From JSON` — *JSON string* = the received line, *path* =
+     string array `["id"]`, *type* = I32 constant.
+   - settings: second `Unflatten From JSON` — *path* = `["params","settings"]`,
+     *type* = an `APC_ControlSettings.ctl` constant (drag the typedef onto the
+     diagram). This inverts the telemetry flatten exactly — no key mapping.
+   - Either node's error out ⇒ NACK reason `"parse"` (clear the error after).
+3. **Validation chain** (a ladder of Case structures, first failure wins;
+   each failure produces a reason string, no write):
+   - `CommandSource` ≠ PYTHON ⇒ `"source is UI"`.
+   - Unbundle `CLEAR EMERGENCY STOP` = TRUE ⇒ `"operator only"`.
+   - Range checks: unbundle `Speed ref` → `In Range and Coerce`-style
+     comparison against constants (start with just speed; the StateMachine
+     limiter remains the real clamp) ⇒ `"range: Speed ref"`.
+   - Optional rate limit: count commands in the last second (Tick Count shift
+     register); >5 ⇒ `"rate"`.
+4. **Accept path:** write the unflattened cluster to the **`PC_ControlSettings`
+   shared variable** (the same variable the UI writes; drag from the library,
+   Access Mode → Write). Nothing else — the 9056 consumes it exactly as it
+   consumes UI writes.
+5. **Dynamic ACK/NACK** (replaces the hardcoded ack constant):
+   `Format Into String`, format
+   `{"type":"command_ack","id":%d,"accepted":%s,"reason":"%s"}\r\n`
+   ('\' Codes Display), args: parsed id (I32), accepted boolean → Select
+   `true`/`false` (%s), reason string (empty when accepted). → the existing
+   `TCP Write` on the connection ID.
+6. **Echo the source in telemetry:** extend the telemetry format string with
+   `,"command_source":"%s"` (note the quotes — it's a JSON string) and wire
+   `CommandSource` → Select (`UI`/`PYTHON` string constants). Python already
+   decodes this field.
+
+*B3.b — `CommandSource` itself.*
+- Create it as a **shared variable** (`APC_SharedVars.lvlib`, type: Boolean or
+  a UI|PYTHON enum typedef, network-published) so the gateway, the UI, and the
+  9056 (if B0 option (a) is chosen) all read one value. Deploy.
+- **[DECISION — B1 review]:** where the operator flips it — the UI System
+  screen (recommended: it's an operating-mode control, and the HMI is where
+  e-stop lives) vs. the gateway front panel (simpler, but hidden). Either way
+  it is operator-owned: nothing in the command path may write it.
+
+*B3.c — `APC_PC_UI_Main.vi` (and any other UI writer): the single-writer gate.*
+1. Find **every** write node targeting the `PC_ControlSettings` shared
+   variable (Project Explorer → right-click the variable → *Find → Search
+   Scope: project*, or Edit → Find on the UI diagrams). The UI likely writes
+   it in one place; if there are several, they all get the same gate.
+2. Wrap each write in a Case structure on `CommandSource`: **UI case** =
+   existing write; **PYTHON case** = no write (wire values through, drop the
+   write node). Keep the gate visually obvious — one case around the write,
+   nothing clever.
+3. While source=PYTHON the UI keeps *displaying* everything (reads are
+   untouched); only its write is suspended. On flip-back to UI the panel's
+   current control values win again — brief the operators that controls should
+   match telemetry before handing back (the C3 handover procedure makes this
+   explicit).
 
 **Definition of done (B3):** with source=UI, Python commands are NACKed and
 nothing changes; with source=PYTHON, a command round-trips to a telemetry

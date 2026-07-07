@@ -13,6 +13,36 @@ permanently.
 as hardware becomes available. This phase is deliberately less prescriptive —
 it tracks the commissioning campaign, which the team owns.
 
+**LabVIEW changes in this phase** (all optional-but-recommended hardening;
+none block E1–E3, which are Python/data work):
+
+1. **Close the remaining detection-without-response gaps** — if not already
+   done as B0 step 5: in `APC_9056_TS_loop.vi`, route WarningIntegration's
+   `9049 not responding` and `9056 FPGA not responding` booleans through
+   `Select`(−1 : 3) nodes into the same `Min` chain that feeds the
+   StateMachine's `STATE LIMITATION FROM WARNINGS` input (Build Array → Array
+   Max & Min's *min* output scales past two inputs). Loss of the
+   engine-synchronous controller then produces a supervisory SAFE clamp, not
+   just a lamp. Re-run the affected B4 drills after wiring.
+2. **Warning-limit table hygiene** — E2's temporal rules live in Python, but
+   the *instantaneous* per-channel limits stay in the LabVIEW XML/INI
+   (`WarningLevels.xml` on the 9056). When commissioning tunes thresholds,
+   update them there via the existing `_UI_Errors` screen (no diagram edits),
+   and re-capture a flatten if `APC_ControlSettings.ctl` ever changes
+   (`docs/monarch-flatten-diff.md`).
+3. **MTR/membrane commanding** — today the PC UI is the Modbus master writing
+   MTR targets. If/when setpoint scheduling (E3) should drive the membrane,
+   the minimal-change route is: UI keeps the Modbus master loop; the values it
+   writes come from `PC_ControlSettings` fields Python already commands
+   (`AIC201_CO2_ConcTarget`, membrane mode) — i.e. **no new LabVIEW plumbing**
+   if those fields are already consumed. Verify consumption before assuming;
+   flag as a small trace task when E3 starts. Moving the Modbus master itself
+   into Python is explicitly **not** planned (it's FLOOR-adjacent I/O).
+4. **Retirement pass** — as Python sequences take over operator workflows,
+   UI-side request-conditioning logic (mode-request buttons wired to
+   `Requested mode`, force buttons) stays functional as the manual fallback;
+   retire nothing until the team decides the manual path's final shape.
+
 ---
 
 ## E1 — Commissioning with sequences

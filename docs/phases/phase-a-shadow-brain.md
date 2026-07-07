@@ -10,6 +10,10 @@ bench captures, **without sending anything**.
 (`docs/monarch-telemetry.md`), `ControlSettings` contract confirmed, `monarch.jsonl`
 recordings available.
 
+**LabVIEW changes in this phase:** A2.1 only (shared variables + TS_loop taps +
+gateway envelope). A1 and A3 are pure Python; their LabVIEW inputs (exports) are
+already delivered.
+
 ---
 
 ## A1 — Port `APC_9056_StateMachine` to Python
@@ -119,30 +123,89 @@ against the A1.0 export or listed in the shadow-compare report as open.
 
 *Owner: split — LabVIEW pre-wire (you), harness (Claude).*
 
-**A2.1 — LabVIEW: pre-wire the shadow-mode extras (gateway change)**
-Per `docs/monarch-telemetry.md` §Shadow-mode extras. Concretely:
-1. Publish to the PC what isn't yet reachable there (same pattern as
-   `SystemState`): add network-published shared variables for
-   `STATE LIMITATION FROM WARNINGS` (I8), `ManualState` (I8), `ForceState`
-   (bool), and `Limited_ControlSettings` (the typedef) to the shared-vars
-   library; **write them from the actual wire feeding the StateMachine's
-   inputs** (tap the exact terminal wires, not the WarningIntegration output
-   in isolation); deploy.
-   - **Warnings caveat (see `docs/shadow-findings.md`):** it's unconfirmed the
-     StateMachine's warnings input is even wired to `WarningIntegration`. Publish
-     the value **on the StateMachine's input terminal** as `warnings_limit`
-     (that's what shadow mode must match). If that turns out to be a dead
-     default, also publish `WarningIntegration`'s output separately — the
-     difference is the finding.
-2. In `APC_PC_PythonGateway.vi`, extend the envelope `Format Into String`:
-   ```
-   {"type":"telemetry","seq":%d,"ts":%.3f,"system_state":%d,"warnings_limit":%d,"manual_state":%d,"force_state":%s,"settings":%s,"limited_settings":%s}\r\n
-   ```
-   New args in order: `warnings_limit` (%d), `manual_state` (%d), `force_state`
-   (Select True→`true`/False→`false` constant → %s), `limited_settings`
-   (`Flatten To JSON` of the Limited cluster → %s).
-3. Verify with `python examples/monarch_listen.py` — the extras appear in the
-   log line and `unmapped=[]` still holds. No Python change needed.
+**A2.1 — LabVIEW changes required (the only LabVIEW work in Phase A)**
+Per `docs/monarch-telemetry.md` §Shadow-mode extras. Full detail:
+
+*Part 1 — create the shared variables (`APC_SharedVars.lvlib`).*
+In the Project Explorer, right-click the library → **New → Variable**, once per
+row. All **Network-Published**, no buffering, no RT-FIFO (single 1 Hz values),
+hosted on the same target as the existing `SystemState` variable:
+
+| Variable | Data type | Carries |
+|---|---|---|
+| `WarningsLimit_SM` | I8 (or the state enum typedef) | the value **on the StateMachine's `STATE LIMITATION FROM WARNINGS` input terminal** |
+| `WarningsLimit_WI` | I8 | `WarningIntegration`'s output — **only needed if** it differs from the above (see caveat) |
+| `ManualState_SM` | I8 | the StateMachine's `ManualState` input |
+| `ForceState_SM` | Boolean | the StateMachine's `ForceState` input |
+| `Limited_ControlSettings` | **Custom Control → `APC_ControlSettings.ctl`** | the StateMachine's `Limited_ControlSettings` output |
+
+**Deploy** the library after adding (right-click → Deploy). Undeployed
+variables silently read defaults.
+
+*Part 2 — write them on cRIO-9056, inside `APC_9056_TS_loop.vi`.*
+At the `APC_9056_StateMachine.vi` call site (main loop, next to the DIAG VI):
+1. For each **input** (`warnings`, `ManualState`, `ForceState`): branch the
+   wire that already feeds that StateMachine terminal (click the wire →
+   Ctrl-drag a branch), and wire the branch into a shared-variable **write**
+   node (drag the variable from the Project Explorer, right-click →
+   *Access Mode → Write*). Tap the **terminal wire itself** — not the source
+   VI's output — so telemetry reports what the StateMachine actually received.
+   - **Warnings caveat (`docs/shadow-findings.md`):** if the warnings input
+     terminal turns out to be **unwired** (running on its front-panel default),
+     there is no wire to tap — write the constant the panel shows into
+     `WarningsLimit_SM` *and* wire `WarningIntegration`'s output to
+     `WarningsLimit_WI`. The difference between the two in telemetry **is** the
+     finding.
+2. For the **output**: branch the `Limited_ControlSettings` wire leaving the
+   StateMachine and write it to the `Limited_ControlSettings` variable.
+3. Writes execute once per loop iteration — negligible cost at the TS-loop
+   rate; keep them outside any case structure so they always publish.
+4. Redeploy the 9056 startup app / run the VI so the new writes are live.
+
+*Part 3 — extend the gateway envelope (`APC_PC_PythonGateway.vi`, PC).*
+Replace the telemetry format-string constant (keep **'\' Codes Display**):
+```
+{"type":"telemetry","seq":%d,"ts":%.3f,"system_state":%d,"warnings_limit":%d,"manual_state":%d,"force_state":%s,"settings":%s,"limited_settings":%s}\r\n
+```
+Grow `Format Into String` to **8 arguments**, wired in this exact order:
+
+| # | Format | Wire | Type |
+|---|---|---|---|
+| 1 | `%d` | `seq` (existing) | I32 |
+| 2 | `%.3f` | `ts` (existing) | DBL |
+| 3 | `%d` | `system_state` (existing shared-var read) | I8/I32 |
+| 4 | `%d` | `WarningsLimit_SM` read | I8 |
+| 5 | `%d` | `ManualState_SM` read | I8 |
+| 6 | `%s` | `ForceState_SM` read → **Select** (TRUE→`true` string const, FALSE→`false`) | String |
+| 7 | `%s` | `Flatten To JSON` of the `PC_ControlSettings` read (existing) | String |
+| 8 | `%s` | **new** `Flatten To JSON` of the `Limited_ControlSettings` read | String |
+
+Notes: the boolean must go through the Select — `%d` would emit `1/0`, and
+LabVIEW booleans don't format as `true/false` on their own. If you also wired
+`WarningsLimit_WI`, add `"warnings_limit_wi":%d,` after arg 4 (Python ignores
+unknown fields until modeled).
+
+*Part 4 — verify, and troubleshooting.*
+Run `python examples/monarch_listen.py`: the log line should now show
+`warn_lim=… force=… | limited: …` and still `unmapped=[]`.
+
+If instead you get **`discarding malformed message`** warnings (the observer
+connects but decodes nothing):
+- **Capture one full line** to see the actual defect (the log truncates at
+  200 chars): `python tools\capture_line.py` — prints the whole line, then
+  pinpoints the JSON error position (and hints at the NaN case below).
+- **Most common cause — NaN/Inf:** LabVIEW's `Flatten To JSON` renders NaN as
+  `NaN`, which is **invalid JSON** (Python rejects the whole line). An
+  uninitialized `Limited_ControlSettings` shared variable (never written, or
+  9056 not running) is the usual source. Fix: complete Part 2 and deploy, or
+  default-initialize the variable.
+- **Arg order/count:** one missing `Format Into String` input shifts every
+  later `%` — compare the captured line field-by-field against the table above.
+- **Quoting:** string-valued fields need quotes *in the format string*
+  (`"force_state":%s` is correct because Select supplies bare `true`/`false`;
+  a quoted string like command_source later needs `"%s"`).
+- The framing/`\r\n` is proven — don't touch the TCP write while debugging
+  content.
 
 **A2.2 — Python: the compare tool**
 `tools/shadow_compare.py`:

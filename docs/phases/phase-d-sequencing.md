@@ -10,6 +10,16 @@ capabilities already commissioned at that time.
 **Entry criteria:** D1/D2 can start **now** (no dependencies). D3 requires
 Phase C exit. D-content (real procedures) requires D0.
 
+**LabVIEW changes in this phase: none required.** Sequences are pure Python,
+issuing the same `set_control_settings` commands Phase C proved, confirmed by
+the same telemetry. The one foreseeable exception: if a D0 procedure's
+*confirmation* needs a signal that isn't in telemetry yet (e.g. a valve
+position feedback or a plant sensor outside the ControlSettings cluster),
+the fix is the established A2.1 pattern — publish it as a shared variable on
+the owning cRIO, add one field to the gateway envelope, `capture_line.py` to
+verify — and nothing else. Log any such addition in `docs/monarch-telemetry.md`
+so the envelope stays documented.
+
 ---
 
 ## D0 — Operating-procedure spec (team input — the critical path)

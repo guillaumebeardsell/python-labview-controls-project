@@ -12,6 +12,32 @@ team dictates.
 **Entry criteria (hard gate):** Phase B exit passed (all drills 3/3, B0
 statement true, ICD v0.2 published). A2 shadow compare available.
 
+**LabVIEW changes in this phase:** HMI polish only (section below) — **no
+control-path, gateway-logic, or cRIO changes.** All Phase-C functionality
+rides on what A2.1/B0/B3 already built; if a C task seems to need a LabVIEW
+logic edit, stop — it belongs in B and must re-pass the B4 drills.
+
+## C0 — LabVIEW changes required (HMI affordances)
+
+All on the PC UI, cosmetic-to-thin:
+
+1. **Command-source visibility** (`APC_PC_UI_System.vi` or wherever the B3
+   selector landed): make the `CommandSource` selector prominent, and add a
+   read-back indicator wired from the telemetry echo / the shared variable so
+   the operator sees the *effective* source, not just the switch position.
+2. **Supervisor-health tile** on the System screen (all reads, no logic): the
+   `PCnotResponding` flag (drag the WatchDog's output shared variable if one
+   was published in B0, else the 9056-side value), last-command-age if
+   published, and — optional — a lamp the operator watches during C4/C5 while
+   Python is in command.
+3. **Verify e-stop ergonomics unchanged:** the three panel e-stop buttons and
+   the operator clear must behave identically with source=PYTHON (they write
+   the same variables as before; B3 touched only the `PC_ControlSettings`
+   write). This is a check, not an edit.
+4. Nothing else. In particular do **not** add UI paths that write
+   `PC_ControlSettings` while source=PYTHON "for convenience" — that recreates
+   the dual-writer race B3 eliminated.
+
 ---
 
 ## C1 — Operator surface (minimal, CLI first)
