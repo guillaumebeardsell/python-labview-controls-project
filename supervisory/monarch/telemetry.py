@@ -49,6 +49,10 @@ class MonarchTelemetry(BaseModel):
     force_state: bool | None = None  # ForceState override input
     limited_settings: ControlSettings | None = None  # Limited_ControlSettings (what was allowed)
     command_source: str | None = None  # "UI" | "PYTHON" — who writes PC_ControlSettings (ICD v0.2)
+    # Operator requests (ICD §7.8): while source=PYTHON the UI's inputs are
+    # redirected to PC_OperatorRequests and forwarded here; Python mirrors them
+    # into its intent per the OperatorRequestMirror policy.
+    operator_requests: ControlSettings | None = None
     # Plant feedback by tag name (Phase D confirmations; the sim provides it now,
     # the gateway adds tags per the A2.1 shared-variable pattern as sequences
     # need them — see docs/phases/phase-d-sequencing.md):
@@ -64,6 +68,10 @@ def parse_monarch_telemetry(obj: dict) -> MonarchTelemetry:
     if obj.get("limited_settings") is not None:
         limited, lim_unmapped = control_settings_from_labview(obj["limited_settings"])
         unmapped = unmapped + ["limited_settings/" + u for u in lim_unmapped]
+    op_req = None
+    if obj.get("operator_requests") is not None:
+        op_req, op_unmapped = control_settings_from_labview(obj["operator_requests"])
+        unmapped = unmapped + ["operator_requests/" + u for u in op_unmapped]
     return MonarchTelemetry(
         seq=obj["seq"],
         ts=obj["ts"],
@@ -74,6 +82,7 @@ def parse_monarch_telemetry(obj: dict) -> MonarchTelemetry:
         force_state=obj.get("force_state"),
         limited_settings=limited,
         command_source=obj.get("command_source"),
+        operator_requests=op_req,
         plant=obj.get("plant"),
         unmapped=tuple(unmapped),
     )

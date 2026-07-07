@@ -134,14 +134,20 @@ class MonarchGatewaySim:
         self.post_mortem_saves = 0
         self.accepted_count = 0
         self.plant = SimPlantModel()
+        self.operator_requests = ControlSettings()  # PC_OperatorRequests (ICD §7.8)
 
     # ---- operator / UI side --------------------------------------------
     def set_source(self, source: str) -> None:
         self.source = source
 
     def ui_write(self, settings: ControlSettings) -> None:
-        """The LabVIEW UI writing PC_ControlSettings (only sensible while source=UI)."""
-        self.requested = settings.model_copy(deep=True)
+        """The LabVIEW UI's inputs. Per ICD §7.8 (the B3.c redirect): while
+        source=UI they write PC_ControlSettings directly; while source=PYTHON
+        they land in PC_OperatorRequests, forwarded in telemetry for Python to
+        mirror."""
+        if self.source == "UI":
+            self.requested = settings.model_copy(deep=True)
+        self.operator_requests = settings.model_copy(deep=True)
 
     def operator_estop(self) -> None:
         self.estop_latched = True
@@ -226,6 +232,7 @@ class MonarchGatewaySim:
             "command_source": self.source,
             "settings": control_settings_to_labview(self.requested),
             "limited_settings": control_settings_to_labview(d.limited_settings),
+            "operator_requests": control_settings_to_labview(self.operator_requests),
             "plant": self.plant.readings(),
         }
 

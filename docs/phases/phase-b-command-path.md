@@ -233,10 +233,18 @@ UI gets the single-writer gate; the shared-vars library gets one variable.
      runs the built executable rather than the VI in the dev environment, the
      gate change requires **rebuilding and redeploying `APC_Monarch`** — decide
      which mode operations uses and keep it consistent through Phase B/C.
-2. Wrap each write in a Case structure on `CommandSource`: **UI case** =
-   existing write; **PYTHON case** = no write (wire values through, drop the
-   write node). Keep the gate visually obvious — one case around the write,
-   nothing clever.
+2. Wrap each write in a Case structure on `CommandSource` — **a redirect, not
+   a suppression (ICD §7.7)**: **UI case** = existing write to
+   `PC_ControlSettings`, untouched; **PYTHON case** = the same cluster value
+   writes to the new **`PC_OperatorRequests`** shared variable instead (create
+   it in `APC_SharedVars.lvlib` under the 9049 target, bound to
+   `APC_ControlSettings.ctl`, exactly like `PC_ControlSettings`). The
+   operator's inputs keep flowing in both modes; Python consumes them from
+   telemetry and decides. Keep the case visually obvious.
+   - Gateway side: forward it — add `,"operator_requests":%s` to the telemetry
+     envelope with a `Flatten To JSON` of the `PC_OperatorRequests` read (same
+     pattern as `limited_settings`). Python already decodes and mirrors it
+     (`supervisory/monarch/operator_mirror.py`).
 3. While source=PYTHON the UI keeps *displaying* everything (reads are
    untouched); only its write is suspended. On flip-back to UI the panel's
    current control values win again — brief the operators that controls should

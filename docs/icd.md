@@ -250,6 +250,40 @@ the cluster: that channel watches the membrane PLC *and* its PC-side relay.)
 | Source flip mid-stream | bumpless both ways; `command_source` flips in telemetry | sim test; drill B4-7 |
 | E-stop vs Python | latches from any source; Python clear NACKed `operator only` | sim tests; drill B4-8 |
 | Stale telemetry (Python side) | Python stops commanding ≤ 3 s; re-seeds on recovery | sim test; drill B4-9 |
+
+## 7.7 Operator requests — the UI stays the input surface (added 2026-07-07)
+
+Clarified at review: while Python holds authority, the LabVIEW UI remains the
+operator's surface **for inputs too** (mode changes, shutdown, speed, …), not
+just monitoring. Those inputs flow to Python **as requests**; Python decides
+and emits the actual command. The single-writer rule is preserved by a
+separate request channel:
+
+- **`PC_OperatorRequests`** — a new network shared variable, **same
+  `APC_ControlSettings.ctl` typedef** (so the UI's controls are unchanged).
+- **The B3.c gate is a redirect, not a suppression:** source = UI ⇒ the UI
+  writes `PC_ControlSettings` directly, exactly as today (the fallback path
+  never depends on Python or the gateway); source = PYTHON ⇒ the same values
+  write to `PC_OperatorRequests` instead.
+- The gateway forwards it in telemetry as **`operator_requests`** (raw
+  flatten; optional field, additive like all envelope extensions).
+- Python mirrors requests into its intent (`OperatorRequestMirror`, policy):
+  * **Safety inputs mirror always and instantly** — `EMERGENCY STOP`
+    (set-only: True mirrors, False never clears the latch), `Force idling`,
+    `Force motoring`.
+  * **No sequence active:** full transparency — the entire request cluster
+    mirrors (minus `PC_HB`/`MTR HB`, which the commander owns, and
+    `CLEAR EMERGENCY STOP`, which never flows through Python).
+  * **Sequence active:** the sequence owns the intent; only the safety inputs
+    mirror. Operators redirect by aborting the sequence first.
+- E-stop and its CLEAR keep their existing operator-direct channels
+  (`APC_MASTER_EmergencyStop` etc.) unchanged — the mirror is belt on top.
+
+Consequence: with no sequence running, Python-in-command is behaviorally
+identical to UI-in-command from the operator's seat; automation adds value on
+top without changing how the plant is driven by hand. This also strengthens
+the case for the UI heartbeats in §7.5 — the UI is an active input surface in
+PYTHON mode, so its liveness matters.
 - Protocol versioning/negotiation: deferred. The unknown-field and unknown-type rules
   in §3 provide forward compatibility in the meantime.
 - Event/alarm push messages (LabVIEW → Python outside the 1 Hz telemetry): deferred

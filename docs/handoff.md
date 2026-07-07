@@ -12,8 +12,11 @@ front-loaded. Read `docs/migration-plan.md` (status) first; this file is about
   states), warning policy port, shadow-compare harness (+ `--alarm`).
 - **Phase B Python**: ICD v0.2 draft (§7 of `docs/icd.md`), MonarchCommander,
   commandable sim gateway running the real ported logic, failure-matrix tests.
-- **Phase C Python**: operator CLI (`examples/monarch_operate.py`), reverse
-  shadow alarm.
+- **Phase C Python**: operator CLI (`examples/monarch_operate.py` — an
+  engineering tool; the HMI stays the operator's console per ICD §7.7),
+  reverse shadow alarm, and the **operator-request mirror**
+  (`operator_mirror.py`: UI inputs flow to Python as requests while Python
+  holds authority; safety inputs always mirror, sequences own the intent).
 - **Phase D**: sequencing framework, sim plant model, draft venting/purge/
   thermal-warmup sequences (closed-loop tested, randomized fault injection).
 - **Phase E engines**: temporal warning rules, setpoint scheduler (data-driven;

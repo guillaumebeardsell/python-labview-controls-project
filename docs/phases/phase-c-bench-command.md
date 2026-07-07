@@ -40,9 +40,13 @@ All on the PC UI, cosmetic-to-thin:
 
 ---
 
-## C1 — Operator surface (minimal, CLI first)
+## C1 — Operator surface
 
-*Owner: Claude.*
+*Owner: Claude. Clarified 2026-07-07 (ICD §7.7): the LabVIEW HMI remains the
+operator's input surface in BOTH modes — mode changes, shutdown, speed etc.
+flow as `PC_OperatorRequests` and Python mirrors them
+(`operator_mirror.py`). The CLI below is therefore an **engineering/debug
+tool** (sequences, diagnostics, soak drills), not the operator's console.*
 
 `examples/monarch_operate.py` — a deliberately small REPL/CLI over
 `MonarchCommander`:
