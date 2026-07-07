@@ -259,9 +259,12 @@ Notes:
 - The **three new args (4, 5, 6) are the reason for this edit** — args 1–3, 7, 8
   are already wired from your current 5-arg string; leave them as they are and
   just insert the three in the middle.
-- The **boolean (arg 6) must go through a Select** — `%d` would emit `1/0`, and
-  LabVIEW booleans don't format as `true/false` on their own. Wire
-  `ForceState_SM` → Select (T→`"true"` string constant, F→`"false"`) → `%s`.
+- The **boolean (arg 6) must go through a Select** — wiring the boolean straight
+  into `%s` makes LabVIEW emit **`TRUE`/`FALSE` (uppercase)**, which is not valid
+  JSON, and every frame gets discarded as malformed (`"force_state":FALSE` in the
+  capture is the tell-tale). Wire `ForceState_SM` → **Select** (True input =
+  string constant `true`, False input = `false`, both lowercase) → `%s`.
+  (`%d` is no good either — it emits `1/0`.)
 - Once `WarningIntegration` is wired into the StateMachine (A2.1 step 0), the SM
   input equals the WI output, so a single `WarningsLimit_SM` (arg 4) is all you
   need — no separate `warnings_limit_wi` field.
