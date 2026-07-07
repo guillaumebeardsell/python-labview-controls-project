@@ -49,6 +49,8 @@ python -m supervisory.monarch.simserver_monarch --speedup 5   # MONARCH telemetr
 python examples/monarch_listen.py                   #   read-only observer -> records monarch.jsonl
 
 python tools/compare_flatten.py <labview_flatten.json>   # diff a LabVIEW cluster flatten vs the contract
+python tools/shadow_compare.py monarch.jsonl              # replay decisions vs the ported StateMachine
+python examples/monarch_operate.py                        # operator CLI (needs source=PYTHON on the gateway)
 ```
 
 Environment: developed on a Windows control-room PC (Python 3.10, `.venv`). `requires-python` is
@@ -107,7 +109,9 @@ shadow-mode fields), `docs/hello-vi.md` + `docs/labview-notes.md` (LabVIEW gatew
 `docs/migration-seam.md` (the FLOOR/MIDDLE/BRAIN boundary + prioritized port backlog);
 `docs/migration-plan.md` (the phased execution plan A–E: shadow brain → command path +
 watchdog proof → bench command → sequencing → commissioning; authority gates + exit criteria;
-**authoritative status home**); `docs/phases/` (step-by-step instructions, one file per phase).
+**authoritative status home**); `docs/phases/` (step-by-step instructions, one file per phase);
+`docs/handoff.md` (how to continue this project — what's done, what only humans supply,
+task guidance for smaller models, and the invariants that must never be weakened).
 
 ## Conventions
 

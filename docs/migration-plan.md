@@ -49,15 +49,17 @@ Foundations — done and verified on the real system:
       so `PCnotResponding` gates nothing. Building the response is B0 (now concretely
       specified in the phase-B file).
 
-Position: **Phase A underway.** A1 BUILT (StateMachine port + 28-test matrix incl.
-~30k-case sweep, green). A2's Python half BUILT (`tools/shadow_compare.py`); first
-replay: sim session 100% agreement, real-session divergences dispositioned
-("StateMachine wasn't running during capture" — `docs/shadow-findings.md`). A2
-remaining: gateway pre-wire + bench sweeps with the 9056 StateMachine running.
-A3 BUILT (warning_policy.py from the WarningIntegration export: levels 0–4,
-±sign thresholds, soft self-clear vs latched ≥2, operator clear, max→{3,3,2,1,−1};
-18 tests) — remaining: shadow-verify on live sweeps. B1 drafted / B2 built in
-parallel (see phase-B file). **All export blockers cleared 2026-07-06**: StateMachine per-frame export
+Position (updated 2026-07-07): **the Python side of every phase is built.**
+Phase A: A1/A2/A3 built; **live validation complete — 100% agreement, all 5
+states, all inputs** (`docs/shadow-findings.md`). Phase B: B1 drafted (ICD v0.2
+§7, review pending), B2 built + drill-tested; B0/B3 are LabVIEW work, fully
+specified. Phase C Python: operator CLI + reverse shadow alarm built (bench use
+gated on B exit). Phase D: sequencing framework + sim plant model + draft
+venting/purge/thermal-warmup sequences built and fault-injection tested
+(content gated on D0 sheets). Phase E engines: temporal rules + scheduler built
+(values TBD(team)). `Settings9049` modeled (flatten confirmation pending); CI
+runs the suite (144+ tests) on 3.10/3.12. **What remains is LabVIEW work, joint
+decisions, and team-supplied content — see `docs/handoff.md`.** **All export blockers cleared 2026-07-06**: StateMachine per-frame export
 (A1.0 answered — clamp values, sort-based MIN, absolute ManualState override
 confirmed), `TS_loop` (B0 answered — WatchDog unwired, response must be built) and
 `WarningIntegration` (A3 input) both in `original-labview-codebase/`. Remaining
