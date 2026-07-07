@@ -49,7 +49,8 @@ are surfaced (`MonarchTelemetry.unmapped`), never fatal.
 > cRIO-9056 writes it; the PC gateway reads it). Kept as the build/maintenance
 > reference.
 
-You're editing the working hello VI. You replace **only** the telemetry
+This is the build history of the gateway (the hello VI became
+`APC_PC_PythonGateway.vi`). You replace **only** the telemetry
 `Format Into String` and add three inputs to it — the 1 Hz timer, `seq` shift
 register, `TCP Write`, framing, the ack reply, and the reconnect handling all
 stay exactly as they are. This exact envelope was verified to decode on the
@@ -58,12 +59,13 @@ diff → AGREE) there's nothing new to validate.
 
 ### Where this VI lives
 
-The gateway belongs **in the MONARCH project**, not the standalone Hello-VI
-folder — Part A needs the `APC_ControlSettings.ctl` typedef and Part B needs the
-live `PC_ControlSettings` + `CURRENT SYSTEM STATE`, all of which live in MONARCH.
-Save a copy of the working hello VI into `C:\LabVIEW PROJECT\MONARCH\` (e.g.
-`APC_PC_PythonGateway.vi`), and **Add → File** it to the MONARCH project. Keep
-the original `hello-vi.vi` as your throwaway connectivity tester.
+The gateway is **`APC_PC_PythonGateway.vi`, in the MONARCH project** — it needs
+the `APC_ControlSettings.ctl` typedef and the live `PC_ControlSettings` +
+`CURRENT SYSTEM STATE`, all of which live in MONARCH. It grew directly out of the
+connectivity-test hello VI: the working VI was renamed to `APC_PC_PythonGateway.vi`
+(File → Save As → *Rename*, from inside LabVIEW, so the project reference updates).
+The connectivity-experiment walkthrough is preserved in `docs/hello-vi.md`; there
+is no separate live "hello-vi.vi" to maintain.
 
 Architectural guardrail: the gateway runs as its **own independent loop** reading
 a *read-only copy* of the published settings — it never writes hardware and never
