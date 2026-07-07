@@ -240,79 +240,133 @@ because every later step drags them onto a diagram.
 
 ### B3.a — `APC_PC_PythonGateway.vi`: the command branch, node by node
 
-Everything here lives in the session loop's receive path — the case that today
-matches `"type":"command"` and replies with the hardcoded ack constant. The
-constant goes away; this branch replaces it.
+**Where you are.** In the session loop you built for hello-vi, the received
+line (from `TCP Read`, CRLF mode) already passes the empty-line gate and the
+`Match Pattern` `"type":"command"` → `≥ 0` → Case structure. **Everything
+below goes inside that True case**, replacing the hardcoded ack string
+constant. Delete the constant; keep the `TCP Write` — step 5 re-feeds it.
+Keep the `Match Pattern` gate itself: it's a cheap pre-filter, and lines
+without `"type":"command"` should keep being ignored exactly as today.
 
-1. **Extract the command name and id** with `Unflatten From JSON` + its *path*
-   input (more robust than `Match Pattern` — immune to key order and
-   whitespace):
-   - name: *JSON string* = the received line; *path* = a 1-element
-     string-array constant `["name"]`; *type* = an empty **string** constant.
-   - id: same node again; *path* = `["id"]`; *type* = an **I32** constant.
-   - name → `Equal?` vs a `set_control_settings` string constant → Case
-     structure. **False case** = NACK, reason built with `Format Into String`
-     `unknown command '%s'`. If the *id* itself fails to parse, the line is
-     garbage: per ICD §7.3 discard it silently or NACK with id −1 — and
-     **`Clear Errors` either way**, so the session survives (drill B4-4).
-2. **Parse the settings cluster:** another `Unflatten From JSON` — *path* =
-   `["params","settings"]` (2-element string array); *type* = an
-   **`APC_ControlSettings.ctl` constant** (drag the typedef from the project
-   onto the diagram; verify it stays typedef-linked). This exactly inverts the
-   telemetry `Flatten To JSON` — no key renaming on the LabVIEW side, ever.
-   Leave *enable strict validation?* unwired: Python always sends the complete
-   cluster, and extra unknown fields must not error. Node error ⇒ NACK
-   `parse` (then `Clear Errors`).
-3. **Validation ladder** — nested Case structures, first failure wins. The
-   Python tests and B4 drills compare NACK reasons against the sim
-   (`simserver_monarch.py handle_command`), so match the strings **verbatim
-   and in this order**:
+The finished branch, left to right:
 
-   | # | Check | LabVIEW | NACK reason (verbatim) |
+```
+                 ┌─ Unflatten(name)  ──────────────► bad-name?  ──┐
+received line ───┼─ Unflatten(id)    ──► reply id                 │ Build Array (6 bools,
+                 └─ Unflatten(params.settings, typedef) ─► parse? ┼ priority order)
+                        │                          range?, clear? ┘   │
+                        │                                    Search 1D Array for TRUE
+                        │                                             │ index (−1 = pass)
+                        ▼                                             ▼
+                 [Case: accepted] ─► PC_ControlSettings write   accepted?, reason
+                                                                      │
+                 Format Into String {"type":"command_ack",…} ─► existing TCP Write
+```
+
+**Step 1 — parse three things from the line (three `Unflatten From JSON`
+nodes).** Palette: *Programming → String → Flatten/Unflatten String →
+Unflatten From JSON*. Drop three; wire the received line to each node's
+*JSON string* input. On each, the *path* input selects which JSON element to
+extract, and the *type/defaults* input sets the output type:
+
+   1. **name** — right-click *path* → *Create → Constant*; it's a string
+      array: type `name` into element 0. Right-click *type/defaults* →
+      *Create → Constant* → leave it an **empty string**. The *value* output
+      is the command-name string.
+   2. **id** — same, *path* element 0 = `id`; *type/defaults* = an **I32**
+      constant `0`. Build the **reply id** with a `Select` (Comparison
+      palette): unbundle `status` from this node's *error out* →
+      `Select`(TRUE → I32 constant `−1`, FALSE → the parsed id). So a line
+      whose id can't be read is NACKed with id −1 per ICD §7.3, instead of
+      killing anything.
+   3. **settings** — *path* = a **2-element** string array: element 0
+      `params`, element 1 `settings`. *type/defaults* = an
+      **`APC_ControlSettings.ctl` constant**: open the `.ctl` from the
+      Project Explorer and **drag the control from the typedef's window onto
+      the gateway diagram** — it lands as a cluster constant. Right-click it
+      and confirm *Auto-Update from Type Def.* is checked. **Do not edit any
+      field labels** — several contain embedded line-feeds; the flatten keys
+      must match character-for-character (this node exactly inverts the
+      telemetry `Flatten To JSON`; no key renaming on the LabVIEW side,
+      ever). Leave *enable strict validation?* unwired (default = tolerant:
+      extra JSON fields must not error; B3.d step 2 tests this). Capture this
+      node's error: unbundle `status` from *error out* → that Boolean is
+      **`parse failed`**.
+
+   **Error-wire hygiene:** chain the error wire through the three nodes in
+   sequence, then through a **`Clear Errors`** (Dialog & User Interface
+   palette) *after* the status Booleans have been unbundled. A garbage line
+   must never leave an error on the session loop's wire — that's what keeps
+   the session alive through drill B4-4.
+
+**Step 2 — compute the six check Booleans** (each TRUE = that check fails).
+The strings and the order are compared against the sim
+(`simserver_monarch.py handle_command`) by the Python tests and the B4
+drills, so both are load-bearing:
+
+   | # | Boolean | Wiring | NACK reason (verbatim) |
    |---|---|---|---|
-   | 1 | name ≠ `set_control_settings` | step 1 | `unknown command '<name>'` |
-   | 2 | >5 commands in the last rolling second | recipe below | `rate` |
-   | 3 | `CommandSource_IsPython` = FALSE | shared-variable read | `source is UI` |
-   | 4 | settings failed to unflatten | step 2 | `parse` |
-   | 5 | `Speed ref` outside 0–3000 | Unbundle By Name → two comparisons. **Reject, don't coerce** — the StateMachine limiter stays the real clamp | `range: Speed ref <value>` (`range: Speed ref %g`) |
-   | 6 | `CLEAR EMERGENCY STOP` = TRUE | Unbundle By Name | `operator only` |
+   | 1 | bad name | name → `Not Equal?` vs constant `set_control_settings` | `unknown command '<name>'` |
+   | 2 | rate | recipe below → `Array Size` `>` 5 | `rate` |
+   | 3 | source | `CommandSource_IsPython` SV read → `Not` | `source is UI` |
+   | 4 | parse | `parse failed` from step 1.3 | `parse` |
+   | 5 | range | Unbundle By Name `Speed ref` → (`<` 0) `Or` (`>` 3000). **Reject, don't coerce** — the StateMachine limiter stays the real clamp. (On a failed parse this evaluates the defaults cluster — harmless, parse outranks it.) | `range: Speed ref <value>` |
+   | 6 | clear e-stop | Unbundle By Name `CLEAR EMERGENCY STOP` | `operator only` |
 
-   Wiring pattern: each level's fail case outputs its reason constant +
-   accepted=FALSE; its pass case contains the next check; the innermost pass
-   case is the accept path. Tunnel `accepted` (Boolean) and `reason` (string)
-   out of **every** level — wire both in every case, no unwired defaults.
+   **Rate recipe (same algorithm as the sim):** a U32-array shift register on
+   the session loop, initialized with an **empty U32 array** constant. Per
+   received command: `Tick Count (ms)` → `Build Array` (append to the
+   register's array) → a small For loop auto-indexing over it with the
+   **conditional terminal** (right-click the output tunnel → *Conditional*)
+   keeping elements where `now − element ≤ 1000` → back into the shift
+   register. `Array Size` of the result `>` 5 ⇒ rate-fail. (U32 rollover is
+   ~49 days; worst case one harmless false NACK.)
 
-   **Rate-limit recipe (same algorithm as the sim):** a U32-array shift
-   register on the session loop, initialized empty. Per received command:
-   `Tick Count (ms)` → `Build Array` (append) → small For loop over the array
-   with the **conditional terminal** keeping elements where
-   `now − element ≤ 1000` → back to the shift register. `Array Size` > 5 ⇒
-   NACK `rate`. (U32 rollover is ~49 days; the worst case is one harmless
-   false NACK — ignore it.)
-4. **Accept path — one node:** the unflattened cluster → the
-   **`PC_ControlSettings` shared-variable write** (drag from the project,
-   *Access Mode → Write*). Write it **unmodified**: don't touch `PC_HB`
-   (Python toggles it — the 9056 watchdog must see *Python's* toggling,
-   that's the point), don't re-clamp values (the 9056 limiter does that).
-   Nothing else happens on accept.
-5. **Dynamic ACK/NACK** (replaces the constant): `Format Into String`, format
-   string in *'\' Codes Display*:
-   `{"type":"command_ack","id":%d,"accepted":%s,"reason":"%s"}\n`
-   - `%d` ← parsed id (I32)
-   - `%s` ← accepted → `Select` of string constants `true` / `false`
-     (JSON booleans: lowercase, no quotes)
-   - `%s` ← reason (empty string when accepted; all reasons are fixed ASCII —
-     nothing needs JSON escaping)
-   → the existing `TCP Write` for this connection. Use the same terminator as
-   the telemetry writer (Python accepts `\n` and `\r\n`).
-6. **Telemetry envelope additions** (in the telemetry `Format Into String`,
-   same pattern as `limited_settings` from A2.1):
+**Step 3 — pick the first failure. No nested cases** — one array pass:
+   - `Build Array` of the six Booleans **in exactly the table's order**
+     (order = priority).
+   - `Search 1D Array` (Array palette): *array* = the Boolean array,
+     *element* = a TRUE constant. Its *index of element* output is the first
+     failing check — or **−1, meaning all passed**.
+   - **`accepted`** = index `Equal?` −1.
+   - **`reason`**: `Build Array` of six strings in the same order — element 0
+     from `Format Into String` `unknown command '%s'` ← name; element 4 from
+     `Format Into String` `range: Speed ref %g` ← the unbundled `Speed ref`;
+     elements 1/2/3/5 are the plain constants `rate`, `source is UI`,
+     `parse`, `operator only`. → `Index Array` with the found index →
+     `Select`(accepted → empty-string constant, else → the indexed reason).
+
+**Step 4 — the gated write. One Case structure**, selector = `accepted`:
+   - **True case:** the parsed cluster wire → a **`PC_ControlSettings`
+     shared-variable write** (drag the variable from the Project Explorer
+     into the case; right-click → *Access Mode → Write*). Write it
+     **unmodified**: don't touch `PC_HB` (Python toggles it — the 9056
+     watchdog must see *Python's* toggling; that's the point), don't re-clamp
+     anything (the 9056 limiter does that).
+   - **False case:** empty; wire the error line straight through.
+
+**Step 5 — the reply** (feeds the `TCP Write` the old constant used):
+`Format Into String`, format string with right-click → *'\' Codes Display*:
+
+   ```
+   {"type":"command_ack","id":%d,"accepted":%s,"reason":"%s"}\r\n
+   ```
+
+   Inputs, top to bottom: **reply id** (step 1.2), **accepted** →
+   `Select`(string constants `true` / `false` — JSON booleans, lowercase, no
+   quotes), **reason** (step 3; empty on accept — all reasons are fixed ASCII
+   plus a number, nothing needs JSON escaping). Same `\r\n` terminator as the
+   telemetry writer (the Python side accepts `\n` too).
+**Step 6 — telemetry envelope additions** (in the telemetry loop's
+`Format Into String`, same pattern as the `limited_settings` addition from
+A2.1 — two more `%s` in the format string, two more inputs):
    - `,"command_source":"%s"` — **with quotes** (JSON string);
-     `CommandSource_IsPython` → `Select`(`PYTHON`/`UI`).
+     `CommandSource_IsPython` → `Select`(string constants `PYTHON`/`UI`).
    - `,"operator_requests":%s` — **no quotes** (JSON object); a
-     `PC_OperatorRequests` read → `Flatten To JSON`.
+     `PC_OperatorRequests` **read** → `Flatten To JSON` → the `%s`.
    Python already decodes both fields — no Python change needed.
-7. B3.a is testable before touching the UI — do B3.d steps 1–3 now.
+
+**Step 7 —** B3.a is testable before touching the UI: do B3.d steps 1–3 now.
 
 ### B3.b — the `CommandSource` operator switch
 
