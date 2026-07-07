@@ -64,7 +64,9 @@ inputs wired and a `DIAG` VI adjacent that appears to feed it, so it looks
   StateMachine input, in `TS_loop`) — a real safety improvement that belongs in
   LabVIEW and survives into the target architecture as the independent clamp.
   Once wired, telemetry needs only one `warnings_limit` variable. Behavior note:
-  active warnings will then actually clamp the state (see phase-A A2.1).
+  active warnings will then actually clamp the state. **Step-by-step wiring recipe:
+  `docs/phases/phase-a-shadow-brain.md` A2.1 step 0** (incl. the forward note to
+  combine this with the B0 / heartbeat clamps via one `Min` at the same input).
 - **Self-answering via telemetry:** the A2.1 pre-wire should publish **both**
   (a) the value on the StateMachine's warnings input and (b) WarningIntegration's
   output. Same wire ⇒ one variable; different ⇒ telemetry proves the clamp is

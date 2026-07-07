@@ -160,10 +160,45 @@ variables silently read defaults.
 
 *Part 2 — write them on cRIO-9056, inside `APC_9056_TS_loop.vi`.*
 At the `APC_9056_StateMachine.vi` call site (main loop, next to the DIAG VI):
-0. **First make the warning wire** (see the prerequisite note above):
-   `WarningIntegration`'s `STATE LIMITATION FROM WARNINGS` output → the
-   StateMachine's `STATE LIMITATION FROM WARNINGS` input. Now there is a real
-   wire on that terminal to tap.
+0. **First make the warning wire — recipe (do this cleanly).** Goal: a single
+   direct wire, `WarningIntegration.STATE LIMITATION FROM WARNINGS` output →
+   `StateMachine.STATE LIMITATION FROM WARNINGS` input, both inside `TS_loop`.
+   No shared variable between them — they're on the same diagram, so a wire is
+   the correct (and lowest-latency) way to pass the value.
+   1. **Identify the two nodes.** Open `Context Help` (Ctrl-H) and hover each
+      subVI to confirm names: the `STATE ?` icon is `APC_9056_StateMachine.vi`;
+      the adjacent `DIAG` icon should be `APC_9056_WarningIntegration.vi`
+      (confirm — if it isn't, find where WarningIntegration is actually called).
+   2. **Expose the terminals.** Right-click each subVI → *Visible Items →
+      Terminals* (or just hover a terminal with Ctrl-H open to read its label).
+      On WarningIntegration find the `STATE LIMITATION FROM WARNINGS` **output**;
+      on the StateMachine find the same-named **input**.
+   3. **Confirm the input is free.** The StateMachine's warnings input should
+      have no wire today (the finding). If a front-panel control's terminal is
+      wired to it instead, delete that stub first.
+   4. **Draw the wire.** Click the WarningIntegration output terminal, drag to
+      the StateMachine input terminal. **Non-destructive branch:** if that output
+      already goes somewhere (a shared-variable write or an indicator), don't
+      disconnect it — start the new wire by clicking anywhere on the existing
+      wire and dragging a branch to the StateMachine input.
+   5. **Match the data type — no coercion dot.** Both should be `I8` (or the same
+      state-enum typedef). A grey/red coercion dot at the input means the types
+      differ; make them identical (tidier and avoids silent enum↔I8 surprises).
+   6. **Execution order is now correct automatically.** The wire makes
+      WarningIntegration run *before* the StateMachine each iteration (compute
+      warnings → arbitrate state) — the order you want. **No cycle:** both read
+      `CURRENT SYSTEM STATE` from the loop's feedback node (last iteration's
+      value), and only the StateMachine writes the new state back, so there is no
+      SM→WI→SM loop.
+   7. **Verify:** the run arrow is not broken; run once and confirm behavior (see
+      the caveat above — warnings will now clamp the state).
+   8. **Forward note (avoid rework):** this same `STATE LIMITATION FROM WARNINGS`
+      input is where the other detection-without-response fixes also belong — the
+      B0 loss-of-PC clamp (`PCnotResponding → −1`) and the 9049/9056-FPGA
+      not-responding clamps. When you add those, don't run separate wires: feed
+      them and the WarningIntegration output through one `Min` (Build Array →
+      Array Max & Min → *min*) into this single input. Wire WarningIntegration
+      directly now; leave room to insert that `Min` later.
 1. For each **input** (`warnings`, `ManualState`, `ForceState`): branch the
    wire that feeds that StateMachine terminal (click the wire → Ctrl-drag a
    branch), and wire the branch into a shared-variable **write** node (drag the
