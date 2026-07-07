@@ -103,7 +103,8 @@ def leaf_diff(a: dict, b: dict, prefix=""):
     return out
 
 
-def compare_stream(frames, report: Report, max_divergence_prints=10):
+def compare_stream(frames, report: Report, max_divergence_prints=10,
+                   on_divergence=None):
     prev_state = None
     prev_seq = None
     for frame in frames:
@@ -132,14 +133,17 @@ def compare_stream(frames, report: Report, max_divergence_prints=10):
             if decision.system_state == actual:
                 report.state_matches += 1
             else:
-                report.state_divergences.append({
+                div = {
                     "seq": frame.seq,
                     "current": prev_state,
                     "labview": actual,
                     "python": decision.system_state,
                     "limits": decision.limits,
                     "reduced_coverage": frame.warnings_limit is None,
-                })
+                }
+                report.state_divergences.append(div)
+                if on_divergence:
+                    on_divergence("system_state", div)
 
             if frame.limited_settings is not None:
                 report.limited_compared += 1
@@ -154,9 +158,10 @@ def compare_stream(frames, report: Report, max_divergence_prints=10):
                 if not diffs:
                     report.limited_matches += 1
                 else:
-                    report.limited_divergences.append(
-                        {"seq": frame.seq, "state": actual, "diffs": diffs[:8]}
-                    )
+                    div = {"seq": frame.seq, "state": actual, "diffs": diffs[:8]}
+                    report.limited_divergences.append(div)
+                    if on_divergence:
+                        on_divergence("limited_settings", div)
         prev_state = int(frame.system_state)
     return report
 
@@ -234,16 +239,34 @@ def main() -> int:
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=5020)
     ap.add_argument("--seconds", type=float, default=0, help="live watch duration (0 = until Ctrl-C)")
+    ap.add_argument("--alarm", action="store_true",
+                    help="live divergence alarm (Phase C2): beep + banner the "
+                         "moment prediction and LabVIEW disagree; freeze context "
+                         "to shadow_alarms.jsonl")
     args = ap.parse_args()
 
     if not args.live and not args.recording:
         ap.error("give a recording path or --live")
 
+    on_divergence = None
+    if args.alarm:
+        alarm_fh = open("shadow_alarms.jsonl", "a", encoding="utf-8", buffering=1)
+
+        def on_divergence(kind, div):  # noqa: F811 — deliberate rebind
+            print("\a")
+            print("!" * 72)
+            print(f"!!! SHADOW DIVERGENCE ({kind}) seq={div.get('seq')} — "
+                  f"context frozen to shadow_alarms.jsonl")
+            print("!" * 72)
+            alarm_fh.write(json.dumps({"t": time.time(), "kind": kind, **div}) + "\n")
+
     rep = Report()
     if args.live:
-        compare_stream(frames_live(args.host, args.port, args.seconds), rep)
+        compare_stream(frames_live(args.host, args.port, args.seconds), rep,
+                       on_divergence=on_divergence)
         return print_report(rep, f"live {args.host}:{args.port}")
-    compare_stream(frames_from_jsonl(args.recording), rep)
+    compare_stream(frames_from_jsonl(args.recording), rep,
+                   on_divergence=on_divergence)
     return print_report(rep, args.recording)
 
 
