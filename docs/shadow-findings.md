@@ -58,9 +58,13 @@ not inside the StateMachine. From the TS_loop export the StateMachine has severa
 inputs wired and a `DIAG` VI adjacent that appears to feed it, so it looks
 *plausibly* wired — but the specific terminal can't be resolved from the export.
 
-- **To confirm (LabVIEW):** on the StateMachine node in `TS_loop`, follow the
-  `STATE LIMITATION FROM WARNINGS` input wire (Find → Wire Source). Live if it
-  comes from `WarningIntegration`/`DIAG`; dead if the terminal is empty.
+- **Confirmed disconnected (2026-07-07, user):** the input is not wired to
+  `WarningIntegration` — it runs on the front-panel default, so the warning→state
+  clamp is inert. **Resolution: wire it** (`WarningIntegration` output → the
+  StateMachine input, in `TS_loop`) — a real safety improvement that belongs in
+  LabVIEW and survives into the target architecture as the independent clamp.
+  Once wired, telemetry needs only one `warnings_limit` variable. Behavior note:
+  active warnings will then actually clamp the state (see phase-A A2.1).
 - **Self-answering via telemetry:** the A2.1 pre-wire should publish **both**
   (a) the value on the StateMachine's warnings input and (b) WarningIntegration's
   output. Same wire ⇒ one variable; different ⇒ telemetry proves the clamp is

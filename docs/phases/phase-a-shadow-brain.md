@@ -134,7 +134,6 @@ hosted on the same target as the existing `SystemState` variable:
 | Variable | Data type | Carries |
 |---|---|---|
 | `WarningsLimit_SM` | I8 (or the state enum typedef) | the value **on the StateMachine's `STATE LIMITATION FROM WARNINGS` input terminal** |
-| `WarningsLimit_WI` | I8 | `WarningIntegration`'s output — **only needed if** it differs from the above (see caveat) |
 | `ManualState_SM` | I8 | the StateMachine's `ManualState` input |
 | `ForceState_SM` | Boolean | the StateMachine's `ForceState` input |
 | `Limited_ControlSettings` | **Custom Control → `APC_ControlSettings.ctl`** | the StateMachine's `Limited_ControlSettings` output |
@@ -142,20 +141,35 @@ hosted on the same target as the existing `SystemState` variable:
 **Deploy** the library after adding (right-click → Deploy). Undeployed
 variables silently read defaults.
 
+> **Prerequisite fix — wire the warning clamp (confirmed disconnected, 2026-07-07).**
+> The StateMachine's `STATE LIMITATION FROM WARNINGS` input is **not** wired to
+> `WarningIntegration`'s output — it runs on its front-panel default, so the
+> warning→state clamp is currently inert (`docs/shadow-findings.md`). The right
+> fix is to **make that wire** in `APC_9056_TS_loop.vi`: `WarningIntegration`'s
+> `STATE LIMITATION FROM WARNINGS` output → the StateMachine's same-named input.
+> It's FLOOR safety logic that belongs in LabVIEW, it activates a dormant safety
+> feature, and it survives into the target architecture (LabVIEW keeps its own
+> independent warning clamp even once Python holds authority). **Once wired, the
+> SM input equals the WI output**, so a single `WarningsLimit_SM` variable
+> suffices (the earlier two-variable scheme was only to expose the disconnect).
+> *Behavior caveat:* wiring it means active warnings now actually drive the state
+> down. Pre-commissioning, sensors reading zero/ambient may fire spurious
+> warnings that peg the state to SAFE/idle — that is the *correct* safe response,
+> but validate it deliberately (set warning thresholds wide, or use operator
+> clear, during bench work) rather than being surprised on the bench.
+
 *Part 2 — write them on cRIO-9056, inside `APC_9056_TS_loop.vi`.*
 At the `APC_9056_StateMachine.vi` call site (main loop, next to the DIAG VI):
+0. **First make the warning wire** (see the prerequisite note above):
+   `WarningIntegration`'s `STATE LIMITATION FROM WARNINGS` output → the
+   StateMachine's `STATE LIMITATION FROM WARNINGS` input. Now there is a real
+   wire on that terminal to tap.
 1. For each **input** (`warnings`, `ManualState`, `ForceState`): branch the
-   wire that already feeds that StateMachine terminal (click the wire →
-   Ctrl-drag a branch), and wire the branch into a shared-variable **write**
-   node (drag the variable from the Project Explorer, right-click →
-   *Access Mode → Write*). Tap the **terminal wire itself** — not the source
-   VI's output — so telemetry reports what the StateMachine actually received.
-   - **Warnings caveat (`docs/shadow-findings.md`):** if the warnings input
-     terminal turns out to be **unwired** (running on its front-panel default),
-     there is no wire to tap — write the constant the panel shows into
-     `WarningsLimit_SM` *and* wire `WarningIntegration`'s output to
-     `WarningsLimit_WI`. The difference between the two in telemetry **is** the
-     finding.
+   wire that feeds that StateMachine terminal (click the wire → Ctrl-drag a
+   branch), and wire the branch into a shared-variable **write** node (drag the
+   variable from the Project Explorer, right-click → *Access Mode → Write*). Tap
+   the **terminal wire itself** — not the source VI's output — so telemetry
+   reports what the StateMachine actually received.
 2. For the **output**: branch the `Limited_ControlSettings` wire leaving the
    StateMachine and write it to the `Limited_ControlSettings` variable.
 3. Writes execute once per loop iteration — negligible cost at the TS-loop
