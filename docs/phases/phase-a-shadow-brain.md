@@ -223,11 +223,26 @@ At the `APC_9056_StateMachine.vi` call site (main loop, next to the DIAG VI):
 4. Redeploy the 9056 startup app / run the VI so the new writes are live.
 
 *Part 3 — extend the gateway envelope (`APC_PC_PythonGateway.vi`, PC).*
-Replace the telemetry format-string constant (keep **'\' Codes Display**):
+Edit the telemetry format-string constant (keep it in **'\' Codes Display** so
+`\r\n` stays a real CR+LF).
+
+**You have now** (system_state + settings + limited_settings):
+```
+{"type":"telemetry","seq":%d,"ts":%.3f,"system_state":%d,"settings":%s,"limited_settings":%s}\r\n
+```
+
+**Change it to** (insert the three override/warning fields after `system_state`):
 ```
 {"type":"telemetry","seq":%d,"ts":%.3f,"system_state":%d,"warnings_limit":%d,"manual_state":%d,"force_state":%s,"settings":%s,"limited_settings":%s}\r\n
 ```
-Grow `Format Into String` to **8 arguments**, wired in this exact order:
+
+i.e. insert exactly this fragment right after `"system_state":%d`:
+```
+,"warnings_limit":%d,"manual_state":%d,"force_state":%s
+```
+
+That adds three `%` specifiers (two `%d`, one `%s`), so **grow `Format Into
+String` from 5 to 8 arguments**. Wire all 8 in this exact order:
 
 | # | Format | Wire | Type |
 |---|---|---|---|
@@ -240,10 +255,16 @@ Grow `Format Into String` to **8 arguments**, wired in this exact order:
 | 7 | `%s` | `Flatten To JSON` of the `PC_ControlSettings` read (existing) | String |
 | 8 | `%s` | **new** `Flatten To JSON` of the `Limited_ControlSettings` read | String |
 
-Notes: the boolean must go through the Select — `%d` would emit `1/0`, and
-LabVIEW booleans don't format as `true/false` on their own. If you also wired
-`WarningsLimit_WI`, add `"warnings_limit_wi":%d,` after arg 4 (Python ignores
-unknown fields until modeled).
+Notes:
+- The **three new args (4, 5, 6) are the reason for this edit** — args 1–3, 7, 8
+  are already wired from your current 5-arg string; leave them as they are and
+  just insert the three in the middle.
+- The **boolean (arg 6) must go through a Select** — `%d` would emit `1/0`, and
+  LabVIEW booleans don't format as `true/false` on their own. Wire
+  `ForceState_SM` → Select (T→`"true"` string constant, F→`"false"`) → `%s`.
+- Once `WarningIntegration` is wired into the StateMachine (A2.1 step 0), the SM
+  input equals the WI output, so a single `WarningsLimit_SM` (arg 4) is all you
+  need — no separate `warnings_limit_wi` field.
 
 *Part 4 — verify, and troubleshooting.*
 Run `python examples/monarch_listen.py`: the log line should now show
