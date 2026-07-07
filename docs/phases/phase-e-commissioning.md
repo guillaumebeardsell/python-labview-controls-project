@@ -30,14 +30,17 @@ none block E1–E3, which are Python/data work):
    update them there via the existing `_UI_Errors` screen (no diagram edits),
    and re-capture a flatten if `APC_ControlSettings.ctl` ever changes
    (`docs/monarch-flatten-diff.md`).
-3. **MTR/membrane commanding** — today the PC UI is the Modbus master writing
-   MTR targets. If/when setpoint scheduling (E3) should drive the membrane,
-   the minimal-change route is: UI keeps the Modbus master loop; the values it
-   writes come from `PC_ControlSettings` fields Python already commands
-   (`AIC201_CO2_ConcTarget`, membrane mode) — i.e. **no new LabVIEW plumbing**
-   if those fields are already consumed. Verify consumption before assuming;
-   flag as a small trace task when E3 starts. Moving the Modbus master itself
-   into Python is explicitly **not** planned (it's FLOOR-adjacent I/O).
+3. **MTR/membrane commanding** — the PC's Modbus-master code is built as its
+   **own executable** (`APCModbusMaster` build spec in `MONARCH.lvproj`,
+   separate from the `APC_Monarch` UI EXE) — so first trace **which process
+   actually runs the Modbus loop** in the control room (the standalone EXE vs
+   a UI-integrated loop). If/when setpoint scheduling (E3) should drive the
+   membrane, the minimal-change route stands: whichever process owns Modbus
+   keeps it; the values it writes come from `PC_ControlSettings` fields Python
+   already commands (`AIC201_CO2_ConcTarget`, membrane mode) — **no new
+   LabVIEW plumbing** if those fields are already consumed. Verify consumption
+   before assuming. Moving the Modbus master itself into Python is explicitly
+   **not** planned (it's FLOOR-adjacent I/O).
 4. **Retirement pass** — as Python sequences take over operator workflows,
    UI-side request-conditioning logic (mode-request buttons wired to
    `Requested mode`, force buttons) stays functional as the manual fallback;

@@ -73,9 +73,12 @@ shared variable, UI single-writer gate). B1/B2/B4 need no LabVIEW edits
    `Min` (Min accepts only 2 inputs — chain two Mins, or Build Array → Array
    Max & Min). That closes the same detection-without-response gap for the
    engine controller.
-6. Redeploy the 9056 app; verify on the bench: stop toggling `PC_HB` (or kill
-   Python once B2's commander is driving) ⇒ telemetry shows
-   `warnings_limit = −1` and `system_state → −1` within ~5 s.
+6. Deploy and verify. Note (verified in `MONARCH.lvproj`): the project has
+   **no RT-EXE build specifications** — the cRIO code runs deployed-from-project
+   (Run on the RT main from the Project Explorer), so "redeploy" here means
+   re-run/re-deploy from the project, not rebuilding an executable. Bench check:
+   stop toggling `PC_HB` (or kill Python once B2's commander is driving) ⇒
+   telemetry shows `warnings_limit = −1` and `system_state → −1` within ~5 s.
 
 **Definition of done (B0):** the sentence "if `PC_ControlSettings` goes stale
 for N seconds, the 9056 does X" is true, written down in
@@ -217,8 +220,16 @@ UI gets the single-writer gate; the shared-vars library gets one variable.
 *B3.c — `APC_PC_UI_Main.vi` (and any other UI writer): the single-writer gate.*
 1. Find **every** write node targeting the `PC_ControlSettings` shared
    variable (Project Explorer → right-click the variable → *Find → Search
-   Scope: project*, or Edit → Find on the UI diagrams). The UI likely writes
-   it in one place; if there are several, they all get the same gate.
+   Scope: project*, or Edit → Find on the UI diagrams). A binary scan of the
+   raw codebase narrows the hunt: on the PC side, only **`APC_PC_UI_Main.vi`**
+   (and the gateway, read-only) reference the variable at all —
+   `APC_PC_UI_System.vi`/`_Errors.vi` don't — so expect the writer(s) there.
+   If there are several writes, they all get the same gate.
+   - **Build-spec caveat (verified in `MONARCH.lvproj`):** `APC_PC_UI_Main.vi`
+     is the source of the **`APC_Monarch` EXE** build spec. If the control room
+     runs the built executable rather than the VI in the dev environment, the
+     gate change requires **rebuilding and redeploying `APC_Monarch`** — decide
+     which mode operations uses and keep it consistent through Phase B/C.
 2. Wrap each write in a Case structure on `CommandSource`: **UI case** =
    existing write; **PYTHON case** = no write (wire values through, drop the
    write node). Keep the gate visually obvious — one case around the write,

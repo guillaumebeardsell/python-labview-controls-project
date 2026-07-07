@@ -40,9 +40,10 @@ crops). Confirmed semantics:
   arbitration itself.
 - `PostMortemSave` is a **shared-variable write** (TRUE) gated by a `>`
   comparator AND the per-state forced-transition condition — i.e. it fires on a
-  forced (downward) state transition, presumably triggering the post-mortem
-  file save in the logging loop (matches the logging doc: error/forced-mode
-  transitions trigger the A-file capture).
+  forced (downward) state transition. **Consumer confirmed** by a binary scan of
+  the raw codebase: `APC_9049_SAVE_loop.vi` (the 9049 logging loop) is the only
+  other VI referencing the `PostMortemSave` variable — it triggers the
+  post-mortem A-file capture, exactly as the logging doc describes.
 Residual (single, cosmetic): the `>` operand order wasn't traceable pixel-level
 — assumed `current > new` (downward). Mark `# ASSUMPTION` in code.
 
@@ -127,9 +128,19 @@ against the A1.0 export or listed in the shadow-compare report as open.
 Per `docs/monarch-telemetry.md` §Shadow-mode extras. Full detail:
 
 *Part 1 — create the shared variables (`APC_SharedVars.lvlib`).*
-In the Project Explorer, right-click the library → **New → Variable**, once per
-row. All **Network-Published**, no buffering, no RT-FIFO (single 1 Hz values),
-hosted on the same target as the existing `SystemState` variable:
+Verified against `MONARCH.lvproj`: **the library lives under the cRIO-9049
+target** (`NI-cRIO-9049-…/APC_SharedVars.lvlib`) — that's where its Shared
+Variable Engine runs. Add the new rows there (right-click the lvlib *under the
+9049 target* → **New → Variable**), even though the **writer is the 9056** —
+that's already the house pattern (`9056_HeartBeat` is 9049-hosted,
+9056-written). All existing variables are plain **Network-Published, no
+buffering** (verified in the lvlib XML); match that. Two consequences worth
+knowing:
+- the **9049 must be powered and deployed** for these variables to resolve —
+  even for 9056-only bench work;
+- a `9049_Global_SYSTEMSTATE` network variable **already exists** in the
+  library — if the Part-B `SystemState` variable you added duplicates it,
+  plan to consolidate to one source later (two state variables invite drift).
 
 | Variable | Data type | Carries |
 |---|---|---|
