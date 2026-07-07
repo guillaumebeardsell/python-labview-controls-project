@@ -207,6 +207,15 @@ changing and `PCnotResponding` trips. The B0 LabVIEW work wires that flag into t
 StateMachine's state limitation as a **−1 (SAFE) clamp**, gated on
 source = PYTHON. The sim gateway implements exactly this behavior.
 
+Note the toggle is a **relay across the whole PC-side chain**: Python flips the
+field in its command → TCP → the gateway VI writes the `PC_ControlSettings`
+shared variable → the 9056 reads it. A shared variable retains its last value,
+so if *any* link dies or hangs — Python, the TCP session, the gateway VI, the
+PC↔cRIO network, or the PC itself — the 9056 sees a frozen `PC_HB` and trips.
+One flag therefore supervises the entire command path, not just the Python
+process. (The same applies to `MTR_HB`, which the PC's Modbus code relays into
+the cluster: that channel watches the membrane PLC *and* its PC-side relay.)
+
 - **[DECISION] watchdog threshold:** proposal — trip within **5 s** at the TS-loop
   rate (matches the §5 heartbeat semantics).
 - **[DECISION] `PC_HB` toggling while source = UI:** options — (a) the UI toggles it,
