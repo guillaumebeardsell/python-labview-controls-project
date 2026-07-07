@@ -27,9 +27,11 @@ for B1/B2 (they can run in parallel); B4 wants A2's shadow compare available as
 a divergence alarm.
 
 **LabVIEW changes in this phase:** B0 (wire the WatchDog + SAFE clamp in
-`APC_9056_TS_loop.vi`) and B3 (gateway command branch, `CommandSource`
-shared variable, UI single-writer gate). B1/B2/B4 need no LabVIEW edits
-(B4 *exercises* the B0/B3 work).
+`APC_9056_TS_loop.vi` — ✅ done + live-verified) and B3 (two new shared
+variables `PC_OperatorRequests` + `CommandSource_IsPython`, the gateway
+command branch + envelope echo, the HMI source switch, and the UI
+single-writer **redirect**). B1/B2/B4 need no LabVIEW edits (B4 *exercises*
+the B0/B3 work).
 
 ---
 
