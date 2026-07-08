@@ -300,27 +300,84 @@ extract, and the *type/defaults* input sets the output type:
    the session alive through drill B4-4.
 
 **Step 2 — compute the six check Booleans** (each TRUE = that check fails).
-The strings and the order are compared against the sim
+Summary first — the strings and the order are compared against the sim
 (`simserver_monarch.py handle_command`) by the Python tests and the B4
 drills, so both are load-bearing:
 
-   | # | Boolean | Wiring | NACK reason (verbatim) |
-   |---|---|---|---|
-   | 1 | bad name | name → `Not Equal?` vs constant `set_control_settings` | `unknown command '<name>'` |
-   | 2 | rate | recipe below → `Array Size` `>` 5 | `rate` |
-   | 3 | source | `CommandSource_IsPython` SV read → `Not` | `source is UI` |
-   | 4 | parse | `parse failed` from step 1.3 | `parse` |
-   | 5 | range | Unbundle By Name `Speed ref` → (`<` 0) `Or` (`>` 3000). **Reject, don't coerce** — the StateMachine limiter stays the real clamp. (On a failed parse this evaluates the defaults cluster — harmless, parse outranks it.) | `range: Speed ref <value>` |
-   | 6 | clear e-stop | Unbundle By Name `CLEAR EMERGENCY STOP` | `operator only` |
+   | # | Boolean | NACK reason (verbatim) |
+   |---|---|---|
+   | 1 | bad name | `unknown command '<name>'` |
+   | 2 | rate | `rate` |
+   | 3 | source | `source is UI` |
+   | 4 | parse | `parse` |
+   | 5 | range | `range: Speed ref <value>` |
+   | 6 | clear e-stop | `operator only` |
 
-   **Rate recipe (same algorithm as the sim):** a U32-array shift register on
-   the session loop, initialized with an **empty U32 array** constant. Per
-   received command: `Tick Count (ms)` → `Build Array` (append to the
-   register's array) → a small For loop auto-indexing over it with the
-   **conditional terminal** (right-click the output tunnel → *Conditional*)
-   keeping elements where `now − element ≤ 1000` → back into the shift
-   register. `Array Size` of the result `>` 5 ⇒ rate-fail. (U32 rollover is
-   ~49 days; worst case one harmless false NACK.)
+   Layout tip: build the six as a tidy vertical column between the step-1
+   parse nodes and the step-3 `Build Array`, and label each wire (double-click
+   the wire → type the name) — the diagram then reads like the table.
+
+   **2.1 — bad name.** `Not Equal?` (Comparison palette). Top input: the
+   *value* output of the name node (step 1.1). Bottom input: right-click →
+   *Create → Constant* → type `set_control_settings` (exactly — no quotes,
+   no whitespace). Output TRUE = fail. (If the name couldn't be parsed at
+   all, the step-1 default — empty string — lands here and fails as
+   `unknown command ''`; that's fine, ICD §7.3 allows NACK for garbage.)
+
+   **2.2 — rate.** The full recipe:
+   1. **Shift register:** right-click the **session loop's** border → *Add
+      Shift Register*. Initialize the *left* terminal from outside the loop
+      with an **empty U32 array**: drop an *Array Constant* (Array palette),
+      drag a *Numeric Constant* into it, right-click the numeric →
+      *Representation → U32*, leave the array with **no elements filled in**,
+      wire it to the left terminal.
+   2. **Pass-through everywhere else:** the array wire enters the command
+      Case; every *other* case of that structure must wire the input tunnel
+      straight to the output tunnel unchanged (no *Use Default If Unwired* —
+      an unwired case would silently reset the history).
+   3. **Inside the command branch:** `Tick Count (ms)` (Timing palette) =
+      `now`. `Build Array` (Array palette): input 1 = the array from the
+      shift register, input 2 = `now` (with a scalar second input it
+      appends — no mode change needed). This appends on **every received
+      command, accepted or not** — same as the sim.
+   4. **Filter to the last second:** wire the appended array into a **For
+      Loop** border (it auto-indexes: the tunnel shows brackets). Inside:
+      `now` `−` element → `Less Than or Equal?` vs a U32 constant `1000`.
+      Wire the element to an output tunnel; right-click that tunnel →
+      *Tunnel Mode → Conditional*; wire the comparison Boolean to the small
+      `?` terminal that appears. The output is the array of timestamps from
+      the last 1000 ms.
+   5. **Close the loop and test:** the filtered array → the *right* shift
+      register terminal, **and** → `Array Size` → `Greater Than?` vs I32
+      constant `5` → TRUE = rate-fail. (>5 in a rolling second, i.e. the
+      6th command trips — matches `RATE_LIMIT_PER_S = 5`.)
+   6. U32 tick rollover is ~49 days; worst case is one harmless false NACK —
+      ignore it.
+
+   **2.3 — source.** Drag `CommandSource_IsPython` from the Project Explorer
+   into the command branch (it drops as a shared-variable node, default
+   *Access Mode → Read*) → its value output → `Not` (Boolean palette).
+   Output TRUE = fail (source is UI).
+
+   **2.4 — parse.** Already built in step 1.3: the `status` Boolean
+   unbundled from the settings node's *error out*. TRUE = fail.
+
+   **2.5 — range.** `Unbundle By Name` (Cluster, Class & Variant palette) on
+   the settings node's *value* output; click the element label → select
+   **`Speed ref`** (top-level field). Branch it two ways: `Less Than?` vs a
+   **DBL** constant `0`, and `Greater Than?` vs a **DBL** constant `3000` →
+   both into an `Or`. Output TRUE = fail. Watch for coercion dots on the
+   comparisons — the constants must be DBL. **Keep a third branch of the
+   `Speed ref` wire** — step 3 needs it for the `range: Speed ref %g`
+   reason string. **Reject, don't coerce** — no `In Range and Coerce`
+   feeding the write; the StateMachine limiter stays the real clamp. (On a
+   failed parse this evaluates the defaults cluster — harmless, parse
+   outranks it in step 3's priority order.)
+
+   **2.6 — clear e-stop.** Grow the same `Unbundle By Name` (drag its bottom
+   border down one row) → select **`CLEAR EMERGENCY STOP`**. That Boolean
+   *is* the fail flag — no comparison needed (TRUE = operator-only request =
+   fail).
 
 **Step 3 — pick the first failure. No nested cases** — one array pass:
    - `Build Array` of the six Booleans **in exactly the table's order**
