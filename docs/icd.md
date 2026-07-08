@@ -34,7 +34,7 @@ sole authority on whether it executes.
 | Client | Python supervisor; reconnects automatically with backoff |
 | Concurrent clients | 1 (LabVIEW may refuse or drop additional connections) |
 | Encoding | UTF-8 JSON, one object per message |
-| Framing | Each message is terminated by LF (`\n`). A CR before the LF is permitted and ignored. Python transmits CRLF (`\r\n`) so the LabVIEW side can use TCP Read in CRLF mode. |
+| Framing | Each message is terminated by LF (`\n`). A CR before the LF is permitted and ignored. Python transmits CRLF (`\r\n`) so the LabVIEW side can use TCP Read in CRLF mode. **Python→LabVIEW senders MUST terminate with `\r\n`** (a bare `\n` never completes a CRLF-mode read) **and MUST emit compact JSON** — no space after `:` — the gateway's command gate matches the literal `"type":"command"` (bench-verified 2026-07-08; pydantic serialization is compact by default, `json.dumps` defaults are NOT). |
 
 ## 3. Message envelope
 
