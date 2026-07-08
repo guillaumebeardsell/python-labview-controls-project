@@ -35,6 +35,7 @@ from supervisory.engine import Supervisor
 from supervisory.monarch import MonarchTelemetry, monarch_parser
 from supervisory.monarch.commander import MonarchCommander
 from supervisory.monarch.control_settings import SystemState
+from supervisory.monarch.operator_mirror import OperatorRequestMirror
 from supervisory.monarch.sequences import DRAFT_SEQUENCES, SequenceExecutor
 from supervisory.sequencing import Status
 
@@ -55,12 +56,20 @@ class OpsLog:
 
 
 class Session:
-    def __init__(self, host: str, port: int):
+    def __init__(self, host: str, port: int, mirror: bool = True):
         self.link = TcpPlantLink(host=host, port=port, parser=monarch_parser)
         self.commander = MonarchCommander()
         self.executor = SequenceExecutor(self.commander)
+        machines = [self.executor, self.commander]
+        self.mirror = None
+        if mirror:
+            # ICD §7.7: the HMI stays the operator's input surface — panel
+            # requests (PC_OperatorRequests) mirror into Python's intent.
+            # Mirror runs FIRST, then sequences adjust, then the commander emits.
+            self.mirror = OperatorRequestMirror(self.commander, self.executor)
+            machines.insert(0, self.mirror)
         self.recorder = Recorder("operate_traffic.jsonl")
-        self.sup = Supervisor(self.link, [self.executor, self.commander],
+        self.sup = Supervisor(self.link, machines,
                               recorder=self.recorder)
         self.ops = OpsLog()
         self.last_view = None
@@ -148,13 +157,21 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="MONARCH operator CLI (Phase C1)")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=5020)
+    ap.add_argument("--no-mirror", action="store_true",
+                    help="disable the ICD 7.7 operator-request mirror: HMI "
+                         "panel inputs stop flowing through Python; mode/set "
+                         "from this CLI then fully own the intent")
     args = ap.parse_args()
     logging.basicConfig(level=logging.WARNING,
                         format="%(asctime)s %(levelname)s %(message)s")
 
-    s = Session(args.host, args.port)
+    s = Session(args.host, args.port, mirror=not args.no_mirror)
     print("MONARCH operator CLI — 'status' for state, 'quit' to exit.")
     print("NOTE: commands take effect only while the HMI CommandSource is PYTHON.")
+    if s.mirror is not None:
+        print("MIRROR ON: HMI panel requests flow through Python (ICD 7.7). "
+              "CLI mode/set are overridden by the panel within a tick unless "
+              "a sequence is running; use --no-mirror for pure-CLI control.")
     try:
         while True:
             try:
