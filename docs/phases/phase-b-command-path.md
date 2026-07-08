@@ -474,21 +474,28 @@ drills, so both are load-bearing:
 **Step 3 — pick the first failure. No nested cases** — one array pass:
    - `Build Array` of the six Booleans **in exactly the table's order**
      (order = priority).
-   - `Search 1D Array` (Array palette): *array* = the Boolean array,
-     *element* = a TRUE constant, *start index* unwired (defaults to 0). Its
-     *index of element* output is the first failing check — or **−1, meaning
-     all passed**. Palette note: if you see the newer *Search Sorted /
-     Search Unsorted 1D Array* .vims instead of the classic primitive, use
-     **Unsorted** — *Sorted* does a binary search that requires a sorted
-     array, and this array's order is deliberately the check priority, not
-     sorted.
-   - **`accepted`** = index `Equal?` −1.
+   - **First-TRUE finder — use the Boolean-native idiom** (palette friction
+     found 2026-07-08: the *Search Sorted/Unsorted 1D Array* .vims reject
+     Boolean arrays, and `Search 1D Array PtByPt.vi` is the WRONG tool — the
+     Point-by-Point streaming library keeps internal state between calls):
+     **`Boolean To (0,1)`** (Numeric → Conversion; polymorphic — the Boolean
+     array in, an integer array of 0s/1s out) → **`Array Max & Min`** (Array
+     palette). *max value* = 1 if any check failed, 0 if all passed;
+     *max index* = the index of the **first** 1 (first occurrence of the max
+     is guaranteed) — the priority pick for free.
+   - **`accepted`** = *max value* `Equal?` `0`. (No −1 sentinel needed.)
    - **`reason`**: `Build Array` of six strings in the same order — element 0
      from `Format Into String` `unknown command '%s'` ← name; element 4 from
      `Format Into String` `range: Speed ref %g` ← the unbundled `Speed ref`;
      elements 1/2/3/5 are the plain constants `rate`, `source is UI`,
-     `parse`, `operator only`. → `Index Array` with the found index →
+     `parse`, `operator only`. → `Index Array` with *max index* →
      `Select`(accepted → empty-string constant, else → the indexed reason).
+     (When all pass, *max index* reads 0 — irrelevant; the `Select` discards
+     the indexed value.)
+   - (The classic `Search 1D Array` primitive — Programming → Array, via
+     Quick Drop if the palette hides it — also works on Boolean arrays
+     (element = TRUE, −1 = all passed). Either idiom is fine; Max & Min
+     avoids the palette hunt.)
 
 **Step 4 — the gated write. One Case structure**, selector = `accepted`:
    - **True case:** the parsed cluster wire → a **`PC_ControlSettings`
