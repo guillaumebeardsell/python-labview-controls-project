@@ -249,7 +249,7 @@ Called per cycle from `CAS_loop` → `PressureAnalytics`:
 | VI | What it does |
 |---|---|
 | `APC_9049_ControlSettingsRaster.vi` | Packs the 9049 command subset into the SGL array written to **`9049_ControlSettings`**. Confirmed order (2026-07-07 reprint): [0] 9049 STATE (u8), [1] InjectionEnable, [2] MainEnable, [3] MainDuration (ms), [4] MainSOI (DBTDC), [5] SparkEnable, [6] SparkTiming (DBTDC), [7] Speed (RPM); booleans as 1/0. Modeled in `supervisory/monarch/settings_9049.py` (`from_array`/`to_array`). |
-| `APC_9049_ControlSettingsPolling.vi` | Reads `9049_ControlSettings` back into values *(inference)*. |
+| `APC_9049_ControlSettingsPolling.vi` | A bare read of the `9049_ControlSettings` shared variable, returned as the raw DBL array — no unpacking; consumers index it (layout above). Author comment: "Gathering of system wide information on the applied controls… this could be in the 10 ms timed loop." |
 | `APC_9049_SharedVarBroadcast.vi` | Publishes `9049_MeasAndCalc` (flat DBL array of measurements + combustion metrics) and `SyncCylPres [bar]` (selected pressure trace; channel chosen by `9049_SelectBroadcastVar`). |
 | `APC_9049_9056SharedVarPolling.vi` | Reads `9056_MeasAndCalc` → 9056 IO array + timestamp + `SystemState` (name registry via `APC_9056_Signals`). Also used on the PC. |
 | `APC_9049_SensorCalibration.vi` | Builds the scaled CAS DAQmx task (custom scales = sensor calibrations); calls the per-card config VIs of *both* chassis to assemble the global name registry. |
