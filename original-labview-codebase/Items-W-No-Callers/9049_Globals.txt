@@ -1,0 +1,3 @@
+	Global - RT Stream Connections.vi	NI-cRIO-9049-020A5DED/Globals/Global - RT Stream Connections.vi	C:\LabVIEW PROJECT\MONARCH\Globals\Global - RT Stream Connections.vi
+	Global - All RT Loop Stop.vi	NI-cRIO-9049-020A5DED/Globals/Global - All RT Loop Stop.vi	C:\LabVIEW PROJECT\MONARCH\Globals\Global - All RT Loop Stop.vi
+	Global - Configuration Options.vi	NI-cRIO-9049-020A5DED/Globals/Global - Configuration Options.vi	C:\LabVIEW PROJECT\MONARCH\Globals\Global - Configuration Options.vi

@@ -1,0 +1,3 @@
+	Global - UI Stream and Variable Connections.vi	My Computer/Globals/Global - UI Stream and Variable Connections.vi	C:\LabVIEW PROJECT\MONARCH\Globals\Global - UI Stream and Variable Connections.vi
+	Global - All UI Loop Stop.vi	My Computer/Globals/Global - All UI Loop Stop.vi	C:\LabVIEW PROJECT\MONARCH\Globals\Global - All UI Loop Stop.vi
+	Global - Configuration Options.vi	My Computer/Globals/Global - Configuration Options.vi	C:\LabVIEW PROJECT\MONARCH\Globals\Global - Configuration Options.vi
