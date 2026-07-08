@@ -273,12 +273,29 @@ extract, and the *type/defaults* input sets the output type:
       array: type `name` into element 0. Right-click *type/defaults* →
       *Create → Constant* → leave it an **empty string**. The *value* output
       is the command-name string.
-   2. **id** — same, *path* element 0 = `id`; *type/defaults* = an **I32**
-      constant `0`. Build the **reply id** with a `Select` (Comparison
-      palette): unbundle `status` from this node's *error out* →
-      `Select`(TRUE → I32 constant `−1`, FALSE → the parsed id). So a line
-      whose id can't be read is NACKed with id −1 per ICD §7.3, instead of
-      killing anything.
+   2. **id** — the node, then the fallback that makes garbage harmless:
+      1. Second `Unflatten From JSON` (Ctrl-drag the first one to copy it, or
+         drop a fresh one). Branch the received-line wire to its *JSON
+         string* input.
+      2. *path*: right-click → *Create → Constant* → type `id` into
+         element 0 (a 1-element string array, like the name node's).
+      3. *type/defaults*: drop a *Numeric Constant*, right-click →
+         *Representation → I32*, leave the value `0`, wire it in. **Don't
+         trust the value output on error** — when the parse fails, the node
+         returns this default, and `0` looks exactly like a legitimate id.
+         That's why the reply id comes from the *error status*, next.
+      4. Unbundle the status: this node's *error out* → `Unbundle By Name`
+         (Cluster, Class & Variant palette) → select `status` (Boolean:
+         TRUE = the id couldn't be read).
+      5. The fallback: drop a **`Select`** (Comparison palette). Its three
+         inputs, top to bottom: **t** = an I32 constant `−1`; **s** (the
+         selector, middle) = the `status` Boolean; **f** = the id node's
+         *value* output. Output = the **reply id** — label the wire. So a
+         readable id echoes back in the ack, and a line whose id can't be
+         read is NACKed with id **−1** per ICD §7.3 instead of killing
+         anything. (Quick check when running: send valid JSON → the ack
+         carries your id; send garbage after `"type":"command"` → the NACK
+         carries `-1`.)
    3. **settings** — *path* = a **2-element** string array: element 0
       `params`, element 1 `settings`. *type/defaults* = an
       **`APC_ControlSettings.ctl` constant**: open the `.ctl` from the
@@ -293,11 +310,24 @@ extract, and the *type/defaults* input sets the output type:
       node's error: unbundle `status` from *error out* → that Boolean is
       **`parse failed`**.
 
-   **Error-wire hygiene:** chain the error wire through the three nodes in
-   sequence, then through a **`Clear Errors`** (Dialog & User Interface
-   palette) *after* the status Booleans have been unbundled. A garbage line
-   must never leave an error on the session loop's wire — that's what keeps
-   the session alive through drill B4-4.
+   **Error-wire hygiene — run the three nodes in PARALLEL, not chained.**
+   Standard LabVIEW nodes skip execution when *error in* is already set — so
+   if you daisy-chained line → name-node → id-node → settings-node, a line
+   missing its `name` key would error at the first node and the id and
+   settings would never even be attempted (the NACK would then carry id −1
+   when the line had a perfectly readable id). Instead:
+   - Leave each node's *error in* **unwired**; feed all three from branches
+     of the same received-line wire, side by side. Each attempts its own
+     parse independently; each failure is handled by its own consumer (name →
+     the empty-string default into check 2.1; id → the `Select` fallback in
+     1.2; settings → the `parse failed` status in 1.3).
+   - Collect the three *error out*s with **`Merge Errors`** (Dialog & User
+     Interface palette) → **`Clear Errors`** → back onto the session loop's
+     error line. The unbundled `status` Booleans are taken *before* the
+     merge, so clearing loses nothing.
+   - The invariant this protects: a garbage line must never leave an error on
+     the session loop's wire — that's what keeps the session alive through
+     drill B4-4.
 
 **Step 2 — compute the six check Booleans** (each TRUE = that check fails).
 Summary first — the strings and the order are compared against the sim
