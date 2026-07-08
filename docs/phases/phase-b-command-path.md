@@ -363,7 +363,16 @@ drills, so both are load-bearing:
    all, the step-1 default — empty string — lands here and fails as
    `unknown command ''`; that's fine, ICD §7.3 allows NACK for garbage.)
 
-   **2.2 — rate.** The full recipe:
+   **2.2 — rate.** *Goal:* enforce ICD §7.3's flood guard — NACK anything
+   beyond **5 commands per rolling second**. Healthy Python sends 1/s and
+   never comes near it; this exists so a *malfunctioning* Python (runaway
+   retry loop, stuck sequence, wrong script on the port) degrades into
+   rejected requests instead of churning the gateway/SV engine — the same
+   invariant as the rest of the ladder. Mechanism: remember the timestamps
+   of recent commands (the shift register), forget those older than 1000 ms
+   (the filter), reject when more than 5 remain (the size test) — a rolling
+   window, because a per-second counter would let a 10-command burst
+   straddle a second boundary. The full recipe:
    1. **Shift register:** right-click the **session loop's** border → *Add
       Shift Register*. Initialize the *left* terminal from outside the loop
       with an **empty U32 array**: drop an *Array Constant* (Array palette),
