@@ -331,10 +331,54 @@ drills, so both are load-bearing:
       drag a *Numeric Constant* into it, right-click the numeric →
       *Representation → U32*, leave the array with **no elements filled in**,
       wire it to the left terminal.
-   2. **Pass-through everywhere else:** the array wire enters the command
-      Case; every *other* case of that structure must wire the input tunnel
-      straight to the output tunnel unchanged (no *Use Default If Unwired* —
-      an unwired case would silently reset the history).
+   2. **Pass-through everywhere else.** The array has to travel from the left
+      shift-register terminal, *through* the receive path's Case structures,
+      to the right shift-register terminal — and survive unchanged on every
+      iteration where no command arrives (which is most of them: the 100 ms
+      `TCP Read` timeout means the loop spins many times between commands).
+
+      *Why this matters:* a Case structure's output tunnel emits, per
+      iteration, whatever the **currently executing case** wired into it. If
+      a case leaves it unwired and you silence the broken arrow with
+      *Use Default If Unwired*, that case emits the type's default — for an
+      array, an **empty array**. Every non-command iteration would then wipe
+      the timestamp history, and the rate limiter would simply never trip.
+      No error, no broken wire — it just silently doesn't work. (Drill B4-6
+      is the catch: 6 rapid sends must NACK `rate` on the 6th.)
+
+      *The wiring, click by click.* The rate logic sits inside **two** nested
+      structures from the hello build — the empty-line gate Case and the
+      `"type":"command"` match Case — so the array crosses two borders each
+      way:
+
+      ```
+      [SR]──▪──▪── append→filter ──▪──▪──[SR]     command case (True/True)
+             ▪──▪───────────────────▪──▪          every other case: straight through
+      [SR] = shift register terminal   ▪ = tunnel, must be SOLID in every case
+      ```
+
+      1. Wire from the **left shift-register terminal** into the gate Case
+         and on into the command Case — LabVIEW creates an **input tunnel**
+         (a small border square) automatically at each border crossing.
+      2. Inside the command case, run the wire through the append + filter
+         nodes (recipe steps 3–4) and continue to the right border → an
+         **output tunnel** appears; keep wiring out through the gate Case's
+         right border to the **right shift-register terminal**.
+      3. The run arrow now breaks — "Tunnel: missing assignment" — because
+         the *other* cases haven't wired those output tunnels. **Do not tick
+         *Use Default If Unwired*.** Instead, the fast fix: right-click each
+         output tunnel → **Linked Input Tunnel → Create & Wire Unwired
+         Cases** → click the matching input tunnel. LabVIEW draws the
+         straight pass-through wire in every other case for you, and keeps
+         the pair linked if cases are added later.
+      4. (Manual equivalent, if you prefer: click through each other case —
+         the gate's empty-line case, the match Case's False case — and wire
+         the input tunnel straight across to the output tunnel.)
+      5. **Verify:** every tunnel square on both structures is **solid**
+         (filled), not hollow; right-click each output tunnel and confirm
+         *Use Default If Unwired* is unchecked. Same discipline as the error
+         wire — any stateful wire crossing a Case must be wired in *every*
+         case.
    3. **Inside the command branch:** `Tick Count (ms)` (Timing palette) =
       `now`. `Build Array` (Array palette): input 1 = the array from the
       shift register, input 2 = `now` (with a scalar second input it
