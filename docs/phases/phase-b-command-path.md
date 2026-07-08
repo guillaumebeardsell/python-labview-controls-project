@@ -707,28 +707,23 @@ echo says `UI`. Drill B4-7 proves both directions.
    NaN trap — B3.0 step 3), and each frame should now show
    `command_source="UI"`. `python tools/capture_line.py` pinpoints any framing
    or JSON problem to the character.
-2. **NACK ladder, one reason at a time** (source still UI). Send one raw
-   command and print the reply — from the control-room PC:
+2. **NACK ladder, one reason at a time** — use the repo probe (plain Python,
+   works on Windows CMD; verified against the sim rung-for-rung):
 
    ```
-   python - <<"EOF"
-   import socket, json
-   s = socket.create_connection(("127.0.0.1", 5020), timeout=5)
-   cmd = {"type": "command", "id": 1, "name": "set_control_settings",
-          "params": {"settings": {}}}   # empty settings -> expect "parse"
-   s.sendall((json.dumps(cmd) + "\n").encode())
-   buf = b""
-   while b"command_ack" not in buf:
-       buf += s.recv(4096)
-   print([l for l in buf.decode().splitlines() if "command_ack" in l][0])
-   EOF
+   python tools\send_command.py unknown       ->  unknown command 'bogus'
+   python tools\send_command.py rate          ->  7 fast sends; 6th+ answer "rate"
+   python tools\send_command.py valid         ->  "source is UI"   (while source=UI)
+   python tools\send_command.py garbage       ->  trash discarded, then id=99 answered
+                                                  = the session survived (drill B4-4)
    ```
 
-   Vary it to hit each rung: any other `name` ⇒ `unknown command '...'`;
-   6 sends in one second ⇒ `rate`; a full valid settings dict (copy the
-   `settings` object out of a telemetry line) ⇒ `source is UI`; garbage bytes
-   ⇒ discarded/NACK **and the session must survive** (telemetry keeps
-   flowing — that's drill B4-4's core).
+   Order note (gateway and sim both check source *before* parse/range/estop):
+   while source=UI, the `parse` / `range` / `estop-clear` rungs all answer
+   `source is UI` — run those three (plus `valid` → a real ACK) **after
+   flipping to PYTHON** in B3.d step 3. With no commander running the plant
+   will clamp to SAFE ~5 s after the flip (the watchdog — expected on the
+   bench; it steps back up on flip-back).
 3. **Flip to PYTHON (B3.b done):** telemetry echo flips to
    `command_source="PYTHON"` within a frame. Now the real client:
    `python examples/monarch_operate.py` → `status` shows `commanding=True` →
