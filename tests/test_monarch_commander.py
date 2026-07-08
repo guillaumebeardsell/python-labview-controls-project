@@ -214,3 +214,23 @@ def test_envelope_reports_command_source_and_limited_settings():
     assert tm.command_source == "PYTHON"
     assert tm.limited_settings is not None
     assert tm.warnings_limit == NO_LIMIT
+
+
+# ---- non-finite sanitization (bench finding 2026-07-08) ---------------------
+
+def test_nan_in_telemetry_never_echoed_to_the_wire():
+    """LabVIEW's Flatten emits NaN (unset UI setpoint), Python parses it
+    tolerantly — but LabVIEW's Unflatten REJECTS it, NACKing every command
+    'parse' and starving the watchdog. The commander must sanitize."""
+    import json as _json
+    import math
+    link, commander, sup = make_stack()
+    link.sim.requested.ca50_setpoint_cadatdc = float("nan")  # poison telemetry
+    run_ticks(link, sup, 3)
+    assert commander.commanding
+    cmds = [m for m in link.sent if isinstance(m, Command)]
+    assert cmds, "commander sent nothing"
+    sent = cmds[-1].params["settings"]["CA50setpoint [CADATDC]"]
+    assert math.isfinite(sent), f"non-finite value reached the wire: {sent}"
+    # the whole payload must be strict-JSON serializable (LabVIEW-compatible)
+    _json.dumps(cmds[-1].params, allow_nan=False)

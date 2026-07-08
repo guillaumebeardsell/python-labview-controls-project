@@ -19,6 +19,7 @@ Safety posture baked in:
 from __future__ import annotations
 
 import logging
+import math
 from typing import Callable
 
 from ..engine import CommandRequest, PlantView, StateMachine
@@ -31,6 +32,30 @@ log = logging.getLogger(__name__)
 COMMAND_NAME = "set_control_settings"
 
 
+def _finite(obj, warned: set, path: str = ""):
+    """Replace non-finite floats (NaN/±Inf) with 0.0, recursively.
+
+    LabVIEW's Flatten To JSON happily EMITS the NaN literal (seen live from
+    an unset UI setpoint), Python's json tolerantly parses it — but LabVIEW's
+    Unflatten From JSON REJECTS it, so echoing a NaN back gets every command
+    NACKed `parse` (bench, 2026-07-08). Strict JSON has no NaN; the wire
+    contract requires finite numbers, so sanitize at the serialization edge
+    and warn once per field.
+    """
+    if isinstance(obj, float) and not math.isfinite(obj):
+        if path not in warned:
+            warned.add(path)
+            log.warning("non-finite value in intent at %s — sending 0.0 "
+                        "(check the UI control feeding it)", path)
+        return 0.0
+    if isinstance(obj, dict):
+        return {k: _finite(v, warned, f"{path}.{k}" if path else k)
+                for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_finite(v, warned, f"{path}[{i}]") for i, v in enumerate(obj)]
+    return obj
+
+
 class MonarchCommander(StateMachine):
     name = "monarch_commander"
 
@@ -41,6 +66,7 @@ class MonarchCommander(StateMachine):
         self.enabled = True  # False = track telemetry but never emit (observe-only)
         self.last_nack: tuple[int, str] | None = None
         self.sent_count = 0
+        self._nan_warned: set[str] = set()
 
     # ---- operator/sequence surface -------------------------------------
     @property
@@ -96,4 +122,5 @@ class MonarchCommander(StateMachine):
         out.pid_control_references.mtr_hb = tm.settings.pid_control_references.mtr_hb
         out.clear_emergency_stop = False  # operator-only, never from Python
         self.sent_count += 1
-        return [CommandRequest(COMMAND_NAME, {"settings": control_settings_to_labview(out)})]
+        settings = _finite(control_settings_to_labview(out), self._nan_warned)
+        return [CommandRequest(COMMAND_NAME, {"settings": settings})]
