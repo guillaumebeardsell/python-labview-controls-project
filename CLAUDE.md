@@ -95,9 +95,11 @@ to keep the model and gateway in lockstep.
 The LabVIEW project lives at `C:\LabVIEW PROJECT\MONARCH\` on the Windows PC. The gateway VI
 (`APC_PC_PythonGateway.vi`, a copy of the connectivity-test `hello-vi.vi`) runs as its own
 **read-only** loop, `Flatten To JSON`s the live `PC_ControlSettings` cluster, and sends a
-telemetry envelope at 1 Hz. `original-labview-codebase/` holds PNG/PDF/HTML **exports** of the 25
-MONARCH VIs for reference (the HTML files carry terminal labels as grep-able text; most
-"DAQmx Custom Scales" VI descriptions are boilerplate — ignore them). The first port target is
+telemetry envelope at 1 Hz. `original-labview-codebase/MONARCH-CODEBASE/` is a curated copy of
+the LabVIEW source tree (binary `.vi`s) — **read its `README.md` first**: it documents every VI
+(role, call graph, shared-variable I/O, loop rates, as-built gotchas). The sibling folders hold
+PNG/PDF/HTML **exports** of the key MONARCH VIs (the HTML files carry terminal labels as
+grep-able text; most "DAQmx Custom Scales" VI descriptions are boilerplate — ignore them). The first port target is
 `APC_9056_StateMachine.vi` (the 2026 version — `_v2` is an older 2024 draft, not newer).
 
 ## Docs
