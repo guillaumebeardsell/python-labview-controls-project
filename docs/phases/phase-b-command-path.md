@@ -16,10 +16,22 @@
 > `source is UI` with id echo; `unknown` → `unknown command 'bogus'`;
 > `rate` → 6th/7th command NACK `rate` (rolling window verified on
 > hardware); `garbage` → id −1 NACK then the next command answered =
-> **session survived, drill B4-4 core passed**. Remaining: the three
-> PYTHON-gated rungs (`parse`/`range`/`estop-clear`) + first real ACK,
-> confirm the old direct write is deleted (Find), first `monarch_operate`
-> handover session, full B4 table.
+> **session survived, drill B4-4 core passed**.
+>
+> **2026-07-08, end of day: the FULL ladder is live-verified and Python has
+> driven the plant.** PYTHON-gated rungs: `parse` ✓, `estop-clear` →
+> `operator only` ✓ (Python cannot clear an e-stop, proven on hardware),
+> `range` rejected ✓ (cosmetic: its reason Format node has the constant on
+> *initial string* — same one-terminal fix as `unknown` had), and `valid` →
+> **`accepted:true` — the first clean ACK.** Same day: the handover held
+> (commander feeding the watchdog, zero trips), the **HMI panel drove the
+> full state ladder 1→0→1→2→3 through Python** (mirror architecture
+> end-to-end), the e-stop set-path fired instantly through the same route,
+> and recovery-by-demotion was exercised (ICD §7.7 / C3). Also found live:
+> the NaN echo (commander now sanitizes) and the CRLF/compact-JSON framing
+> rules (ICD §2). Remaining for Phase B exit: the range-node terminal fix,
+> confirm the old direct write is deleted (Find), then the scripted B4
+> drill table 3× each.
 >
 > **Status (2026-07-07):** **B0 BUILT + WIRED + LIVE-VERIFIED** — the refreshed
 > WatchDog is wired (`PCnotResponding`/`9049notResponding` → Select (−1:3) → Min
