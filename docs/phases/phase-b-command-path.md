@@ -322,12 +322,21 @@ extract, and the *type/defaults* input sets the output type:
      the empty-string default into check 2.1; id → the `Select` fallback in
      1.2; settings → the `parse failed` status in 1.3).
    - Collect the three *error out*s with **`Merge Errors`** (Dialog & User
-     Interface palette) → **`Clear Errors`** → back onto the session loop's
-     error line. The unbundled `status` Booleans are taken *before* the
-     merge, so clearing loses nothing.
-   - The invariant this protects: a garbage line must never leave an error on
-     the session loop's wire — that's what keeps the session alive through
-     drill B4-4.
+     Interface palette) → **`Clear Errors`** → **dead-end the output there**
+     (built as-such, verified in the 2026-07-08 gateway export). The cleared
+     wire carries "no error" always — nobody needs it; its job is
+     **containment, not communication**. The unbundled `status` Booleans are
+     taken *before* the merge, so clearing loses nothing. Optional debug tap:
+     a parse-error counter or last-error indicator *between* Merge and Clear.
+   - Why the firebreak matters: the session's own error line is
+     **interpreted** — its codes drive the keep-alive/exit logic (56 = read
+     timeout → keep going; 66 = disconnect → end session). If Unflatten JSON
+     error codes leaked onto that line, one malformed byte from Python could
+     tear down the whole session — exactly what drill B4-4 forbids. Parse
+     errors are born in the case, consumed as Booleans, destroyed in place.
+   - (Distinct from the *session-level* `Clear Errors` near `TCP Close` from
+     the hello build — that one resets the line after a session ends so the
+     next `TCP Wait On Listener` starts clean. Keep both.)
 
 **Step 2 — compute the six check Booleans** (each TRUE = that check fails).
 Summary first — the strings and the order are compared against the sim
