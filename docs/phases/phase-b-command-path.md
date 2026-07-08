@@ -592,6 +592,13 @@ A2.1 — two more `%s` in the format string, two more inputs):
 
 ### B3.b — the `CommandSource` operator switch, click by click
 
+> **AS BUILT (2026-07-08, verified from the `UI_Main` print):** switch + LED
+> live on **`APC_PC_UI_Main.vi`**, not the System screen — a fine (arguably
+> better) placement: it's the screen the operator actually works. The
+> load-bearing details are correct: switch terminal → variable **write**;
+> LED ← a separate variable **read** (effective value, not the switch
+> position). Proven across all B4-7 flips (echo ≤2 s).
+
 Where: **`APC_PC_UI_System.vi`** (soft default from the B1 review — it's an
 operating-mode control and belongs on the System screen, next to e-stop).
 
@@ -843,3 +850,24 @@ running throughout — its `operate_traffic.jsonl` is the recording):**
 
 **Phase exit gate:** all 9 drills pass 3/3; B0 statement holds under drills
 1–3; ICD v0.2 published; only then may Phase C grant authority.
+
+> ## ✅ PHASE B EXIT GATE PASSED — 2026-07-09
+>
+> - **Drills 1–6:** machine-run 3/3 each (`tools/run_drills.py`,
+>   `docs/drill-logs/2026-07-08-b4-machine.md`).
+> - **Drill 7:** 3/3 (round-trip flips, echo ≤2 s, bumpless).
+> - **Drill 8:** 4 clean rounds (2× incl. from FIRING; final 2× with the
+>   safety-floored mirror relaying the panel button in the same second) —
+>   plus one drill catch fixed same-day (safety-only mirror floor).
+> - **Drill 9:** 5/5 (stall → stop commanding ≤3 s, auto-reconnect,
+>   re-engage, recovery).
+> - **B0 statement** held under drills 1–3 every round: stale
+>   `PC_ControlSettings` ⇒ SAFE in 5 s, step-by-1 recovery.
+> - **ICD v0.2** frozen and bench-corrected (CRLF/compact-JSON/finite
+>   numbers).
+> - **Single-writer redirect proven empirically**: during the mirror-less
+>   anomaly, panel inputs could NOT reach `PC_ControlSettings` under
+>   source=PYTHON — no direct UI write path survives.
+>
+> Phase C may grant bench authority. Evidence: `b4_drill_log.jsonl`,
+> `operate_traffic.jsonl`, `docs/drill-logs/`.

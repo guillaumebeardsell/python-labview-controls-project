@@ -55,6 +55,17 @@ Foundations — done and verified on the real system:
       so `PCnotResponding` gates nothing. Building the response is B0 (now concretely
       specified in the phase-B file).
 
+Position (updated 2026-07-09): **PHASE B COMPLETE — exit gate passed.** All
+nine B4 drills passed 3×+ against the live gateway (1–6 machine-run, 7–9
+operator-run; log in `docs/drill-logs/`); the loss-of-PC watchdog held under
+every kill/freeze/stall; ICD v0.2 frozen and bench-corrected; the command
+path, source-select, operator-request mirror, and e-stop
+recovery-by-demotion are all live-verified. **Python may hold bench command
+authority (Phase C is open).** C0's HMI affordances are largely in place
+(the B3.b switch + effective-LED, as-built on the `UI_Main` panel); next:
+C3 handover rehearsal by a second operator, C4 scripted acceptance session,
+C5 soak — plus the D0 procedure sheets in parallel.
+
 Position (updated 2026-07-07): **the Python side of every phase is built.**
 Phase A: A1/A2/A3 built; **live validation complete — 100% agreement, all 5
 states, all inputs** (`docs/shadow-findings.md`). Phase B: B1 drafted (ICD v0.2
