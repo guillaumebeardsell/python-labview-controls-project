@@ -294,6 +294,16 @@ identical to UI-in-command from the operator's seat; automation adds value on
 top without changing how the plant is driven by hand. This also strengthens
 the case for the UI heartbeats in §7.5 — the UI is an active input surface in
 PYTHON mode, so its liveness matters.
+
+Permanence (clarified 2026-07-09): the HMI panels (`APC_PC_UI_Main`,
+`_System`, `_Errors`) are **permanent** — the operator's console for the life
+of the system. As Python absorbs decisions, individual *decision* inputs may
+be retired from the panels (the phase-E retirement pass, team-gated); the
+request-channel + mirror architecture is the steady state, not a transition.
+Operational corollary: since the mirror asserts the panel's current values
+the moment authority is granted, the operator performs a **panel lineup
+check before every handover** (C3 step 0). The full mirror is the only
+operational mode; safety-only is an engineering-bench configuration.
 - Protocol versioning/negotiation: deferred. The unknown-field and unknown-type rules
   in §3 provide forward compatibility in the meantime.
 - Event/alarm push messages (LabVIEW → Python outside the 1 Hz telemetry): deferred

@@ -97,6 +97,13 @@ brains still agree while one of them is driving.
 
 ## C3 — Handover procedure (write down, then follow every time)
 
+0. **Panel lineup check (mandatory).** With the mirror on, flipping to
+   PYTHON asserts the panel's **current** values within a tick — whatever
+   `Requested mode`, feed modes, and references read on the HMI right now is
+   what Python will command. Walk the board and confirm every input is where
+   the plant should be *before* granting authority. (The panels are
+   permanent — the operator owns this check for the life of the system, the
+   same as any control-board lineup.)
 1. Python running, telemetry fresh, `status` clean; Python intent initialized
    from telemetry (automatic).
 2. Operator flips `CommandSource` UI→PYTHON on the HMI.
