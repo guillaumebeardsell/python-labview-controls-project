@@ -506,8 +506,19 @@ drills, so both are load-bearing:
      anything (the 9056 limiter does that).
    - **False case:** empty; wire the error line straight through.
 
-**Step 5 — the reply** (feeds the `TCP Write` the old constant used):
-`Format Into String`, format string with right-click → *'\' Codes Display*:
+**Step 5 — the reply.** **Placement rule first (this got miswired once):
+the reply is NOT gated on `accepted`** — it sits *after* step 4's Case (still
+inside the Line Arrived? True case), so **every received command gets exactly
+one reply**, ACK or NACK. `accepted` is *data inside* the reply, never a gate
+on sending it. A silent reject is indistinguishable from a dead link on the
+Python side (rejected vs. never-arrived need opposite responses), the
+commander consumes NACK reasons (`last_nack`), and drills B4-4…8 pass by
+*reading* them. Only the `PC_ControlSettings` write is gated; the reply
+always goes out (error chain: write-case error out → `TCP Write` error in,
+which also sequences reply-after-write; route the connection ID to the new
+`TCP Write` position). The node (feeds the `TCP Write` the old constant
+used): `Format Into String`, format string with right-click →
+*'\' Codes Display*:
 
    ```
    {"type":"command_ack","id":%d,"accepted":%s,"reason":"%s"}\r\n
