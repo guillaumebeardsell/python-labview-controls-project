@@ -105,6 +105,11 @@ brains still agree while one of them is driving.
 4. Work session.
 5. Handback: operator flips to UI; confirm UI writes resume; Python drops to
    observe-only automatically (its writes NACK).
+6. **E-stop recovery rule (bench-verified 2026-07-08):** an e-stop under
+   Python authority **latches in Python's intent** (mirror is set-only) and
+   cannot be cleared while source=PYTHON — by design. Recovery: flip to UI →
+   clear on the panel → state recovers → re-grant PYTHON deliberately. Every
+   e-stop therefore forces a human-authority review before Python resumes.
 Abort rule: anything unexpected → operator flips to UI (or e-stop). That path
 is drill-proven from B4-7/8.
 

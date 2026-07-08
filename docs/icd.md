@@ -278,6 +278,16 @@ separate request channel:
     mirror. Operators redirect by aborting the sequence first.
 - E-stop and its CLEAR keep their existing operator-direct channels
   (`APC_MASTER_EmergencyStop` etc.) unchanged — the mirror is belt on top.
+- **E-stop recovery under Python authority (as-built, bench-verified
+  2026-07-08):** the panel e-stop mirrors set-only, so once tripped it
+  **latches in Python's intent** and no clear path exists while
+  source=PYTHON (the mirror strips CLEAR; the gateway NACKs it
+  `operator only`). Recovery is *deliberately* a demotion: **flip
+  CommandSource to UI → clear on the panel (direct write) → state
+  recovers → re-grant PYTHON when ready** (the commander re-seeds
+  bumplessly). An e-stop under Python authority thus always forces a
+  human review before Python resumes — this is the intended authority
+  model, and a required step in the C3 handover procedure.
 
 Consequence: with no sequence running, Python-in-command is behaviorally
 identical to UI-in-command from the operator's seat; automation adds value on
