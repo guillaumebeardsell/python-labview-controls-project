@@ -139,3 +139,35 @@ def test_safety_only_mode_is_the_floor():
     assert commander.intent.speed_ref != 1200.0          # transparency does not
     assert commander.intent.requested_mode != SystemState.FIRING
     assert link.sim.current_state == int(SystemState.SAFE)
+
+
+def test_claimed_fields_are_python_owned():
+    """Per-field ownership: a claimed path keeps Python's computed value
+    while unclaimed fields keep mirroring from the panel."""
+    link, commander, executor, mirror, sup = make_stack()
+    t = run_ticks(link, sup, 2)
+    ref_path = "pid_control_references.tcoolant.ec_tt_001_ref"
+    mirror.claim(ref_path)
+    # Python computes a setpoint
+    commander.modify(lambda cs: setattr(cs.pid_control_references.tcoolant,
+                                        "ec_tt_001_ref", 77.0))
+    # the panel holds a different (stale) value + a live speed change
+    req = ui_request(speed_ref=1200.0)
+    req.pid_control_references.tcoolant.ec_tt_001_ref = 55.0
+    link.sim.ui_write(req)
+    run_ticks(link, sup, 3, t0=t)
+    assert commander.intent.pid_control_references.tcoolant.ec_tt_001_ref == 77.0  # claimed
+    assert commander.intent.speed_ref == 1200.0                                    # mirrored
+    # release -> the panel owns it again within a tick
+    mirror.release(ref_path)
+    run_ticks(link, sup, 2, t0=t + 3)
+    assert commander.intent.pid_control_references.tcoolant.ec_tt_001_ref == 55.0
+
+
+def test_safety_inputs_cannot_be_claimed():
+    import pytest as _pytest
+    link, commander, executor, mirror, sup = make_stack()
+    with _pytest.raises(ValueError):
+        mirror.claim("emergency_stop")
+    with _pytest.raises(ValueError):
+        mirror.claim("force_motoring")

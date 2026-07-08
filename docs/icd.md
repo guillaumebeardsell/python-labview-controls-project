@@ -300,6 +300,16 @@ Permanence (clarified 2026-07-09): the HMI panels (`APC_PC_UI_Main`,
 of the system. As Python absorbs decisions, individual *decision* inputs may
 be retired from the panels (the phase-E retirement pass, team-gated); the
 request-channel + mirror architecture is the steady state, not a transition.
+
+Field-ownership evolution (**claims**, added 2026-07-09): when Python starts
+*computing* values (scheduled references, PID-derived setpoints), the full
+mirror would stomp them with the panel's stale value every tick. The mirror
+therefore supports per-field **claims**: a Python machine that owns a field
+calls `mirror.claim("<dotted path>")` and that field stops mirroring (its
+computed value survives); `release()` returns it to the panel. Safety inputs
+(e-stop, force overrides) can never be claimed. Each claim should be paired,
+in team time, with retiring/disabling the matching panel control — claims
+are the software half of ownership transfer, panel retirement the HMI half.
 Operational corollary: since the mirror asserts the panel's current values
 the moment authority is granted, the operator performs a **panel lineup
 check before every handover** (C3 step 0). The full mirror is the only

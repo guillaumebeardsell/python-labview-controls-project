@@ -40,6 +40,19 @@ from .telemetry import MonarchTelemetry
 log = logging.getLogger(__name__)
 
 
+def _get_path(obj, path: str):
+    for part in path.split("."):
+        obj = getattr(obj, part)
+    return obj
+
+
+def _set_path(obj, path: str, value) -> None:
+    parts = path.split(".")
+    for part in parts[:-1]:
+        obj = getattr(obj, part)
+    setattr(obj, parts[-1], value)
+
+
 class OperatorRequestMirror(StateMachine):
     name = "operator_mirror"
 
@@ -52,10 +65,34 @@ class OperatorRequestMirror(StateMachine):
         # idling/motoring), never the full cluster. This is the floor no
         # configuration may go below: drill B4-8 caught a mirror-less
         # supervisor ignoring the panel e-stop for 4 s while dutifully
-        # feeding the watchdog (2026-07-08). "--no-mirror" now means
-        # safety_only, not absent.
+        # feeding the watchdog (2026-07-08). "--safety-only-mirror" means
+        # this mode, never absent.
         self.safety_only = safety_only
+        # claims: dotted intent paths OWNED BY PYTHON — excluded from the
+        # full mirror so the panel's (stale) value can't stomp a computed
+        # one. This is how "Python does some of the work" coexists with the
+        # panel: a scheduler/PID machine claims the fields it writes, and
+        # the team retires the matching panel control in the same breath
+        # (ICD 7.7 ownership evolution). Safety inputs can never be claimed.
+        self.claims: set[str] = set()
         self.mirrored_count = 0
+
+    # ---- field ownership -----------------------------------------------
+    _UNCLAIMABLE = ("emergency_stop", "clear_emergency_stop",
+                    "force_idling", "force_motoring")
+
+    def claim(self, *paths: str) -> None:
+        """Mark intent fields as Python-owned (dotted paths, e.g.
+        'pid_control_references.tcoolant.ec_tt_001_ref')."""
+        for path in paths:
+            if path.split(".")[-1] in self._UNCLAIMABLE:
+                raise ValueError(f"safety input {path!r} cannot be claimed")
+            self.claims.add(path)
+
+    def release(self, *paths: str) -> None:
+        """Return fields to panel ownership."""
+        for path in paths:
+            self.claims.discard(path)
 
     def _sequence_active(self) -> bool:
         return (self.executor is not None
@@ -86,6 +123,9 @@ class OperatorRequestMirror(StateMachine):
                 fresh.pid_control_references.mtr_hb = intent.pid_control_references.mtr_hb
                 # e-stop is set-only through the mirror
                 fresh.emergency_stop = estop_latched or req.emergency_stop
+                # Python-owned fields keep their computed values
+                for path in self.claims:
+                    _set_path(fresh, path, _get_path(intent, path))
                 intent.__dict__.update(fresh.__dict__)
             self.commander.modify(full_mirror)
         self.mirrored_count += 1

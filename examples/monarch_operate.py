@@ -62,7 +62,7 @@ class Session:
         self.executor = SequenceExecutor(self.commander)
         # ICD §7.7: the HMI stays the operator's input surface — panel
         # requests (PC_OperatorRequests) mirror into Python's intent. The
-        # mirror is ALWAYS in the stack; --no-mirror only reduces it to
+        # mirror is ALWAYS in the stack; --safety-only-mirror reduces it to
         # safety-only (e-stop set, force overrides) — the floor no config
         # may go below (drill B4-8 finding, 2026-07-08).
         self.mirror = OperatorRequestMirror(self.commander, self.executor,
@@ -157,7 +157,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="MONARCH operator CLI (Phase C1)")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=5020)
-    ap.add_argument("--no-mirror", action="store_true",
+    ap.add_argument("--safety-only-mirror", "--no-mirror",
+                    dest="safety_only_mirror", action="store_true",
                     help="reduce the ICD 7.7 mirror to SAFETY-ONLY (panel "
                          "e-stop and force overrides still flow — always); "
                          "mode/set from this CLI then own the rest of the "
@@ -166,7 +167,7 @@ def main() -> int:
     logging.basicConfig(level=logging.WARNING,
                         format="%(asctime)s %(levelname)s %(message)s")
 
-    s = Session(args.host, args.port, mirror=not args.no_mirror)
+    s = Session(args.host, args.port, mirror=not args.safety_only_mirror)
     print("MONARCH operator CLI — 'status' for state, 'quit' to exit.")
     print("NOTE: commands take effect only while the HMI CommandSource is PYTHON.")
     if s.mirror.safety_only:
@@ -175,7 +176,8 @@ def main() -> int:
     else:
         print("MIRROR ON: HMI panel requests flow through Python (ICD 7.7). "
               "CLI mode/set are overridden by the panel within a tick unless "
-              "a sequence is running; --no-mirror reduces to safety-only.")
+              "a sequence is running; --safety-only-mirror hands the rest "
+              "to the CLI.")
     try:
         while True:
             try:
