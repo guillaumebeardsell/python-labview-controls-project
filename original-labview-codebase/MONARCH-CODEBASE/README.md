@@ -27,8 +27,8 @@ Entries marked *(inference)* are deduced from names/wiring, not stated in any do
   in the sibling folders of `original-labview-codebase/` (e.g. `APC_9056_StateMachine/`,
   `APC_9049_FPGA_main_including_hierarchy/`). Fresh full-res exports (2026-07-07 late
   evening) exist for: TS_loop, WatchDog, StateMachine, UI_System, UI_Errors,
-  PythonGateway, ControlSettingsRaster, and the six 9056 controllers — these post-date
-  the B0/B3.c rewiring and are the as-wired evidence.
+  PythonGateway, ControlSettingsRaster, and all seven 9056 controllers — these
+  post-date the B0/B3.c rewiring and are the as-wired evidence.
 - `FPGA Bitfiles/` holds compiled bitfiles for both FPGA targets, so the FPGA VIs can be
   deployed without recompilation.
 - **Almost no VI has a real VI-description.** Where a description exists it is usually the
@@ -425,7 +425,7 @@ The StateMachine's limiter caps each VI's mode.
 | `APC_9056_TcoolantControl.vi` | Single PID | `EC-TT-001` → `EC-TT-001-REF` | `EC-FC-001-REF` (% → 4–20 mA) | The simplest of the family (modes 0/1/2 only). |
 | `APC_9056_TexhControl.vi` | **Cascade** | HL: `WF-TT-004` (WF temp at exh HX) → `WF-TT-004-REF`; LL: `SW-FT-002` (water flow) → HL output (or `SW-FT-002-REF`) | `SW-FC-004-REF` (% → 4–20 mA) | HL PV *indicator* mislabeled `WF-TT-001` (wire is `WF-TT-004`). Panel gains all 0 — relies on its XML. |
 | `APC_9056_ToilControl.vi` | **Cascade** | HL: `EO-TT-001` (oil temp) → `EO-TT-001-REF`; LL: `SW-FT-004` (water flow) → HL output (or `SW-FT-004-REF`) | `SW-FC-009-REF` (% → 4–20 mA) | Same shape as Texh. |
-| `APC_9056_DynoControl.vi` | Single PID (no export yet) | dyno/speed | `DYNO-REF` | Same template *(inference — not yet printed)*. |
+| `APC_9056_DynoControl.vi` | Single PID | `EngineSpeed_rpm` → `Speed ref` (PC cluster; manual refs `SpeedSetpointForPID`/`SpeedReference`) | `DYNO-REF` | Modes 0/1/2 only. Cosmetic copy-paste leftovers: modes comment box says "Tcool CONTROL MODES"; XML cluster labels say "LL …". |
 | `APC_9056_MTRsignals.vi` | — | — | `MTR signals array` | Unpacks the MTR fields (`MTR modbus floats`/`u16`) carried inside `PC_ControlSettings` for logging/broadcast *(inference; the Modbus master is on the PC)*. |
 
 Thermal loops fail to **max cooling** in SAFE (safe level = max flow).
