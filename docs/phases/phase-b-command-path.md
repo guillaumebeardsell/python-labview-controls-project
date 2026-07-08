@@ -524,11 +524,25 @@ used): `Format Into String`, format string with right-click →
    {"type":"command_ack","id":%d,"accepted":%s,"reason":"%s"}\r\n
    ```
 
-   Inputs, top to bottom: **reply id** (step 1.2), **accepted** →
+   Wiring the node: drag its bottom border down (or right-click → *Add
+   Parameter*) until it has **three parameter inputs**. The constant goes to
+   the **format string** terminal (top-left input — NOT a parameter input);
+   params top to bottom: **reply id** (step 1.2), **accepted** →
    `Select`(string constants `true` / `false` — JSON booleans, lowercase, no
    quotes), **reason** (step 3; empty on accept — all reasons are fixed ASCII
    plus a number, nothing needs JSON escaping). Same `\r\n` terminator as the
    telemetry writer (the Python side accepts `\n` too).
+
+   **Symptom table (each of these was hit on the bench 2026-07-08 — the
+   observer's malformed-message log names the mistake):**
+
+   | Observer shows | Cause |
+   |---|---|
+   | the raw format string with `%d`/`%s` unsubstituted | constant wired to a *parameter* input (or straight to `TCP Write`) instead of the **format string** terminal |
+   | values space-joined (`-1 false …`) with no braces | the **format string** terminal left unwired — Format Into String default-joins its params |
+   | reply debris **glued to a telemetry frame** on one line (both discarded) | reply string missing its `\r\n` terminator |
+   | ack lines appearing ~1/s **with no client sending commands** | reply chain placed outside the command-matched case — it must sit inside it, after the gated-write Case |
+   | reason reads `… command '%s'` literally | reason array element 0 is the bare constant — it must come from the small `Format Into String` that substitutes the name |
 **Step 6 — telemetry envelope additions** (in the telemetry loop's
 `Format Into String`, same pattern as the `limited_settings` addition from
 A2.1 — two more `%s` in the format string, two more inputs):
