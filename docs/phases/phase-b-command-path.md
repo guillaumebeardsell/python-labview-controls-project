@@ -1,5 +1,18 @@
 # Phase B — Command Path + Watchdog Proof (detailed instructions)
 
+> **Status update (2026-07-08 evening): B3 LabVIEW work essentially BUILT.**
+> B3.a verified on the gateway (parse trio, checks, Max&Min resolver, rate
+> memory, gated write, dynamic reply nested in the type:command case —
+> heartbeats ignored; 0 stray acks in 1900 frames). **B3.b built** (switch +
+> effective-LED, on the `UI_Main` panel). **B3.c built AS-BUILT VARIANT**
+> (see B3.c): bundle → `PC_OperatorRequests` unconditional; `PC_ControlSettings`
+> = a Case-gated *copy* of the requests variable (False/UI case only).
+> **Watchdog-under-authority proven 3×:** flip to PYTHON with no commander →
+> `pc_hb` freezes → SAFE in exactly 5.0 s → flip back → step-by-1 recovery
+> (= drills B4-1/2 under authority, banked). Remaining: `unknown` NACK-rung
+> raw walk (B3.d), confirm the old direct write is deleted (Find), first
+> `monarch_operate` command session, full B4 table.
+>
 > **Status (2026-07-07):** **B0 BUILT + WIRED + LIVE-VERIFIED** — the refreshed
 > WatchDog is wired (`PCnotResponding`/`9049notResponding` → Select (−1:3) → Min
 > into the SM warnings input); a real PC drop drove `SYSTEM STATE → SAFE` with
@@ -590,6 +603,21 @@ telemetry before its first send (bumpless) and goes silent the moment the
 echo says `UI`. Drill B4-7 proves both directions.
 
 ### B3.c — `APC_PC_UI_Main.vi`: the single-writer redirect
+
+> **AS BUILT (2026-07-08, verified from export + live recording) — a cleaner
+> variant than the steps below, kept as-is:** the bundle output writes
+> **`PC_OperatorRequests` unconditionally**, and `PC_ControlSettings` is
+> written by a **copy chain inside a Case on a `CommandSource_IsPython`
+> read** — False (UI) case: `PC_OperatorRequests` *read* →
+> `PC_ControlSettings` *write*; True (PYTHON) case: empty. The requests
+> variable is the single source of truth; "UI mode" = requests granted
+> directly. Single-writer holds; the empty True case is proven empirically
+> (flipping to PYTHON with no commander freezes `pc_hb` → watchdog → SAFE
+> in 5.0 s, observed 3×). Footnotes: the relay adds ≤1 loop-iteration of
+> panel→plant lag (irrelevant at UI rates); confirm the original direct
+> write node was deleted (right-click the variable → Find). The steps below
+> describe the originally-specified direct-gate variant; both satisfy
+> ICD §7.7.
 
 1. **The write point (located, 2026-07-07, from the `UI_Main` per-frame
    export):** inside `UI_Main`'s **main While loop** there is one big
