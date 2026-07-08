@@ -787,5 +787,45 @@ matrix at the top of this section is true — verified per B3.d.
 
 Each drill: run 3×, record the `monarch.jsonl` + gateway log, tick the row.
 
+> **Status (2026-07-08): drills 1–6 PASSED 3/3, machine-run** by
+> `tools/run_drills.py` against the live gateway — log:
+> `docs/drill-logs/2026-07-08-b4-machine.md` + `b4_drill_log.jsonl`.
+> (Drill 2 as implemented is the *stronger* freeze: session and heartbeats
+> stay alive, only commands stop. Drill 9's "block inbound only" variant is
+> approximated by the gateway-stall script below, which also exercises the
+> Python reconnect path.) Remaining: **7, 8, 9 — operator-run, scripts
+> below.**
+
+**Operator scripts for the remaining three (each 3×; keep `monarch_operate`
+running throughout — its `operate_traffic.jsonl` is the recording):**
+
+*B4-7 — source flip mid-stream.*
+1. `python examples\monarch_operate.py` (mirror on), switch to PYTHON,
+   drive a state from the panel (e.g. request MOTORING), see it follow.
+2. Mid-stream, flip the switch to UI. Verify: CLI `status` shows
+   `commanding=False` within ~2 s; the panel drives the plant *directly*
+   again immediately; **no state/setpoint jump at the flip instant**.
+3. Flip back to PYTHON. Verify: `commanding=True` within ~2 s; again no
+   jump (the commander re-seeds from telemetry — bumpless).
+
+*B4-8 — e-stop precedence under Python authority.*
+1. Source=PYTHON, plant in a raised state. Press the panel e-stop:
+   state → −1 within a tick (the set-path mirrors instantly).
+2. Release the button: verify the plant **stays** in SAFE (the e-stop is
+   latched in Python's intent — set-only mirror).
+3. Recover by demotion: flip to UI → clear on the panel → state steps up →
+   flip back to PYTHON. (Python's own clear attempt is already proven
+   NACKed `operator only` — machine-run.)
+4. If multiple e-stop stations exist, one round per station.
+
+*B4-9 — gateway stall (stale telemetry, Python side).*
+1. Source=PYTHON, `monarch_operate` commanding. **Stop the gateway VI**
+   (abort button) and count ~10 s.
+2. Verify: CLI `status` shows `stale=True` and `commanding=False` within
+   ~3 s (Python's own staleness rule — it stops sending). The plant, with
+   nothing writing to it, watchdog-parks in SAFE — correct on both sides.
+3. Restart the gateway VI. Verify: the CLI reconnects by itself (backoff),
+   re-engages when telemetry resumes, and the plant recovers step-by-1.
+
 **Phase exit gate:** all 9 drills pass 3/3; B0 statement holds under drills
 1–3; ICD v0.2 published; only then may Phase C grant authority.
