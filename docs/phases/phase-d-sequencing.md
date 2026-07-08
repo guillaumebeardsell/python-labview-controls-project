@@ -123,6 +123,15 @@ non-combustion ones both come first and are what commissioning itself needs:
 Each: dry-run in sim the same day → bench run under C3 handover → archive
 recording → mark the sequence "bench-proven" in its spec file.
 
+**Ownership handback rule (ICD §7.7 corollary):** a sequence owns the intent
+only while `RUNNING`/`HOLDING` (a Hold pauses the procedure, not the
+ownership). The tick it reaches DONE or **ABORTED**, the panel resumes full
+ownership — so an abort's safe landing persists only until the mirror
+re-asserts the panel's current values. Consequence for procedures: the C3
+lineup-check discipline applies **after every sequence end, especially
+aborts** — the operator confirms the panel reads the intended post-sequence
+lineup (or takes the plant back to one) before anything else.
+
 ---
 
 ## Phase exit gate
