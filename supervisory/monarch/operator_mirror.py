@@ -44,9 +44,17 @@ class OperatorRequestMirror(StateMachine):
     name = "operator_mirror"
 
     def __init__(self, commander: MonarchCommander,
-                 executor: SequenceExecutor | None = None) -> None:
+                 executor: SequenceExecutor | None = None,
+                 safety_only: bool = False) -> None:
         self.commander = commander
         self.executor = executor
+        # safety_only: mirror ONLY the safety inputs (e-stop set, force
+        # idling/motoring), never the full cluster. This is the floor no
+        # configuration may go below: drill B4-8 caught a mirror-less
+        # supervisor ignoring the panel e-stop for 4 s while dutifully
+        # feeding the watchdog (2026-07-08). "--no-mirror" now means
+        # safety_only, not absent.
+        self.safety_only = safety_only
         self.mirrored_count = 0
 
     def _sequence_active(self) -> bool:
@@ -61,7 +69,7 @@ class OperatorRequestMirror(StateMachine):
             return []
         req = tm.operator_requests
 
-        if self._sequence_active():
+        if self._sequence_active() or self.safety_only:
             def safety_only(intent: ControlSettings) -> None:
                 if req.emergency_stop:
                     intent.emergency_stop = True  # set-only

@@ -120,3 +120,22 @@ def test_heartbeat_still_owned_by_commander():
     cmds = [m for m in link.sent if isinstance(m, Command)]
     hbs = [c.params["settings"]["PID control references"]["PC_HB"] for c in cmds[-3:]]
     assert hbs[0] != hbs[1] and hbs[1] != hbs[2]  # still alternating
+
+
+def test_safety_only_mode_is_the_floor():
+    """Drill B4-8 finding (2026-07-08): a mirror-less supervisor ignored the
+    panel e-stop while feeding the watchdog. safety_only keeps the safety
+    inputs flowing while leaving everything else to the CLI/sequences."""
+    link = MonarchSimLink(MonarchGatewaySim(source="PYTHON"))
+    commander = MonarchCommander()
+    executor = SequenceExecutor(commander)
+    mirror = OperatorRequestMirror(commander, executor, safety_only=True)
+    sup = Supervisor(link, [mirror, executor, commander])
+    t = run_ticks(link, sup, 2)
+    link.sim.ui_write(ui_request(emergency_stop=True, speed_ref=1200.0,
+                                 requested_mode=SystemState.FIRING))
+    run_ticks(link, sup, 3, t0=t)
+    assert commander.intent.emergency_stop is True      # safety flows
+    assert commander.intent.speed_ref != 1200.0          # transparency does not
+    assert commander.intent.requested_mode != SystemState.FIRING
+    assert link.sim.current_state == int(SystemState.SAFE)

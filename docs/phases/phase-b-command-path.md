@@ -793,8 +793,22 @@ Each drill: run 3×, record the `monarch.jsonl` + gateway log, tick the row.
 > (Drill 2 as implemented is the *stronger* freeze: session and heartbeats
 > stay alive, only commands stop. Drill 9's "block inbound only" variant is
 > approximated by the gateway-stall script below, which also exercises the
-> Python reconnect path.) Remaining: **7, 8, 9 — operator-run, scripts
-> below.**
+> Python reconnect path.)
+>
+> **Operator drills verified from `operate_traffic.jsonl` (2026-07-08):**
+> **B4-7 PASS 3/3** (three UI↔PYTHON round-trips, echo ≤2 s, bumpless).
+> **B4-9 PASS 5/5** (every gateway stall: commands stopped ≤3 s — zero sent
+> after grace in all 7 telemetry gaps — auto-reconnect + re-engage each
+> time). **B4-8: 2/3 clean** (set ≤1 s at FIRING and MOTORING, latch on
+> release, recovery by demotion; bonus: a panel CLEAR under PYTHON cleared
+> the plant for exactly one frame before Python re-latched — the latch
+> semantics live). **Drill catch:** a third press ran under a mirror-less
+> session — the panel e-stop showed in `operator_requests` for 4 s while a
+> commander sent `estop=False`. Fixed same day: the mirror is now ALWAYS in
+> the operate stack; `--no-mirror` reduces it to **safety-only** (e-stop
+> set + force overrides always flow) — the floor no configuration may go
+> below. **Remaining for the gate: one more clean B4-8 round** (any panel
+> station) with the fixed CLI, and the `UI_Main` Find-check.
 
 **Operator scripts for the remaining three (each 3×; keep `monarch_operate`
 running throughout — its `operate_traffic.jsonl` is the recording):**
