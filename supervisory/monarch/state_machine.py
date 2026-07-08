@@ -25,12 +25,21 @@ Semantics, as read from the wiring:
   whole limiting loop (misleading name — it disables the per-state caps, not
   just the warnings clamp). All other ControlSettings fields pass through
   unchanged.
-* PostMortemSave fires on a forced (downward) transition, gated by the
-  per-state "forced transition condition" cases — which are all constant TRUE
-  in the current VI (no plant-feedback guards exist).
+* PostMortemSave fires on a downward transition (CURRENT SYSTEM STATE > new
+  state) AND NOT ForceState — i.e. a manually forced drop does NOT trigger the
+  post-mortem save. (Pixel-verified 2026-07-07: `>` then `∧` with `¬ForceState`
+  feeding the True case that writes the shared variable.)
 
-# ASSUMPTION markers flag the two details not pixel-traceable in the export;
-see docs/phases/phase-a-shadow-brain.md A1.0.
+The two former ASSUMPTION markers were resolved 2026-07-07 against the full-res
+re-export (original-labview-codebase/APC_9056_StateMachine/, 23:43):
+  1. The NG/Ar/O2 feed-valve booleans have their OWN rows (13-15) in the
+     limiting array, (0,1,1,1,1) each — vent-style, forced closed only in
+     SAFE — not their feed-controller rows as previously assumed.
+  2. The post-mortem gate is ¬ForceState (see above), not the per-state
+     transition-condition case.
+Also found: the executed array's Ar-feed row is (0,0,3,3,3) while the
+on-diagram documentation table says (0,0,2,2,2) — behaviorally identical for
+legal modes (≤2), transcribed as executed.
 """
 
 from __future__ import annotations
@@ -43,12 +52,15 @@ from .control_settings import ControlSettings, SystemState
 _STATE_COLUMNS = [-1, 0, 1, 2, 3]  # SAFE, STAND_BY, MOTORING, IDLING, FIRING
 
 # MAX LEVEL OF CONTROL — per-controller cap per state (columns follow
-# _STATE_COLUMNS). Transcribed from the VI's table (identical in both VI
-# versions). NG feed's FIRING cell really is 6 in the VI (suspected typo for 2,
-# see the phase-A notes) — ported as-is for fidelity.
+# _STATE_COLUMNS). Transcribed from the EXECUTED 16-row array constant in the
+# full-res 2026-07-07 export (not the on-diagram doc table, which disagrees on
+# the Ar row). Known oddities, ported as-is for fidelity: NG feed's FIRING
+# cell really is 6 (suspected typo for 2, see the phase-A notes); Ar feed and
+# the thermal rows carry 3s where levels are defined 0-2 (cap 3 = no clamp for
+# legal modes). Rows 13-15 are the NG/Ar/O2 feed-valve booleans.
 MAX_LEVEL_OF_CONTROL: dict[str, tuple[int, int, int, int, int]] = {
     "ng_feed":    (0, 0, 0, 0, 6),
-    "ar_feed":    (0, 0, 2, 2, 2),
+    "ar_feed":    (0, 0, 3, 3, 3),  # doc table on the diagram says 2s
     "o2_feed":    (0, 0, 2, 2, 2),
     "cool_temp":  (1, 2, 2, 2, 2),
     "exh_temp":   (1, 3, 3, 3, 3),
@@ -60,6 +72,9 @@ MAX_LEVEL_OF_CONTROL: dict[str, tuple[int, int, int, int, int]] = {
     "ign":        (0, 0, 0, 1, 1),
     "di":         (0, 0, 0, 1, 1),
     "mtr":        (0, 0, 2, 2, 2),
+    "ng_valve":   (0, 1, 1, 1, 1),  # feed valves: closed (0) only in SAFE
+    "ar_valve":   (0, 1, 1, 1, 1),
+    "o2_valve":   (0, 1, 1, 1, 1),
 }
 
 NO_LIMIT = 3  # a limitation source that is inactive contributes 3 (FIRING)
@@ -103,9 +118,10 @@ class StateDecision:
 
 
 def transition_condition(state: int) -> bool:
-    """The per-state 'forced transition condition' cases — all constant TRUE in
-    the current VI (no plant-feedback guards are implemented). Kept as a hook so
-    real guards land in one place if they're ever added."""
+    """The VI's per-state "HERE SPECIFIC CONDITIONS MAY BE SET" case — all
+    cases constant TRUE (no plant-feedback guards are implemented). NOT part of
+    the post-mortem gate (that is ¬ForceState — resolved 2026-07-07); kept only
+    as the hook where real per-state guards would land if ever added."""
     return True
 
 
@@ -156,13 +172,13 @@ def limit_settings(
     p.membrane.mode = _cap("mtr", q.membrane.mode, col)
     limited.ign_enable = bool(_cap("ign", int(settings.ign_enable), col))
     limited.di_enable = bool(_cap("di", int(settings.di_enable), col))
-    # ASSUMPTION: the feed-valve booleans clamp with their feed rows (the VI's
-    # limiting array has 16 elements incl. the NG/Ar/O2 valves; exact rows for
-    # the valve entries not pixel-verified). Safe direction is identical:
-    # closed (False) outside run states.
-    p.ng_valve = bool(_cap("ng_feed", int(q.ng_valve), col))
-    p.ar_valve = bool(_cap("ar_feed", int(q.ar_valve), col))
-    p.o2_valve = bool(_cap("o2_feed", int(q.o2_valve), col))
+    # Feed valves clamp against their own rows 13-15 = (0,1,1,1,1): forced
+    # closed only in SAFE, requested value passes through elsewhere (verified
+    # 2026-07-07 full-res export). Outside SAFE the gas cut comes from the
+    # feed-controller mode going to 0, not from this valve boolean.
+    p.ng_valve = bool(_cap("ng_valve", int(q.ng_valve), col))
+    p.ar_valve = bool(_cap("ar_valve", int(q.ar_valve), col))
+    p.o2_valve = bool(_cap("o2_valve", int(q.o2_valve), col))
     return limited
 
 
@@ -170,11 +186,9 @@ def decide(inputs: StateDecisionInputs) -> StateDecision:
     """One full tick of the StateMachine VI."""
     limits = source_limits(inputs)
     new_state = decide_state(inputs)
-    # ASSUMPTION: '>' operand order — post-mortem on a forced DOWNWARD
-    # transition (new below current), gated by the per-state condition.
-    post_mortem = (new_state < inputs.current_state) and transition_condition(
-        inputs.current_state
-    )
+    # Pixel-verified 2026-07-07: PostMortemSave = (CURRENT > new) ∧ ¬ForceState
+    # — a manually forced drop does not trigger the post-mortem save.
+    post_mortem = (new_state < inputs.current_state) and not inputs.force_state
     limited = limit_settings(inputs.settings, new_state, inputs.disregard_warnings)
     return StateDecision(
         system_state=new_state,

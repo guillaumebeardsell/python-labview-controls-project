@@ -286,6 +286,29 @@ relay resumes, `system_state` held at SAFE, then steps up one per tick.
 Limited_ControlSettings 50/50 — RESULT: AGREE.** The port models the new
 safety response exactly; drills B4-1/2 are effectively banked early.
 
+## 2026-07-07 — full-res StateMachine re-export: both port ASSUMPTIONs resolved (both needed fixes)
+
+A fresh high-resolution export of `APC_9056_StateMachine.vi` (requested for exactly
+this purpose) made the two previously non-pixel-traceable details legible. **Both
+assumptions were wrong in detail; port + tests corrected, suite green (152).**
+
+1. **Feed-valve rows.** The executed 16-row limiting array's rows 13–15 (the NG/Ar/O2
+   shutoff-valve booleans) are **(0,1,1,1,1)** — vent-style, forced closed only in
+   SAFE — not their feed-controller rows as assumed. Consequence: leaving FIRING for
+   STAND_BY, the VI cuts gas via the feed-controller **modes** (→0 ⇒ flow ref 0), not
+   the valves; the report's "discontinuing combustion cuts NG and O2" invariant is
+   enforced by the controllers, and fully (valves too) only at SAFE. The latent
+   divergence was never visible live because no session requested open valves outside
+   SAFE.
+2. **Post-mortem gate.** `PostMortemSave = (CURRENT > new) ∧ ¬ForceState` — the
+   comparison direction matched the assumption, but the gate is **¬ForceState** (not
+   the per-state transition-condition case): a manually forced drop does not trigger
+   the post-mortem dump. Not live-visible (shadow compare doesn't compare this output).
+3. **Bonus — doc/array mismatch on the Ar row.** The executed constant has Ar feed =
+   (0,0,**3**,3,3) while the on-diagram doc table (and our previous transcription)
+   says 2s. Behaviorally identical for legal modes (≤2); ported as executed. Same
+   class as the EXH/OIL 3s and NG 6.
+
 ## Standing observations for the team (from the port itself)
 
 - **`ForceState` overrides EMERGENCY STOP** (wired directly to the SYSTEM STATE

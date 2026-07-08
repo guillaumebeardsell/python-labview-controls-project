@@ -47,6 +47,12 @@ crops). Confirmed semantics:
 Residual (single, cosmetic): the `>` operand order wasn't traceable pixel-level
 — assumed `current > new` (downward). Mark `# ASSUMPTION` in code.
 
+> **RESOLVED (2026-07-07, full-res re-export):** operand order confirmed
+> `current > new`; but the AND gate is **`¬ForceState`**, not the per-state
+> transition condition — a manually forced drop does NOT post-mortem. Also
+> resolved: the valve rows and an Ar-row doc/array mismatch (see the A1.3
+> note below and `docs/shadow-findings.md`). Code + tests updated.
+
 **A1.1 — Data model**
 New module `supervisory/monarch/state_machine.py`:
 - `StateDecisionInputs`: `current_state: SystemState`, `warnings_limit: int`,
@@ -94,6 +100,13 @@ column says 0. Encode the table as **data** (a dict), not branching code.
 \* the NG=6 cell is suspected a typo in the VI (levels are 0–2 elsewhere); port it
 **as-is** (fidelity first), flag it in the shadow report, and decide with the team.
 
+> **Correction (2026-07-07, full-res re-export):** the table above transcribed
+> the VI's on-diagram *doc table*. The **executed array constant** differs:
+> Ar feed is (0,0,**3,3,3**) (doc table says 2s — equivalent for legal modes),
+> and rows 13–15 are the **NG/Ar/O2 feed-valve booleans at (0,1,1,1,1)** —
+> forced closed only in SAFE, NOT tied to their feed rows. The port encodes
+> the executed values.
+
 **A1.4 — Test matrix (the phase's real deliverable)**
 `tests/test_monarch_state_machine.py`:
 - **Exhaustive arbitration sweep:** all `current_state × requested_mode ×
@@ -115,8 +128,11 @@ against the A1.0 export or listed in the shadow-compare report as open.
 
 > **Status: BUILT (2026-07-06).** `supervisory/monarch/state_machine.py` +
 > `tests/test_monarch_state_machine.py` (28 tests incl. the ~30k-case sweep),
-> all green. Two cosmetic `# ASSUMPTION`s remain (the `>` operand order,
-> valve rows reusing feed rows) — both listed in `docs/shadow-findings.md`.
+> all green. ~~Two cosmetic `# ASSUMPTION`s remain~~ **Both assumptions
+> resolved 2026-07-07** against the full-res StateMachine re-export — both
+> needed corrections (post-mortem gate = ¬ForceState; valve rows are their own
+> (0,1,1,1,1) rows). Port + tests updated, suite green (152 tests). Details in
+> `docs/shadow-findings.md`.
 
 ---
 

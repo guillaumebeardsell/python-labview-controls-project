@@ -151,6 +151,11 @@ def test_post_mortem_on_forced_downward_transition():
     assert d.post_mortem is True
     d2 = decide(make_inputs(current=0, requested=3))
     assert d2.post_mortem is False  # upward transition
+    # ForceState-driven drops do NOT post-mortem (gate is ¬ForceState,
+    # pixel-verified 2026-07-07)
+    d3 = decide(make_inputs(current=3, requested=3, force=True, manual=-1))
+    assert d3.system_state == -1
+    assert d3.post_mortem is False
 
 
 def test_source_limits_reported():
@@ -166,9 +171,9 @@ def _maxed_settings():
     cs = ControlSettings(requested_mode=3, ign_enable=True, di_enable=True)
     p = cs.pid_control_references
     p.ng.mode = 6
-    p.ar.mode = p.o2.mode = p.dyno.mode = p.membrane.mode = 2
+    p.o2.mode = p.dyno.mode = p.membrane.mode = 2
     p.tcoolant.mode = 2
-    p.texh.mode = p.toil.mode = 3
+    p.ar.mode = p.texh.mode = p.toil.mode = 3  # saturate the 3-capped rows
     p.intake_vent = p.cross_vent = p.exhaust_vent = True  # closed
     p.ng_valve = p.ar_valve = p.o2_valve = True  # open
     return cs
@@ -192,9 +197,10 @@ def test_limiter_matches_table_when_everything_requested(state, col):
     assert p.membrane.mode == T["mtr"][col]
     assert lim.ign_enable == bool(T["ign"][col])
     assert lim.di_enable == bool(T["di"][col])
-    assert p.ng_valve == bool(min(1, T["ng_feed"][col]))
-    assert p.ar_valve == bool(min(1, T["ar_feed"][col]))
-    assert p.o2_valve == bool(min(1, T["o2_feed"][col]))
+    # feed valves have their own vent-style rows (closed only in SAFE)
+    assert p.ng_valve == bool(min(1, T["ng_valve"][col]))
+    assert p.ar_valve == bool(min(1, T["ar_valve"][col]))
+    assert p.o2_valve == bool(min(1, T["o2_valve"][col]))
 
 
 def test_safe_state_forces_safe_positions():
@@ -212,14 +218,19 @@ def test_safe_state_forces_safe_positions():
 
 def test_combustion_invariant_leaving_firing():
     """Discontinuing combustion must also cut NG and O2 (the report's hard
-    rule): dropping out of FIRING zeroes the NG/O2 feed modes and valves in the
-    same tick."""
+    rule). As-built, dropping out of FIRING zeroes the NG/O2 feed-controller
+    MODES in the same tick (flow refs -> 0); the shutoff-valve booleans are
+    only forced closed in SAFE (their rows are 0,1,1,1,1 — verified
+    2026-07-07), so the cut comes from the controllers, not the valves."""
     d = decide(make_inputs(current=3, requested=0))
     assert d.system_state == 0
     p = d.limited_settings.pid_control_references
-    # request still asks for gas; the limiter must cut it
+    # request still asks for gas; the limiter must cut the controller modes
     assert p.ng.mode == 0 and p.o2.mode == 0
-    assert not p.ng_valve and not p.o2_valve
+    # valves pass through in STAND_BY (as-built); only SAFE forces them shut
+    d_safe = decide(make_inputs(current=3, requested=-1))
+    p_safe = d_safe.limited_settings.pid_control_references
+    assert not p_safe.ng_valve and not p_safe.o2_valve
 
 
 def test_min_never_raises_a_request():
