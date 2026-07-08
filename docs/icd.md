@@ -33,7 +33,7 @@ sole authority on whether it executes.
 | Server | LabVIEW gateway, listening on `127.0.0.1:5020` (configurable) |
 | Client | Python supervisor; reconnects automatically with backoff |
 | Concurrent clients | 1 (LabVIEW may refuse or drop additional connections) |
-| Encoding | UTF-8 JSON, one object per message |
+| Encoding | UTF-8 JSON, one object per message. **Numbers must be finite** — no `NaN`/`Infinity` literals: LabVIEW's Flatten can *emit* `NaN` (unwritten values) but its Unflatten *rejects* it (bench-verified 2026-07-08: an echoed NaN got every command NACKed `parse`). Python sanitizes non-finite floats to 0.0 at the send edge and warns; receivers should tolerate incoming NaN defensively. |
 | Framing | Each message is terminated by LF (`\n`). A CR before the LF is permitted and ignored. Python transmits CRLF (`\r\n`) so the LabVIEW side can use TCP Read in CRLF mode. **Python→LabVIEW senders MUST terminate with `\r\n`** (a bare `\n` never completes a CRLF-mode read) **and MUST emit compact JSON** — no space after `:` — the gateway's command gate matches the literal `"type":"command"` (bench-verified 2026-07-08; pydantic serialization is compact by default, `json.dumps` defaults are NOT). |
 
 ## 3. Message envelope
