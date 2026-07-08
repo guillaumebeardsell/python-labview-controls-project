@@ -102,10 +102,13 @@ column says 0. Encode the table as **data** (a dict), not branching code.
 
 > **Correction (2026-07-07, full-res re-export):** the table above transcribed
 > the VI's on-diagram *doc table*. The **executed array constant** differs:
-> Ar feed is (0,0,**3,3,3**) (doc table says 2s — equivalent for legal modes),
-> and rows 13–15 are the **NG/Ar/O2 feed-valve booleans at (0,1,1,1,1)** —
-> forced closed only in SAFE, NOT tied to their feed rows. The port encodes
-> the executed values.
+> Ar feed is (0,0,**3,3,3**) (doc table says 2s), and rows 13–15 are the
+> **NG/Ar/O2 feed-valve booleans at (0,1,1,1,1)** — forced closed only in
+> SAFE, NOT tied to their feed rows. The port encodes the executed values.
+> **(2026-07-08, controller exports):** the ">2" cells are NOT typos — mode
+> 3 = cascaded closed loop (Texh/Toil/Ar) and NG modes 4/5/6 = feedback
+> select, so cap 3 permits cascade (the Ar doc-table 2 would forbid it) and
+> NG's 6 permits every NG feedback mode. See `docs/shadow-findings.md`.
 
 **A1.4 — Test matrix (the phase's real deliverable)**
 `tests/test_monarch_state_machine.py`:

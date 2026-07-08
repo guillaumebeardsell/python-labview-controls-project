@@ -38,8 +38,13 @@ re-export (original-labview-codebase/APC_9056_StateMachine/, 23:43):
   2. The post-mortem gate is ¬ForceState (see above), not the per-state
      transition-condition case.
 Also found: the executed array's Ar-feed row is (0,0,3,3,3) while the
-on-diagram documentation table says (0,0,2,2,2) — behaviorally identical for
-legal modes (≤2), transcribed as executed.
+on-diagram documentation table says (0,0,2,2,2). NOT harmless: per the
+controller-VI exports (2026-07-08), mode 3 = cascaded closed loop on the
+cascade-capable loops (Texh/Toil/Ar), and NG defines modes 4/5/6 = closed
+loop on lambda/IMEP/torque feedback — so the executed 3 PERMITS cascaded Ar
+control from MOTORING (the doc table's 2 would forbid it), and NG's FIRING
+cap of 6 permits all NG feedback modes. The ">2" cells are real mode caps,
+not typos.
 """
 
 from __future__ import annotations
@@ -54,13 +59,15 @@ _STATE_COLUMNS = [-1, 0, 1, 2, 3]  # SAFE, STAND_BY, MOTORING, IDLING, FIRING
 # MAX LEVEL OF CONTROL — per-controller cap per state (columns follow
 # _STATE_COLUMNS). Transcribed from the EXECUTED 16-row array constant in the
 # full-res 2026-07-07 export (not the on-diagram doc table, which disagrees on
-# the Ar row). Known oddities, ported as-is for fidelity: NG feed's FIRING
-# cell really is 6 (suspected typo for 2, see the phase-A notes); Ar feed and
-# the thermal rows carry 3s where levels are defined 0-2 (cap 3 = no clamp for
-# legal modes). Rows 13-15 are the NG/Ar/O2 feed-valve booleans.
+# the Ar row). The ">2" cells are NOT typos (resolved 2026-07-08 from the
+# controller exports): each controller's mode enum extends past 2 — mode 3 =
+# cascaded closed loop (Texh/Toil/Ar), NG modes 4/5/6 = closed loop on
+# lambda/IMEP/torque feedback — so cap 3 permits cascade and NG's FIRING cap
+# of 6 permits every NG feedback mode. Rows 13-15 are the NG/Ar/O2 feed-valve
+# booleans.
 MAX_LEVEL_OF_CONTROL: dict[str, tuple[int, int, int, int, int]] = {
-    "ng_feed":    (0, 0, 0, 0, 6),
-    "ar_feed":    (0, 0, 3, 3, 3),  # doc table on the diagram says 2s
+    "ng_feed":    (0, 0, 0, 0, 6),  # 6 = NG's highest feedback mode (torque)
+    "ar_feed":    (0, 0, 3, 3, 3),  # 3 = cascade; doc table says 2s (would forbid it)
     "o2_feed":    (0, 0, 2, 2, 2),
     "cool_temp":  (1, 2, 2, 2, 2),
     "exh_temp":   (1, 3, 3, 3, 3),

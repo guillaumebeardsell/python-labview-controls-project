@@ -69,8 +69,11 @@ extrapolation × 2 for 4-stroke; 1 tick = 0.025°); EPT = Engine Position Tracki
 Powertrain Controls library); HRL = heat-release library; DI = direct injection; IGN/SI =
 spark; PFI = port fuel injection; MTR = the membrane skid vendor. System states: **−1
 SAFE, 0 STAND_BY (default), 1 MOTORING, 2 IDLING, 3 FIRING**. Controller mode levels:
-**0 = safe/bypassed, 1 = manual/open-loop (or alternate state if binary), 2 = closed-loop**;
-vents encode 1 = closed, 0 = open (chosen so min() = safe).
+**0 = safe (forces the XML-configured `Safe mode control` value), 1 = manual
+passthrough, 2 = closed-loop**; cascade-capable loops (Texh/Toil/Ar) add **3 =
+cascaded closed loop**, and NG adds **4/5/6 = closed loop on selected feedback**
+(2/4 = lambda, 5 = IMEP, 6 = torque). Vents encode 1 = closed, 0 = open (chosen so
+min() = safe).
 
 ---
 
@@ -357,10 +360,12 @@ gotchas). The **executed** 16-row limiting array (pixel-verified from the full-r
 | 12 | MTR | 0 | 0 | 2 | 2 | 2 | TBD |
 | 13–15 | **NG/Ar/O2 feed valves** | 0 | 1 | 1 | 1 | 1 | closed |
 
-¹ Values >2 are literally in the VI (suspected typos; levels are defined 0–2). Ported
-as-is for fidelity — see `state_machine.py`.
+¹ NOT typos (resolved 2026-07-08 via the controller exports): mode enums extend past
+2 — cap 3 permits **cascaded** closed loop (Texh/Toil/Ar), and NG's 6 permits every NG
+feedback mode (4/5/6 = lambda/IMEP/torque select).
 ² The on-diagram documentation table says Ar = 2s, but the executed array constant has
-3s — behaviorally identical for legal modes (≤2).
+3s — a real difference: the executed value permits cascaded Ar control from MOTORING,
+the doc table's 2 would forbid it.
 Note rows 13–15: the feed shutoff valves are **forced closed only in SAFE**; in all
 other states the requested valve position passes through — leaving FIRING, gas is cut
 by the feed-controller modes going to 0, not by the valves.
@@ -397,22 +402,31 @@ outputs are **unwired** at the TS_loop call site; the live project (2026-07-07) 
 `PCnotResponding ∨ 9049notResponding → Select(−1:3) → Min →` StateMachine warnings input
 — verified by a real PC-drop test.
 
-### 9056 subsystem controllers — the 3-mode pattern
-All share one shape (`TEMPLATEControl` is the blank scaffold, **no callers**): inputs =
-signal cluster + `PC_ControlSettings` + `LoadIni?`; a mode enum **0 = safe (forced
-output), 1 = manual (operator setpoint passthrough), 2 = closed-loop (NI `PID Advanced`)**;
-gains persisted to XML on the cRIO. The StateMachine's limiter caps each VI's mode.
+### 9056 subsystem controllers — the shared mode pattern
+All six are copies of one template (`TEMPLATEControl` is the blank scaffold, **no
+callers**); facts below verified from the full exports (2026-07-07/08). Inputs =
+signal cluster + `PC_ControlSettings` + `LoadIni?`. Mode (from `PID control
+references.<X> control mode`): **0 = safe → output forced to the XML-configured
+`Safe mode control` value** (currently 0.00 everywhere; not hard-coded, not
+last-value); **1 = manual → the `<X>-REF (manual)` reference passes straight
+through**; **2 = closed loop (NI `PID Advanced`)**; cascade VIs add **3 = cascaded**
+(HL PID sets the LL PID's setpoint); NG adds **4/5/6 = feedback select**. Common
+plumbing: `Override PC PID references` selects PC-supplied vs local references (mode
+itself always comes from the PC); a `learn?` boolean captures feed-forward into
+`FF control`; **every PID runs with hard-wired `dt = 0.100 s`** (see gotchas); per-loop
+settings (gains, ranges, FF, safe value) persist to `…/bin/APC_9056_<X>_Settings.xml`.
+The StateMachine's limiter caps each VI's mode.
 
-| VI | Controls | Details |
-|---|---|---|
-| `APC_9056_NGControl.vi` | NG fuel flow → `NG-FC-001-REF` | Mode 2 = lambda control on `WF-OA-002-REF`; error computed on **1/λ** to keep PID gains positive [Ovw p.66]. |
-| `APC_9056_O2Control.vi` | O2 flow → `O2-FC-001-REF` (kg/h) | Mode 2 = O2 concentration on `WF-OA-001-REF`. Author: red-box NG-consumption compensation "should not be used" [Ovw p.64]. |
-| `APC_9056_ArControl.vi` | Argon feed → `N-PC-002-REF` | Cascade: system pressure `WF-PT-004-REF` → flow ref → pressure regulator ("Warning hysteresis!") [Ovw p.68]. |
-| `APC_9056_TcoolantControl.vi` | Coolant temp → `EC-FC-001-REF` | Single PID on `EC-TT-001` [Ovw p.71]. |
-| `APC_9056_TexhControl.vi` | WF temp at exhaust-gas HX → `SW-FC-004-REF` | Cascade HL (temp→flow) + LL (flow→valve %→4–20 mA) [Ovw p.69]. |
-| `APC_9056_ToilControl.vi` | Oil temp → `SW-FC-009-REF` | Same cascade shape [Ovw p.70]. |
-| `APC_9056_DynoControl.vi` | Dyno/speed → `DYNO-REF` | 3-mode PID like the others. |
-| `APC_9056_MTRsignals.vi` | — | Unpacks the MTR-related fields (`MTR modbus floats`/`u16` arrays) carried inside `PC_ControlSettings` into the named `MTR signals array` for logging/broadcast *(inference; the actual Modbus master is on the PC)*. |
+| VI | Structure | PID PV → setpoint ref | Output | Notes |
+|---|---|---|---|---|
+| `APC_9056_NGControl.vi` | Single PID + feedback selector | mode 2/4: **1/λ** from `WF-OA-002` → `WF-OA-002-REF`; mode 5: `IMEPn6` → `IMEP-REF`; mode 6: `TORQUE` → `Nm-REF` (per-feedback gain sets) | `NG-FC-001-REF` | Diagram note: the flow regulator does the low-level control, so no cascade needed. **XML path is Windows-style `home:\…`** (others POSIX) — persistence may fail on Linux RT. |
+| `APC_9056_O2Control.vi` | Single PID + NG feed-forward | **`EC-TT-001` (a coolant temp — mis-wired, see gotchas)** → `WF-OA-001-O2corr-REF` | `O2-FC-001-REF` | Switchable `compensate NG` feed-forward: NG flow (`NG-FT-001`/`NG-FC-001` via `FT/FC?`) × `O2/NG` ratio (default 3) added after the PID. (The overview p.64 said this compensation "should not be used"; no red box exists in the as-built VI.) |
+| `APC_9056_ArControl.vi` | **Cascade** | HL: `WF-PT-004` (system pressure) → `WF-PT-004-REF`; LL: `AR-FT-001` (Ar flow) → HL output (or `AR-FT-001-REF`) | `AR-PC-002-REF` | Both PIDs captioned **"Warning hysteresis!"**. Panel notes: start with lower pressure reference; pressure-release mechanism TBD. LL manual ref mislabeled `SW-FT-001-REF`. |
+| `APC_9056_TcoolantControl.vi` | Single PID | `EC-TT-001` → `EC-TT-001-REF` | `EC-FC-001-REF` (% → 4–20 mA) | The simplest of the family (modes 0/1/2 only). |
+| `APC_9056_TexhControl.vi` | **Cascade** | HL: `WF-TT-004` (WF temp at exh HX) → `WF-TT-004-REF`; LL: `SW-FT-002` (water flow) → HL output (or `SW-FT-002-REF`) | `SW-FC-004-REF` (% → 4–20 mA) | HL PV *indicator* mislabeled `WF-TT-001` (wire is `WF-TT-004`). Panel gains all 0 — relies on its XML. |
+| `APC_9056_ToilControl.vi` | **Cascade** | HL: `EO-TT-001` (oil temp) → `EO-TT-001-REF`; LL: `SW-FT-004` (water flow) → HL output (or `SW-FT-004-REF`) | `SW-FC-009-REF` (% → 4–20 mA) | Same shape as Texh. |
+| `APC_9056_DynoControl.vi` | Single PID (no export yet) | dyno/speed | `DYNO-REF` | Same template *(inference — not yet printed)*. |
+| `APC_9056_MTRsignals.vi` | — | — | `MTR signals array` | Unpacks the MTR fields (`MTR modbus floats`/`u16`) carried inside `PC_ControlSettings` for logging/broadcast *(inference; the Modbus master is on the PC)*. |
 
 Thermal loops fail to **max cooling** in SAFE (safe level = max flow).
 
@@ -529,12 +543,23 @@ snapshot.
    Min) — flagged for review.
 3. **`DisregardWarnings` bypasses the entire limiter**, not just the warning clamp —
    misleading name.
-4. **Limit-table anomalies are real** (pixel-verified 2026-07-07): NG-feed FIRING = 6
-   and Ar-feed/EXH/OIL-TEMP carry 3s, though levels are defined 0–2 (cap ≥3 = no clamp
-   for legal modes). The Ar row is also a **doc/array mismatch**: the on-diagram doc
-   table says 2s, the executed constant has 3s. And the NG/Ar/O2 **feed-valve booleans
-   are forced closed only in SAFE** (rows 0,1,1,1,1) — leaving FIRING, gas is cut by
-   the controller modes, not the valves. The Python port reproduces all of this as-is.
+4. **The limit table's ">2" cells are real mode caps, not typos** (resolved
+   2026-07-08): cap 3 = cascade allowed (Texh/Toil/Ar), NG's 6 = all NG feedback
+   modes allowed. The Ar row is a genuine **doc/array mismatch** (doc table 2s = no
+   cascade; executed 3s = cascade allowed from MOTORING). And the NG/Ar/O2
+   **feed-valve booleans are forced closed only in SAFE** (rows 0,1,1,1,1) — leaving
+   FIRING, gas is cut by the controller modes, not the valves. The Python port
+   reproduces all of this as-is.
+4b. **`APC_9056_O2Control.vi`'s PID process variable is mis-wired to `EC-TT-001` (a
+   coolant temperature)** — a Tcoolant copy-paste leftover; the setpoint is an O2
+   concentration. Closed-loop O2 as-built regulates flow against the wrong signal —
+   re-tag before any closed-loop O2 use. Smaller mislabels of the same family:
+   Texh's HL PV indicator says `WF-TT-001` (wire is `WF-TT-004`); Ar's LL manual ref
+   says `SW-FT-001-REF` (loop runs on `AR-FT-001`). Also: NG's settings-XML path is
+   Windows-style (`home:\…`) on a Linux-RT target (persistence may silently fail),
+   and every controller PID runs with hard-wired `dt = 0.100 s` while the TS_loop
+   control loop is ~20 ms — if called every tick, integral/derivative action is ~5×
+   faster than the gains imply. Verify at tuning time.
 5. **State-echo skew**: `9049_Global_SYSTEMSTATE` (written by CAS_loop) is a relay of the
    9056 StateMachine's output and freezes if 9049 loops stop — observed fail-safe (a low
    echo blocks spark/DI), but alarm on sustained mismatch during commissioning.

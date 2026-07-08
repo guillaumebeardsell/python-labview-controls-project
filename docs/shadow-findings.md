@@ -306,8 +306,49 @@ assumptions were wrong in detail; port + tests corrected, suite green (152).**
    the post-mortem dump. Not live-visible (shadow compare doesn't compare this output).
 3. **Bonus — doc/array mismatch on the Ar row.** The executed constant has Ar feed =
    (0,0,**3**,3,3) while the on-diagram doc table (and our previous transcription)
-   says 2s. Behaviorally identical for legal modes (≤2); ported as executed. Same
-   class as the EXH/OIL 3s and NG 6.
+   says 2s. Ported as executed. *(Reinterpreted 2026-07-08 by the controller
+   exports, next entry: 3 = cascade mode, so the executed value permits cascaded Ar
+   control from MOTORING — the doc table's 2 would forbid it. A real difference,
+   not a cosmetic one.)*
+
+## 2026-07-08 — controller exports decode the mode enums: the limit table's ">2" cells are real, and O2Control's PV is mis-wired
+
+Fresh exports of all six 9056 controller VIs (NG/O2/Ar/Tcoolant/Texh/Toil) were
+read frame-by-frame. Findings:
+
+1. **Mode enums extend past 2** (each VI's own modes comment): cascade-capable
+   loops (Texh, Toil, Ar) define **3 = closed-loop cascaded control**; NG defines
+   **2 = lambda (default), 4/5/6 = feedback select (lambda/IMEP/torque)**; Tcoolant
+   and O2 are 0/1/2 only. Consequence: the MAX-LEVEL table's ">2" cells are **not
+   typos** — EXH/OIL/Ar caps of 3 permit cascade, NG's FIRING cap of 6 permits all
+   NG feedback modes, and Tcoolant/O2/Dyno/MTR caps of 2 match their maximum
+   meaningful mode. The long-standing "NG=6 suspected typo" disposition is
+   **withdrawn**. (The port already encodes the executed values; only the
+   commentary changed.)
+2. **Mode 0 ("safe") forces the XML-configurable `Safe mode control` value**, not a
+   hard-coded 0 (all panels currently show 0.00). Per-loop settings persist to
+   `…/bin/APC_9056_<X>_Settings.xml`.
+3. **DEFECT — `APC_9056_O2Control.vi`'s PID process variable is wired to
+   `EC-TT-001` (a coolant temperature)**, a Tcoolant copy-paste leftover; the
+   setpoint is `WF-OA-001-O2corr-REF` (an O2 concentration). Closed-loop O2 (mode
+   2) as-built would regulate O2 flow against a temperature. Must be re-tagged to
+   the O2/λ measurement before any closed-loop O2 use. (The overview p.64's
+   "red-box logic should not be used" note was not found in the as-built VI; what
+   exists is a switchable `compensate NG` feed-forward, `O2/NG` ratio default 3.)
+4. **Mislabels (as-built):** Texh's HL PV *indicator* is labeled `WF-TT-001` but the
+   wire is `WF-TT-004` (real PV is WF-TT-004); Ar's LL manual reference control is
+   labeled `SW-FT-001-REF (manual)` but the LL loop runs on `AR-FT-001`.
+5. **Suspicious details for the team:** NG's XML path is Windows-style
+   (`home:\…\APC_9056_NG_Settings.xml`) while the other five are POSIX
+   (`/home/…/bin/…`) — NG gain persistence may silently fail on the Linux-RT 9056.
+   Every PID runs with a hard-wired **dt = 0.100 s** while the TS_loop control loop
+   is DAQ-paced at ~20 ms — if the controllers are called every control tick, the
+   integral/derivative action is ~5× faster than the gains imply (design-time
+   assumed 100 ms; verify at tuning time).
+6. **Ar panel notes (author, verbatim):** both cascade PIDs carry a
+   `Warning hysteresis!` caption; "we need to start the system with lower pressure
+   reference (or connect partial pressure)"; "it is unclear at this moment if a
+   pressure release mechanism *must* be included in the controller."
 
 ## Standing observations for the team (from the port itself)
 
@@ -316,8 +357,9 @@ assumptions were wrong in detail; port + tests corrected, suite green (152).**
   guard — flagged for review; the port reproduces the as-built behavior.
 - **`DisregardWarnings` bypasses the entire MAX-LEVEL limiter**, not just the
   warnings clamp (misleading name). Whatever sets it disables per-state caps.
-- **NG-feed FIRING cap = 6** in the table (levels elsewhere are 0–2) — suspected
-  typo for 2; ported as-is.
+- ~~**NG-feed FIRING cap = 6** in the table — suspected typo for 2~~ **Resolved
+  2026-07-08:** not a typo — NG's mode enum runs to 6 (feedback-select modes);
+  see the controller-exports entry above.
 - **More detection-without-response** (2026-07-06, from `WarningIntegration`):
   the VI stall-detects the **9049** and **9056-FPGA** heartbeats (counter vs
   threshold 10), but the resulting "not responding" booleans drive front-panel
