@@ -9,9 +9,17 @@
 > = a Case-gated *copy* of the requests variable (False/UI case only).
 > **Watchdog-under-authority proven 3×:** flip to PYTHON with no commander →
 > `pc_hb` freezes → SAFE in exactly 5.0 s → flip back → step-by-1 recovery
-> (= drills B4-1/2 under authority, banked). Remaining: `unknown` NACK-rung
-> raw walk (B3.d), confirm the old direct write is deleted (Find), first
-> `monarch_operate` command session, full B4 table.
+> (= drills B4-1/2 under authority, banked).
+>
+> **2026-07-08 late: UI-side NACK ladder PASSED live, verbatim** (run with
+> `tools/send_command.py` against the real gateway): `valid` →
+> `source is UI` with id echo; `unknown` → `unknown command 'bogus'`;
+> `rate` → 6th/7th command NACK `rate` (rolling window verified on
+> hardware); `garbage` → id −1 NACK then the next command answered =
+> **session survived, drill B4-4 core passed**. Remaining: the three
+> PYTHON-gated rungs (`parse`/`range`/`estop-clear`) + first real ACK,
+> confirm the old direct write is deleted (Find), first `monarch_operate`
+> handover session, full B4 table.
 >
 > **Status (2026-07-07):** **B0 BUILT + WIRED + LIVE-VERIFIED** — the refreshed
 > WatchDog is wired (`PCnotResponding`/`9049notResponding` → Select (−1:3) → Min
