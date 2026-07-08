@@ -475,8 +475,13 @@ drills, so both are load-bearing:
    - `Build Array` of the six Booleans **in exactly the table's order**
      (order = priority).
    - `Search 1D Array` (Array palette): *array* = the Boolean array,
-     *element* = a TRUE constant. Its *index of element* output is the first
-     failing check — or **−1, meaning all passed**.
+     *element* = a TRUE constant, *start index* unwired (defaults to 0). Its
+     *index of element* output is the first failing check — or **−1, meaning
+     all passed**. Palette note: if you see the newer *Search Sorted /
+     Search Unsorted 1D Array* .vims instead of the classic primitive, use
+     **Unsorted** — *Sorted* does a binary search that requires a sorted
+     array, and this array's order is deliberately the check priority, not
+     sorted.
    - **`accepted`** = index `Equal?` −1.
    - **`reason`**: `Build Array` of six strings in the same order — element 0
      from `Format Into String` `unknown command '%s'` ← name; element 4 from
