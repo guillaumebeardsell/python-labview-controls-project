@@ -43,7 +43,13 @@ def full_settings(**overrides) -> dict:
 def command(cid: int, name: str = "set_control_settings", settings=None) -> bytes:
     cmd = {"type": "command", "id": cid, "name": name,
            "params": {"settings": settings if settings is not None else full_settings()}}
-    return (json.dumps(cmd) + "\n").encode()
+    # \r\n: the gateway's TCP Read runs in CRLF mode — a bare \n never
+    # terminates a line there. Compact separators: the gateway's Match
+    # Pattern gate looks for the literal "type":"command", so a space after
+    # the colon (json.dumps default) makes the line silently ignored. The
+    # real commander (pydantic dump) is compact already; the sim tolerates
+    # both.
+    return (json.dumps(cmd, separators=(",", ":")) + "\r\n").encode()
 
 
 def read_acks(sock: socket.socket, want: int, timeout: float = 6.0) -> list[str]:
@@ -99,7 +105,7 @@ def main() -> int:
             s.sendall(command(10 + i))
         expect, want = "first 5 pass the rate rung, 6th+ answer 'rate'", 7
     elif args.rung == "garbage":
-        s.sendall(b'{"type":"command", THIS IS NOT JSON @@@\n')
+        s.sendall(b'{"type":"command", THIS IS NOT JSON @@@\r\n')
         time.sleep(0.5)
         s.sendall(command(99))
         expect, want = ("garbage: discarded or id -1; then id=99 answered "

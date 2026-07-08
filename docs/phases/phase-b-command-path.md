@@ -557,6 +557,8 @@ used): `Format Into String`, format string with right-click →
    | ack lines appearing ~1/s **with no client sending commands** | reply chain placed outside the command-matched case — it must sit inside it, after the gated-write Case |
    | reason reads `… command '%s'` literally | reason array element 0 is the bare constant — it must come from the small `Format Into String` that substitutes the name |
    | `ack id=-1 accepted=False` exactly once per second while an observer is connected | the chain is gated on "a line arrived" instead of on the `"type":"command"` match — it's NACKing the observer's 1 Hz **heartbeats**. Nest everything (parse, checks, rate append, write gate, reply) inside the `"type":"command"` True case; non-command types are ignored silently per ICD §3. Side effect of the miswiring: heartbeats also pollute the rate window |
+   | a **well-formed** command gets NO reply, ever (but garbage does) | the sender's JSON has a space after the colon (`"type": "command"`, `json.dumps` default) — the `Match Pattern` gate is **literal** and never matches, so the line is silently ignored. Send compact JSON (`separators=(",", ":")`); the commander (pydantic) is compact already. Same total-silence symptom if lines end in bare `\n`: CRLF-mode `TCP Read` never terminates on it — terminate with `\r\n` |
+   | NACK reason reads `…'%s'bogus` — value appended, `%s` intact | on the small reason `Format Into String`, the constant is wired to ***initial string*** instead of the ***format string*** terminal |
 **Step 6 — telemetry envelope additions** (in the telemetry loop's
 `Format Into String`, same pattern as the `limited_settings` addition from
 A2.1 — two more `%s` in the format string, two more inputs):
