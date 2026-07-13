@@ -113,7 +113,17 @@ shadow-mode fields), `docs/hello-vi.md` + `docs/labview-notes.md` (LabVIEW gatew
 watchdog proof → bench command → sequencing → commissioning; authority gates + exit criteria;
 **authoritative status home**); `docs/phases/` (step-by-step instructions, one file per phase);
 `docs/handoff.md` (how to continue this project — what's done, what only humans supply,
-task guidance for smaller models, and the invariants that must never be weakened).
+task guidance for smaller models, and the invariants that must never be weakened);
+`docs/9049-openloop-audit.md` (the cRIO-9049 RT/FPGA audit for open-loop commissioning +
+the layered SIL plan — EPT built-in crank simulator, synthetic pressure traces via
+`tools/gen_cas_traces.py`, pre-fuel checklist); `docs/deployed-bringup.md` (deployed-mode
+build/deploy procedure + the rules learned at first autonomous bringup, 2026-07-09 —
+PC apps as EXEs only, single shared-variable host, no builds from out-of-sync VIs);
+`docs/command-path-asbuilt.md` (the **verified** PC⇄cRIO command path — source-select,
+`PC_HB` ownership, WatchDog, the loss-of-PC SAFE clamp armed in both modes — with per-VI
+diagram-page evidence; the "how does the command path actually work as-built" reference);
+`docs/session-handoff-2026-07-11.md` (current state: autonomous deployment, SIL-0, next
+steps, robustness gaps, tools).
 
 ## Conventions
 

@@ -23,6 +23,15 @@ No timestamp and only one injection flag are on the wire — the extra
 `InjectionState_b`/`TimeStamp*` columns in the Data Logging doc are logging
 additions, not part of this shared variable. Still pending: confirmation
 against a live capture once the 9049 runs (values/scaling).
+
+**DISPUTED (2026-07-08 re-audit — see docs/9049-openloop-audit.md F4):** the
+fresh full-res export reads differently on three points: [0] appears wired to
+the `PFI0 mode` panel control (constant 0), NOT the system state; [1] and [5]
+appear to pass through Boolean-Array-To-Number, i.e. 6-cylinder bitmasks 0-63
+rather than 1/0; and the raster taps the pre-`Override PC settings` wires.
+Do not trust this model's [0]/[1]/[5] semantics until a live capture decides
+(drive all six cylinders enabled: [1] == 1 -> this model is right; == 63 ->
+bitmask). Update both this module and its tests when settled.
 """
 
 from __future__ import annotations

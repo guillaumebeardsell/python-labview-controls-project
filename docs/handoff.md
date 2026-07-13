@@ -1,11 +1,22 @@
 # Handoff — continuing this project without the original assistant
 
-Written 2026-07-07, when most Python deliverables across Phases A–E were
-front-loaded. Read `docs/migration-plan.md` (status) first; this file is about
-*how to keep working* — with a cheaper/newer AI model, or by hand.
+> **Newest state: `docs/session-handoff-2026-07-11.md`** — autonomous
+> deployment working (cold-boot verified), SIL-0 analytics validated, the
+> current next-steps, and the robustness gaps. Read that + `migration-plan.md`
+> for *where things are*; this file is about *how to keep working*.
+
+Written 2026-07-07 (Python deliverables front-loaded); the frontier has since
+moved to LabVIEW/hardware — see the banner above. This file is about *how to
+keep working* — with a cheaper/newer AI model, or by hand.
 
 ## What is DONE and verified (don't rebuild)
 
+- **Autonomous deployment (2026-07-11):** both cRIOs boot startup `.rtexe`s, PC
+  apps as EXEs, Python observes/commands; cold-boot verified. Runbook +
+  symptom→cause table: `docs/deployed-bringup.md`.
+- **SIL-0 analytics validated (2026-07-11):** 9049 HRL/IMEP/CA50 vs known truth,
+  425 comparisons all within tol. `docs/9049-openloop-audit.md` §7; tools
+  `gen_cas_traces.py` / `compare_hrl.py` / `tune_thresholds.py`.
 - Transport + ICD v0.1, live telemetry pipeline, `ControlSettings` contract
   (confirmed vs live flatten), reconnect resilience.
 - **Phase A code**: StateMachine port (validated LIVE — 100% agreement, all 5
@@ -31,7 +42,7 @@ front-loaded. Read `docs/migration-plan.md` (status) first; this file is about
    change is wrong.
 2. **Telemetry is the only truth**; ACK = validated, not done; rebuild from
    telemetry after reconnect; stale ⇒ stop commanding.
-3. **The suite stays green** (`pytest`, 144+ tests, CI enforces). A red test is
+3. **The suite stays green** (`pytest`, 183 tests, CI enforces). A red test is
    a stop-the-line event, not an inconvenience.
 4. **Contract lockstep**: any `APC_ControlSettings.ctl` change ⇒ re-run
    `tools/compare_flatten.py` on a fresh flatten (workflow:
@@ -79,7 +90,7 @@ pattern and to run `pytest` before claiming done.
 
 1. `README.md` → `docs/migration-plan.md` (authoritative status) →
    `docs/migration-seam.md` (why the boundary is where it is).
-2. `pip install -e ".[dev]" && pytest` — 144+ tests, sub-2 s.
+2. `pip install -e ".[dev]" && pytest` — 183 tests, sub-2 s.
 3. Offline demo of everything: terminal 1
    `python -m supervisory.monarch.simserver_monarch --source PYTHON --speedup 5`,
    terminal 2 `python examples/monarch_operate.py` → `status`, `mode motoring`,

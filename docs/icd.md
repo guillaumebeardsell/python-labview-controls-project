@@ -224,9 +224,17 @@ the cluster: that channel watches the membrane PLC *and* its PC-side relay.)
   source = UI (from its main loop at ~1 Hz, **not** on-change — an on-change-only
   write would freeze the flag between operator interactions and false-trip);
   Python toggles it while source = PYTHON. Consequence: the SAFE clamp is armed
-  in **both** modes, no source gating. *Interim:* until the UI toggle is
-  implemented (B3.c), the clamp is gated on source = PYTHON — which is what the
-  sim gateway currently models.
+  in **both** modes, no source gating. *As-built 2026-07-11 (B3.c):* `UI_Main`
+  writes operator inputs to `PC_OperatorRequests` always and promotes them to
+  `PC_ControlSettings` **only** while source = UI (gated on
+  `CommandSource_IsPython`), so the UI now sources `PC_HB` in UI mode as intended
+  (confirmed from the `UI_Main` export). **Clamp gating confirmed 2026-07-11:**
+  the 9056 clamp is **armed in both modes** — `APC_9056_TS_loop` OR's
+  `9056/9049/PCnotResponding` into a `Select(−1 SAFE : 3 FIRING)` feeding the SM
+  warnings-limit with **no `CommandSource` gate** (the end-state, not the interim
+  PYTHON-only gating). Full as-built + evidence: **`docs/command-path-asbuilt.md`**.
+  *Still owed:* one hardware **UI-mode `PC_HB`-freeze drill** (logged drills cover
+  only the PYTHON-mode freeze).
 - **Follow-on (specified, response TBD during commissioning): `UI_HeartBeat`** —
   a standalone network shared variable (house pattern, like `9049_HeartBeat`),
   toggled by the UI's main loop regardless of source, watched as a fifth

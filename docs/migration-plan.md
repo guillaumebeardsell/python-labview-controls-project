@@ -9,7 +9,34 @@ Python's authority until the phase gating it is closed.
 their own piece and point here. Step-by-step instructions for each phase live in
 `docs/phases/` (one file per phase, linked from each section below).
 
-## Current status (2026-07-07)
+## Current status (2026-07-11)
+
+**Phases A & B COMPLETE and live-verified. Both cRIOs now run AUTONOMOUS on
+hardware (cold-boot verified). 9049 combustion analytics validated in SIL-0.**
+The frontier is now LabVIEW/hardware, not Python.
+
+- **Phase A** — done; live shadow-compare 100% across all 5 states + inputs.
+- **Phase B** — **exit gate passed 2026-07-09.** Command path built end-to-end
+  (gateway does the full validation ladder); loss-of-PC watchdog live-verified.
+  *Caveats surfaced 2026-07-11:* B4-7/8/9 drills were operator-run but not
+  logged (only B4-1..6 in `docs/drill-logs/`); real gaps remain before
+  firing-relevant authority — no `UI_HeartBeat`, thin gateway setpoint
+  validation, unauth TCP, no content-staleness guard. See
+  `docs/session-handoff-2026-07-11.md` §robustness.
+- **Autonomous deployment (NEW, this session)** — both cRIOs boot startup
+  `.rtexe`s, PC apps as EXEs, Python observes/commands; cold-boot verified.
+  Five deployment bugs fixed. Full runbook: `docs/deployed-bringup.md`.
+- **SIL-0 (NEW)** — 9049 HRL/IMEP/CA50 math validated vs known truth (425
+  comparisons all within tol) via `APC_SIL0_HRL_Desktop.vi` + `tools/compare_hrl.py`.
+  `docs/9049-openloop-audit.md` §7; **click-level SOW: `docs/sil0-scope-of-work.md`**
+  (remaining: threshold derivation + MAPO/IMEPstd columns; false-trip matrix is SIL-1).
+- **Phase C** — Python built; C3/C4/C5 unverified (needs bench + 2nd operator).
+- **Phase D** — framework + sim built; blocked on the **D0 procedure sheets (team)**.
+- **Next:** motoring threshold tuning (`tools/tune_thresholds.py`) → SIL-1
+  virtual crankshaft → motored bench run. See `docs/session-handoff-2026-07-11.md`.
+- Suite **183 green** (was 108 at the 2026-07-07 block below).
+
+<details><summary>Prior status (2026-07-07) — Phase A validation detail</summary>
 
 **Phase A logic validation COMPLETE (2026-07-07).** With the full A2.1 pre-wire
 live (WarningIntegration→StateMachine warnings wire made; `warnings_limit`/
@@ -34,6 +61,8 @@ built, wired, and live-verified** (`PCnotResponding`/`9049notResponding` → Sel
 shadow compare 100%; see `docs/migration-seam.md`); threshold **set to 250 counts
 (5 s) and the loss-of-PC drill re-verified at it** (pc_hb freeze → SAFE in ~5 s,
 100%/100%; `docs/shadow-findings.md`). Next real build: **B3 gateway write path**.
+
+</details>
 
 <details><summary>Prior status (2026-07-06)</summary>
 
@@ -75,7 +104,7 @@ gated on B exit). Phase D: sequencing framework + sim plant model + draft
 venting/purge/thermal-warmup sequences built and fault-injection tested
 (content gated on D0 sheets). Phase E engines: temporal rules + scheduler built
 (values TBD(team)). `Settings9049` modeled (flatten confirmation pending); CI
-runs the suite (144+ tests) on 3.10/3.12. **What remains is LabVIEW work, joint
+runs the suite (183 tests) on 3.10/3.12. **What remains is LabVIEW work, joint
 decisions, and team-supplied content — see `docs/handoff.md`.** **All export blockers cleared 2026-07-06**: StateMachine per-frame export
 (A1.0 answered — clamp values, sort-based MIN, absolute ManualState override
 confirmed), `TS_loop` (B0 answered — WatchDog unwired, response must be built) and
@@ -95,8 +124,10 @@ Ground rules that hold in every phase:
   assumed.
 - All Python logic lands as **pure decisions** (`StateMachine.step(view) → requests`)
   with exhaustive unit tests; sockets/clocks stay in the framework.
-- No hardware runs exist: everything is verified on the bench against synthetic inputs
-  and the plant simulator.
+- No *engine* runs exist. As of 2026-07-11 both cRIOs **do** run deployed on real
+  hardware (autonomous startup apps, cold-boot verified) and the 9049 analytics are
+  SIL-validated against synthetic truth — but nothing has been motored or fired.
+  Supervisory logic is verified on the bench against synthetic inputs + the sim.
 
 ---
 

@@ -182,6 +182,14 @@ path.
    warning→max-state clamp + severity→reaction map, and **author the temporal rules**
    the original dev left unbuilt. Pairs with (1): it produces
    `STATE LIMITATION FROM WARNINGS`.
+   - **Motoring vs fired warning-limit profiles (NEW — not in the as-built).** Today the
+     9049 has a *single* limit set (`9049_WarningLevels` → one hardcoded `CylWarningLevels.xml`,
+     no state input; the UI edits one slot). Motoring and firing need different thresholds and
+     different *armed* diagnostics (CA50/MAPO/DevFromExpectedIMEP disarmed for motoring). Needs
+     a second persisted profile **and** a state-driven selector that swaps the active limits at
+     the MOTORING↔FIRING transition, with a cRIO-side fail-safe default (load-fail ⇒ tighter
+     set / safe-hold). Profile *selection* is BRAIN/Python scope; profile *load + enforcement*
+     stay on the 9049. See `docs/9049-openloop-audit.md` Step 3.
 4. **Run sequencing / recipes** → **Phase D** (greenfield, highest operational value) —
    cranking, purge, light-off, venting + recovery, misfire recovery, WF quality check.
    Needs an operating-procedure **spec from the team** (not in the code/docs). Build in

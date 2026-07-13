@@ -4,6 +4,7 @@
 	<Property Name="NI.Project.Description" Type="Str"></Property>
 	<Property Name="varPersistentID:{0035D22C-A859-45BA-9CF6-DDD468999D29}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_Global_SYSTEMSTATE</Property>
 	<Property Name="varPersistentID:{01153800-4C54-4D8E-85A3-DFB1A65BC7A5}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_SetWarningLimits</Property>
+	<Property Name="varPersistentID:{0252CC73-DFD5-4CD2-84C7-03B51E7FE68C}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_9049notResponding</Property>
 	<Property Name="varPersistentID:{062B1B82-28EA-4249-A1C8-FE6FFCA949DB}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/CRIOchassisT</Property>
 	<Property Name="varPersistentID:{088166A4-EF02-431D-8D93-A3F871D24804}" Type="Ref">/My Computer/APC_PCglobalVars.lvlib/PC_GlobalVariables_DBLmain2syst</Property>
 	<Property Name="varPersistentID:{0935EE41-335D-42E4-A4AF-2620869AE687}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_RetrieveWarningLimits</Property>
@@ -13,6 +14,7 @@
 	<Property Name="varPersistentID:{1E671B5D-B942-4C05-BD17-262473A6643E}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Raster3_WarningLevels</Property>
 	<Property Name="varPersistentID:{1F8DD08F-246E-48DE-AACC-E891221C9606}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Raster5_Warnings</Property>
 	<Property Name="varPersistentID:{2116C577-0DBB-46C3-AA4D-445249A3313F}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Raster5_WarningSign</Property>
+	<Property Name="varPersistentID:{21F2A580-320E-4606-A3A2-FE73952E47C4}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Limited_ControlSettings</Property>
 	<Property Name="varPersistentID:{23F2BDA1-D903-4E5B-9A7D-EA79CC2C11A7}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Raster1_WarningLevels</Property>
 	<Property Name="varPersistentID:{24DA2F19-B328-469F-BC1C-0B0F2DCB735B}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/O2_ON</Property>
 	<Property Name="varPersistentID:{25AD2AE7-1708-48E2-B6C3-CBFFA6B0FFA2}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Cylinder_Warnings</Property>
@@ -29,6 +31,7 @@
 	<Property Name="varPersistentID:{4B6871EA-752E-4754-88BE-7C33163CE607}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_HeartBeat</Property>
 	<Property Name="varPersistentID:{4E1318EB-6F28-4DAB-899B-D3D183762C43}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/APC_MASTER_ClearWarnings</Property>
 	<Property Name="varPersistentID:{5543835B-D2F5-4A64-BDBB-56478AD70F80}" Type="Ref">/My Computer/APC_PCglobalVars.lvlib/PC_Global_ListboxVarBroadcastErrors</Property>
+	<Property Name="varPersistentID:{595A8EB5-FE29-4B3B-BD35-A6917CC18E46}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_PCnotResponding</Property>
 	<Property Name="varPersistentID:{597F0206-0D33-4B99-93BE-C2E3EBD1A83A}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_WarningLevels</Property>
 	<Property Name="varPersistentID:{5B3AA499-D317-463C-9951-D998951E757C}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Cool_ON</Property>
 	<Property Name="varPersistentID:{5B4A16AE-D245-418C-A8FB-EAC81135B7CA}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_MeasAndCalc</Property>
@@ -42,19 +45,23 @@
 	<Property Name="varPersistentID:{7C5A54E5-8A3D-47DE-8829-649ED1FAE069}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Raster5_WarningLevels</Property>
 	<Property Name="varPersistentID:{7C6DA324-3C8E-4280-AD89-8FBBC7320AE2}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_SaveWarningLimitsToINI</Property>
 	<Property Name="varPersistentID:{8340FEDB-C47C-4FF0-8742-CD58222CCE8C}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_RetrieveWarningLimits</Property>
+	<Property Name="varPersistentID:{85431C03-F152-4F1C-B0F1-27B9236743C3}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/SystemState_SM</Property>
 	<Property Name="varPersistentID:{87CC7189-B490-4C46-A057-959D60F164F1}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/SyncCylPres [bar]</Property>
 	<Property Name="varPersistentID:{8BE3F47C-2DEF-4CE0-A422-9A45992DFAED}" Type="Ref">/My Computer/APC_PCglobalVars.lvlib/PC_GlobalVariables_PIDsyst2main</Property>
 	<Property Name="varPersistentID:{8EB8430D-937F-432D-AB1E-0D4CAC959426}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_Global_CylPressError</Property>
 	<Property Name="varPersistentID:{9CE9461C-3B34-42CE-84DC-86209B6520D2}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_SelectBroadcastVar</Property>
 	<Property Name="varPersistentID:{A43C8F8D-6E65-46DB-9A6F-75F771EEF87C}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/IntVENT_ON</Property>
+	<Property Name="varPersistentID:{AB962187-CDD1-47A0-AA44-09123FE9A15A}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/WarningLimits_SM</Property>
 	<Property Name="varPersistentID:{B0ECCD54-28F7-434A-A0EC-0A1D202400BA}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Raster3_Warnings</Property>
 	<Property Name="varPersistentID:{B10F2D2B-78AD-4AC9-BAE6-6FEBB3D5557D}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/SendSyncTraces</Property>
 	<Property Name="varPersistentID:{B51ACDDD-25E1-480A-87A6-CB3BA5D981A7}" Type="Ref">/My Computer/APC_PCglobalVars.lvlib/9049_Global_CA50</Property>
+	<Property Name="varPersistentID:{B5DF88ED-0764-4F73-8F55-FF8780BDF6B0}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/CommandSource_IsPython</Property>
 	<Property Name="varPersistentID:{B6247603-8013-4FD5-B19D-15A553F68D3B}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/PC_ControlSettings</Property>
 	<Property Name="varPersistentID:{BB800953-FB1A-44AE-9E89-80A4030F8BC3}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Raster1_Warnings</Property>
 	<Property Name="varPersistentID:{BEF71C07-DF93-4B7C-A8F3-2C4741307115}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_HeartBeat</Property>
 	<Property Name="varPersistentID:{BFF76E6E-4C2D-4F79-A274-C436E6886868}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/PostMortemSave</Property>
 	<Property Name="varPersistentID:{C106F6B6-E616-491F-9475-F2E13A0DB41E}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/PFI_ON</Property>
+	<Property Name="varPersistentID:{C419C07B-709D-4B83-B567-52F430366CBF}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_MTRnotResponding</Property>
 	<Property Name="varPersistentID:{CDB03D58-B2E1-4EEC-B773-F1DAD50B9CCC}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_WarningLevels</Property>
 	<Property Name="varPersistentID:{D5523767-78A0-4F1C-967D-5D4CFDB557B4}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_LoadWarningsFromINI</Property>
 	<Property Name="varPersistentID:{D87D645B-D464-40D1-A596-B572BB92D6D5}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/CASyncLost</Property>
@@ -64,7 +71,10 @@
 	<Property Name="varPersistentID:{E46E6E71-62E9-40B8-8027-CAE8ECD53590}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Raster4_WarningLevels</Property>
 	<Property Name="varPersistentID:{E69C6517-AC1C-4BCA-BFA4-723899F79CDF}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_SaveWarningLimitsToINI</Property>
 	<Property Name="varPersistentID:{EE9FD3AC-DF40-42EA-AE1E-6D4B8DFD5F44}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/IMEPn [bar]</Property>
+	<Property Name="varPersistentID:{EEE524D2-01A7-4672-9A03-A7832A2CC13B}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/PC_OperatorRequests</Property>
+	<Property Name="varPersistentID:{F16D8FED-01B2-450E-AE07-141716C8038C}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/ForceState_SM</Property>
 	<Property Name="varPersistentID:{F1B6E982-3FA2-4707-88C7-1BAC8BDF09FC}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_LoadWarningsFromINI</Property>
+	<Property Name="varPersistentID:{F62CC8DA-A96F-43E9-A4CC-7E3F6C56F35A}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/ManualState_SM</Property>
 	<Property Name="varPersistentID:{F70895B0-4EBE-4540-8D05-24DF636F4492}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_SetWarningLimits</Property>
 	<Property Name="varPersistentID:{FC35693E-0F2C-4D07-9A23-8F22787A0544}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/MTR</Property>
 	<Property Name="varPersistentID:{FF1A9D78-1805-46CE-8CF3-A07BB9BE6773}" Type="Ref">/My Computer/APC_PCglobalVars.lvlib/PC_Global_Errors</Property>
@@ -85,9 +95,7 @@
 			<Item Name="Message Queue.lvlib" Type="Library" URL="../support/Message Queue/Message Queue.lvlib"/>
 			<Item Name="APC_PC_SlaveModbus.vi" Type="VI" URL="../APC_PC_SlaveModbus.vi"/>
 			<Item Name="APC_HRL.vi" Type="VI" URL="../support/APC_HRL.vi"/>
-			<Item Name="APC_HRLtest.vi" Type="VI" URL="../APC_HRLtest.vi"/>
 			<Item Name="APC_PC_VariableMapping.vi" Type="VI" URL="../APC_PC_VariableMapping.vi"/>
-			<Item Name="APC_9056_Signals.vi" Type="VI" URL="../APC_9056_Signals.vi"/>
 			<Item Name="APC_WarningColorMap.vi" Type="VI" URL="../APC_WarningColorMap.vi"/>
 			<Item Name="APC_PID_VariableMapping.vi" Type="VI" URL="../APC_PID_VariableMapping.vi"/>
 			<Item Name="APC_Pcyl_Diag.vi" Type="VI" URL="../support/APC_Pcyl_Diag.vi"/>
@@ -107,8 +115,9 @@
 		<Item Name="APC_PC_UI_Errors.vi" Type="VI" URL="../APC_PC_UI_Errors.vi"/>
 		<Item Name="APC_PC_UI_System.vi" Type="VI" URL="../APC_PC_UI_System.vi"/>
 		<Item Name="APC_PCglobalVars.lvlib" Type="Library" URL="../APC_PCglobalVars.lvlib"/>
+		<Item Name="APC_SIL0_HRL_Desktop.vi" Type="VI" URL="../APC_SIL0_HRL_Desktop.vi"/>
+		<Item Name="APC_PC_PythonGateway.vi" Type="VI" URL="../APC_PC_PythonGateway.vi"/>
 		<Item Name="APC_RunHRL_inPC.vi" Type="VI" URL="../APC_RunHRL_inPC.vi"/>
-		<Item Name="hello-vi.vi" Type="VI" URL="../hello-vi.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="BuildHelpPath.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/BuildHelpPath.vi"/>
@@ -159,11 +168,6 @@
 				<Item Name="NI_AALPro.lvlib" Type="Library" URL="/&lt;vilib&gt;/Analysis/NI_AALPro.lvlib"/>
 				<Item Name="NI_Matrix.lvlib" Type="Library" URL="/&lt;vilib&gt;/Analysis/Matrix/NI_Matrix.lvlib"/>
 				<Item Name="Modbus Master.lvclass" Type="LVClass" URL="/&lt;vilib&gt;/Modbus/master/Modbus Master.lvclass"/>
-				<Item Name="Write Spreadsheet String.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Write Spreadsheet String.vi"/>
-				<Item Name="Write Delimited Spreadsheet (string).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Write Delimited Spreadsheet (string).vi"/>
-				<Item Name="Write Delimited Spreadsheet (I64).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Write Delimited Spreadsheet (I64).vi"/>
-				<Item Name="Write Delimited Spreadsheet (DBL).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Write Delimited Spreadsheet (DBL).vi"/>
-				<Item Name="Write Delimited Spreadsheet.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Write Delimited Spreadsheet.vi"/>
 				<Item Name="System Exec.vi" Type="VI" URL="/&lt;vilib&gt;/Platform/system.llb/System Exec.vi"/>
 				<Item Name="NI_Data Type.lvlib" Type="Library" URL="/&lt;vilib&gt;/Utility/Data Type/NI_Data Type.lvlib"/>
 				<Item Name="NI_PtbyPt.lvlib" Type="Library" URL="/&lt;vilib&gt;/ptbypt/NI_PtbyPt.lvlib"/>
@@ -208,7 +212,6 @@
 			<Item Name="APC_PcylDiag.ctl" Type="VI" URL="../controls/APC_PcylDiag.ctl"/>
 			<Item Name="APC_9049_LoadWarningConfig.vi" Type="VI" URL="../APC_9049_LoadWarningConfig.vi"/>
 			<Item Name="APC_CylDaignosticsCluster.ctl" Type="VI" URL="../controls/APC_CylDaignosticsCluster.ctl"/>
-			<Item Name="APC_9049_HRL_preChamber.vi" Type="VI" URL="../APC_9049_HRL_preChamber.vi"/>
 			<Item Name="APC_9049_float2u16.vi" Type="VI" URL="../APC_9049_float2u16.vi"/>
 			<Item Name="APC_9049_u162float.vi" Type="VI" URL="../APC_9049_u162float.vi"/>
 			<Item Name="APC_9049_CA.vi" Type="VI" URL="../APC_9049_CA.vi"/>
@@ -216,6 +219,8 @@
 			<Item Name="APC_9049_HRL_ZeroPhaseFIlterBP.vi" Type="VI" URL="../APC_9049_HRL_ZeroPhaseFIlterBP.vi"/>
 			<Item Name="APC_CylMetrics.ctl" Type="VI" URL="../controls/APC_CylMetrics.ctl"/>
 			<Item Name="APC_AppendUnits.vi" Type="VI" URL="../APC_AppendUnits.vi"/>
+			<Item Name="APC_9056_Signals.vi" Type="VI" URL="../APC_9056_Signals.vi"/>
+			<Item Name="APC_9049_HRL_preChamber.vi" Type="VI" URL="../APC_9049_HRL_preChamber.vi"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build">
 			<Item Name="FPGA Control on CompactRIO UI" Type="EXE">
@@ -312,7 +317,7 @@
 				<Property Name="Bld_localDestDirType" Type="Str">relativeToCommon</Property>
 				<Property Name="Bld_modifyLibraryFile" Type="Bool">true</Property>
 				<Property Name="Bld_previewCacheID" Type="Str">{B32F5C51-F804-4F58-9802-7E9D50F92BE8}</Property>
-				<Property Name="Bld_version.build" Type="Int">10</Property>
+				<Property Name="Bld_version.build" Type="Int">17</Property>
 				<Property Name="Bld_version.major" Type="Int">1</Property>
 				<Property Name="Destination[0].destName" Type="Str">APC_Monarch.exe</Property>
 				<Property Name="Destination[0].path" Type="Path">../builds/NI_AB_PROJECTNAME/APC_Monarch/APC_Monarch.exe</Property>
@@ -321,7 +326,7 @@
 				<Property Name="Destination[1].destName" Type="Str">Support Directory</Property>
 				<Property Name="Destination[1].path" Type="Path">../builds/NI_AB_PROJECTNAME/APC_Monarch/data</Property>
 				<Property Name="DestinationCount" Type="Int">2</Property>
-				<Property Name="Source[0].itemID" Type="Str">{2B2D6D2D-01A1-4679-A900-92B873FAC65C}</Property>
+				<Property Name="Source[0].itemID" Type="Str">{C64DE56D-9904-4B3E-A1EA-0569C2FA88CF}</Property>
 				<Property Name="Source[0].type" Type="Str">Container</Property>
 				<Property Name="Source[1].destinationIndex" Type="Int">0</Property>
 				<Property Name="Source[1].itemID" Type="Ref">/My Computer/APC_PC_UI_Main.vi</Property>
@@ -333,12 +338,55 @@
 				<Property Name="Source[2].type" Type="Str">VI</Property>
 				<Property Name="SourceCount" Type="Int">3</Property>
 				<Property Name="TgtF_companyName" Type="Str">Universidad Politécnica de Valencia</Property>
+				<Property Name="TgtF_enableDebugging" Type="Bool">true</Property>
 				<Property Name="TgtF_fileDescription" Type="Str">APC_Monarch</Property>
 				<Property Name="TgtF_internalName" Type="Str">APC_Monarch</Property>
 				<Property Name="TgtF_legalCopyright" Type="Str">Copyright © 2023 Universidad Politécnica de Valencia</Property>
 				<Property Name="TgtF_productName" Type="Str">APC_Monarch</Property>
 				<Property Name="TgtF_targetfileGUID" Type="Str">{51A3CFD1-8603-4409-A182-C499EFBAC3DB}</Property>
 				<Property Name="TgtF_targetfileName" Type="Str">APC_Monarch.exe</Property>
+				<Property Name="TgtF_versionIndependent" Type="Bool">true</Property>
+			</Item>
+			<Item Name="APC_PythonGateway" Type="EXE">
+				<Property Name="App_copyErrors" Type="Bool">true</Property>
+				<Property Name="App_INI_aliasGUID" Type="Str">{B010E8AB-4970-45DB-826E-E13BCB882828}</Property>
+				<Property Name="App_INI_GUID" Type="Str">{C8F96217-9062-4611-BA3F-814960C407F8}</Property>
+				<Property Name="App_serverConfig.httpPort" Type="Int">8002</Property>
+				<Property Name="App_serverType" Type="Int">0</Property>
+				<Property Name="Bld_autoIncrement" Type="Bool">true</Property>
+				<Property Name="Bld_buildCacheID" Type="Str">{07EEBE02-9F13-4764-BB8B-F79B3D6629B8}</Property>
+				<Property Name="Bld_buildSpecName" Type="Str">APC_PythonGateway</Property>
+				<Property Name="Bld_excludeInlineSubVIs" Type="Bool">true</Property>
+				<Property Name="Bld_excludeLibraryItems" Type="Bool">true</Property>
+				<Property Name="Bld_excludePolymorphicVIs" Type="Bool">true</Property>
+				<Property Name="Bld_localDestDir" Type="Path">../builds/NI_AB_PROJECTNAME/APC_PythonGateway</Property>
+				<Property Name="Bld_localDestDirType" Type="Str">relativeToCommon</Property>
+				<Property Name="Bld_modifyLibraryFile" Type="Bool">true</Property>
+				<Property Name="Bld_previewCacheID" Type="Str">{798B45E1-2359-4403-A695-B3528C15DAF4}</Property>
+				<Property Name="Bld_version.build" Type="Int">3</Property>
+				<Property Name="Bld_version.major" Type="Int">1</Property>
+				<Property Name="Destination[0].destName" Type="Str">APC_PythonGateway.exe</Property>
+				<Property Name="Destination[0].path" Type="Path">../builds/NI_AB_PROJECTNAME/APC_PythonGateway/APC_PythonGateway.exe</Property>
+				<Property Name="Destination[0].preserveHierarchy" Type="Bool">true</Property>
+				<Property Name="Destination[0].type" Type="Str">App</Property>
+				<Property Name="Destination[1].destName" Type="Str">Support Directory</Property>
+				<Property Name="Destination[1].path" Type="Path">../builds/NI_AB_PROJECTNAME/APC_PythonGateway/data</Property>
+				<Property Name="DestinationCount" Type="Int">2</Property>
+				<Property Name="Source[0].itemID" Type="Str">{20FFA5E2-E250-44AD-8B64-DCB0E425209C}</Property>
+				<Property Name="Source[0].type" Type="Str">Container</Property>
+				<Property Name="Source[1].destinationIndex" Type="Int">0</Property>
+				<Property Name="Source[1].itemID" Type="Ref">/My Computer/APC_PC_PythonGateway.vi</Property>
+				<Property Name="Source[1].sourceInclusion" Type="Str">TopLevel</Property>
+				<Property Name="Source[1].type" Type="Str">VI</Property>
+				<Property Name="SourceCount" Type="Int">2</Property>
+				<Property Name="TgtF_companyName" Type="Str">UC Berkeley</Property>
+				<Property Name="TgtF_enableDebugging" Type="Bool">true</Property>
+				<Property Name="TgtF_fileDescription" Type="Str">APC_PythonGateway</Property>
+				<Property Name="TgtF_internalName" Type="Str">APC_PythonGateway</Property>
+				<Property Name="TgtF_legalCopyright" Type="Str">Copyright © 2026 UC Berkeley</Property>
+				<Property Name="TgtF_productName" Type="Str">APC_PythonGateway</Property>
+				<Property Name="TgtF_targetfileGUID" Type="Str">{8ED59B3E-3B76-406F-9781-6A70A9C15FEC}</Property>
+				<Property Name="TgtF_targetfileName" Type="Str">APC_PythonGateway.exe</Property>
 				<Property Name="TgtF_versionIndependent" Type="Bool">true</Property>
 			</Item>
 		</Item>
@@ -368,10 +416,10 @@
 		<Property Name="target.IsRemotePanelSupported" Type="Bool">true</Property>
 		<Property Name="target.RTCPULoadMonitoringEnabled" Type="Bool">true</Property>
 		<Property Name="target.RTDebugWebServerHTTPPort" Type="Int">8001</Property>
-		<Property Name="target.RTTarget.ApplicationPath" Type="Path">/c/ni-rt/startup/startup.rtexe</Property>
+		<Property Name="target.RTTarget.ApplicationPath" Type="Path">/home/lvuser/natinst/bin/startup.rtexe</Property>
 		<Property Name="target.RTTarget.EnableFileSharing" Type="Bool">true</Property>
 		<Property Name="target.RTTarget.IPAccess" Type="Str">+*</Property>
-		<Property Name="target.RTTarget.LaunchAppAtBoot" Type="Bool">false</Property>
+		<Property Name="target.RTTarget.LaunchAppAtBoot" Type="Bool">true</Property>
 		<Property Name="target.RTTarget.VIPath" Type="Path">/home/lvuser/natinst/bin</Property>
 		<Property Name="target.server.app.propertiesEnabled" Type="Bool">true</Property>
 		<Property Name="target.server.control.propertiesEnabled" Type="Bool">true</Property>
@@ -424,10 +472,8 @@ AddOutputFilter chunkFilter
 		<Property Name="target.webservices.ValidTimestampWindow" Type="Int">15</Property>
 		<Item Name="RT Loops" Type="Folder">
 			<Item Name="APC_9049_CAS_loop.vi" Type="VI" URL="../APC_9049_CAS_loop.vi"/>
-			<Item Name="APC_9049_MODBUSTCP_HealingLoop.vi" Type="VI" URL="../APC_9049_MODBUSTCP_HealingLoop.vi"/>
 			<Item Name="APC_9049_SAVE_loop.vi" Type="VI" URL="../APC_9049_SAVE_loop.vi"/>
 			<Item Name="APC_9049_TS10ms_loop.vi" Type="VI" URL="../APC_9049_TS10ms_loop.vi"/>
-			<Item Name="APC_9049_TS100ms_loop.vi" Type="VI" URL="../APC_9049_TS100ms_loop.vi"/>
 		</Item>
 		<Item Name="Support VIs" Type="Folder">
 			<Property Name="NI.SortType" Type="Int">3</Property>
@@ -532,6 +578,7 @@ AddOutputFilter chunkFilter
 				<Property Name="Mode" Type="Int">0</Property>
 				<Property Name="NI.LV.FPGA.CompileConfigString" Type="Str">cRIO-9049/Clk40/falsefalseFPGA_EXECUTION_MODEFPGA_TARGETFPGA_TARGET_CLASSCRIO_9049FPGA_TARGET_FAMILYKINTEX7TARGET_TYPEFPGA</Property>
 				<Property Name="NI.LV.FPGA.Version" Type="Int">6</Property>
+				<Property Name="niFpga_TopLevelVIID" Type="Path">/C/LabVIEW PROJECT/MONARCH/APC_9049_FPGA_main.vi</Property>
 				<Property Name="Resource Name" Type="Str">RIO0</Property>
 				<Property Name="Target Class" Type="Str">cRIO-9049</Property>
 				<Property Name="Top-Level Timing Source" Type="Str">40 MHz Onboard Clock</Property>
@@ -1658,7 +1705,7 @@ AddOutputFilter chunkFilter
 					<Property Name="BuildSpec" Type="Str">{DD2C5183-F751-4CBF-AC8E-354A87270F4B}</Property>
 					<Property Name="configString.guid" Type="Str">{00ECAB79-B45E-4092-87FB-7D530BF551EE}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO7:0;0;ReadMethodType=u8;WriteMethodType=u8{04E373D3-427C-437E-B8CC-7BE85C3A336A}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO3:0;0;ReadMethodType=u8;WriteMethodType=u8{0563BA22-6991-4554-A3A7-62DF11413610}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO3;0;ReadMethodType=bool;WriteMethodType=bool{06B0412E-A367-49F9-A1C9-80E38278F105}NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig4;0;ReadMethodType=bool{127A07D4-0FEA-4814-8F25-F2173AE6985A}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI MOSI (DIO7);0;ReadMethodType=bool;WriteMethodType=bool{151A4D95-16A2-4982-9C28-0E419373F6E9}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI RdyBsy (DIO2);0;ReadMethodType=bool;WriteMethodType=bool{16B35787-D58B-4975-82F5-4E670D65DA73}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO6;0;ReadMethodType=bool;WriteMethodType=bool{190A9D2B-F14C-406F-9C3F-1176A5FC0BCE}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/ID Select;0;ReadMethodType=bool;WriteMethodType=bool{1B15F02D-B310-4AC1-B4D2-A24335C7363A}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI Conv (DIO3);0;ReadMethodType=bool;WriteMethodType=bool{1C830EBC-ADA2-4747-9618-0410C34243AA}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI MISO (DIO6);0;ReadMethodType=bool;WriteMethodType=bool{1CE2DDAB-A397-4A7C-B465-B5E8CE03F267}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI Func (DIO4);0;ReadMethodType=bool;WriteMethodType=bool{1E9714A5-ECC0-454A-B078-5DA4C2E45144}NumberOfSyncRegistersForReadInProject=Auto;resource=/13.1072 MHz Timebase;0;ReadMethodType=bool{225FD6BF-5D41-42D5-A02B-2E601BC75146}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI CS (DIO5);0;ReadMethodType=bool;WriteMethodType=bool{2A3A58C6-63A6-4D54-BD4B-06BA883F8DF8}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO7;0;ReadMethodType=bool;WriteMethodType=bool{2A97A17D-063B-4004-A4CB-A97579F0B914}resource=/Sleep;0;ReadMethodType=bool;WriteMethodType=bool{2E5BE7ED-28EA-46E9-A231-5945FF567FFD}NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig6;0;ReadMethodType=bool{31289CAF-B60F-4140-AF16-B22C1B80503D}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI CS (DIO5);0;ReadMethodType=bool;WriteMethodType=bool{37FC65D5-1DAB-4FF1-B471-8FA753C45C98}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/ID Select;0;ReadMethodType=bool;WriteMethodType=bool{3BB7022B-7CB6-49C9-B94E-5015DC3C5E00}[crioConfig.Begin]crio.Location=Slot 8[crioConfig.End]{3D916DD0-25DF-49AA-9027-B431BBFC6B8C}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO3;0;ReadMethodType=bool;WriteMethodType=bool{415FA2C7-5731-47B9-A94D-A2116D1804CB}NumberOfSyncRegistersForReadInProject=0;resource=/Time Synchronization/Time Source;0;ReadMethodType=Targets\NI\FPGA\RIO\CompactRIO\Sync\SyncSource.ctl{418422CC-04E7-40CB-AFEF-68AD9A25339E}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI Clk;0;ReadMethodType=bool;WriteMethodType=bool{438E6A92-7308-4A3F-ABD6-DAEA93713CAD}resource=/Chassis Temperature;0;ReadMethodType=i16{456622A5-7CF2-49BF-88F6-DC90FDD3C001}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO7:4;0;ReadMethodType=u8;WriteMethodType=u8{47DD0C39-25ED-4326-979A-7E3C66344BEC}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO2;0;ReadMethodType=bool;WriteMethodType=bool{4D9C0DB8-5B25-454D-86A4-9EA017C7915F}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig3;0;ReadMethodType=bool;WriteMethodType=bool{4FADD066-E824-425E-A0E9-1859F46F2F78}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI Conv (DIO3);0;ReadMethodType=bool;WriteMethodType=bool{5C124A35-A661-4F09-8942-0346163F1977}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO5;0;ReadMethodType=bool;WriteMethodType=bool{5C6FFCC6-D707-42ED-8F61-E3AE068D0CA3}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO4;0;ReadMethodType=bool;WriteMethodType=bool{60CFE17E-A5B4-4589-91D5-25298F5D8A29}ResourceName=40 MHz Onboard Clock;TopSignalConnect=Clk40;ClockSignalName=Clk40;MinFreq=40000000.000000;MaxFreq=40000000.000000;VariableFreq=0;NomFreq=40000000.000000;PeakPeriodJitter=250.000000;MinDutyCycle=50.000000;MaxDutyCycle=50.000000;Accuracy=100.000000;RunTime=0;SpreadSpectrum=0;GenericDataHash=D41D8CD98F00B204E9800998ECF8427E;{625E1418-C88E-4E9B-9975-A9C695499B21}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI MOSI (DIO7);0;ReadMethodType=bool;WriteMethodType=bool{63A4CFAD-A11C-4CD1-8370-EA283372D506}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO0;0;ReadMethodType=bool;WriteMethodType=bool{66B9F7E9-FD17-4E21-9EAD-292AE1161DCC}NumberOfSyncRegistersForReadInProject=0;resource=/USER Push Button;0;ReadMethodType=bool{6ABE8544-03FE-41FC-8B33-DE8B6143DF3C}resource=/System Reset;0;ReadMethodType=bool;WriteMethodType=bool{6B8E830D-5CB8-4498-989F-F44B0E7EB627}[crioConfig.Begin]crio.Location=Slot 1[crioConfig.End]{6C2C4BDD-E5F6-4E3E-8D6E-1548446316AD}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO5;0;ReadMethodType=bool;WriteMethodType=bool{6E4FEB9E-F457-4408-9EB5-2FE25B1D75AB}[crioConfig.Begin]crio.Calibration=1,crio.Location=Slot 3,crio.Type=NI 9401,cRIOModule.DIO3_0InitialDir=0,cRIOModule.DIO7_4InitialDir=0,cRIOModule.EnableDECoM=false,cRIOModule.EnableInputFifo=false,cRIOModule.EnableOutputFifo=false,cRIOModule.NumSyncRegs=11111111,cRIOModule.RsiAttributes=[crioConfig.End]{7158F44A-9720-45C9-AEB7-C90852BBB063}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO7:4;0;ReadMethodType=u8;WriteMethodType=u8{7888944D-E693-458D-A0A1-DB8442628781}[crioConfig.Begin]crio.Location=Slot 2[crioConfig.End]{7AFF61F6-9909-40DD-AF63-62A1427C860A}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO0;0;ReadMethodType=bool;WriteMethodType=bool{7B03D733-538B-4602-B634-631BCE7821E5}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/OvrSmpClk (DIO0);0;ReadMethodType=bool;WriteMethodType=bool{7D395034-E3E1-4AE4-A46D-BF16D9168EA4}resource=/Reset RT App;0;WriteMethodType=bool{7D7D3A01-19D5-4A0D-A914-A0EE3CA34BE4}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO6;0;ReadMethodType=bool;WriteMethodType=bool{867DB748-FBFC-4372-9EE0-B884A2CF24D8}[crioConfig.Begin]crio.Calibration=1,crio.Location=Slot 6,crio.Type=NI 9751[crioConfig.End]{89B8EA4C-6729-46EE-A265-E23B5F23286B}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI Func (DIO4);0;ReadMethodType=bool;WriteMethodType=bool{89EBC48D-FFC5-48AE-A84A-DC33B9EEBCCE}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO4;0;ReadMethodType=bool;WriteMethodType=bool{8B16E858-F3AA-4CA1-BB80-4E6B90111717}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI Clk;0;ReadMethodType=bool;WriteMethodType=bool{8D2664A0-09E3-4104-9643-23BDCF68681F}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO7;0;ReadMethodType=bool;WriteMethodType=bool{91115397-1733-4D2E-AFCB-B26A20E48370}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/Trigger (DIO1);0;ReadMethodType=bool;WriteMethodType=bool{97508D81-8A9C-45E2-AB7D-E5753A79244D}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO1;0;ReadMethodType=bool;WriteMethodType=bool{9894B2A3-0BA8-4A0B-BEB6-2AE41FBACC59}NumberOfSyncRegistersForReadInProject=0;resource=/Time Synchronization/Offset from Time Reference;0;ReadMethodType=i32{A1D5C7FB-5FC7-407D-866F-0A61544883D6}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig0;0;ReadMethodType=bool;WriteMethodType=bool{A5EA9053-DCC2-4190-8735-B0715913282B}NumberOfSyncRegistersForReadInProject=Auto;resource=/System Watchdog Expired;0;ReadMethodType=bool{A893262A-336C-4BC7-A857-080A957CFDCE}NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig7;0;ReadMethodType=bool{A96E3D7C-7D1E-4397-B769-DD79642F4D2F}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO2;0;ReadMethodType=bool;WriteMethodType=bool{B165EF41-0014-4619-9613-8F26B6069F2F}NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig5;0;ReadMethodType=bool{B2BCD1B2-C5B0-4057-BBB8-370A0550B58C}NumberOfSyncRegistersForReadInProject=0;resource=/Time Synchronization/Offset from Time Reference Valid;0;ReadMethodType=bool{B30A8773-3E92-4813-9A40-703ECBADAABE}NumberOfSyncRegistersForReadInProject=0;resource=/Time Synchronization/Time Synchronization Fault;0;ReadMethodType=bool{B5E553D1-813D-4C29-BDE4-640729E72A6D}[crioConfig.Begin]crio.Calibration=1,crio.Location=Slot 5,crio.Type=NI 9751[crioConfig.End]{C1576ED0-45EB-465F-B8B7-8DA171CA718A}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/Trigger (DIO1);0;ReadMethodType=bool;WriteMethodType=bool{CE1F6C7A-766A-4EB4-B65C-2ADDF0DAD40B}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/OvrSmpClk (DIO0);0;ReadMethodType=bool;WriteMethodType=bool{CE8A7695-8A8E-4D15-BA17-1016184188F0}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI RdyBsy (DIO2);0;ReadMethodType=bool;WriteMethodType=bool{D4F3CC81-9D98-4F88-A500-0A1A588D44C2}resource=/USER FPGA LED;0;ReadMethodType=u8;WriteMethodType=u8{D9B0B860-100C-4BDB-8B35-B2868A193D55}[crioConfig.Begin]crio.Calibration=1,crio.Location=Slot 4,crio.Type=NI 9401,cRIOModule.DIO3_0InitialDir=1,cRIOModule.DIO7_4InitialDir=1,cRIOModule.EnableDECoM=false,cRIOModule.EnableInputFifo=false,cRIOModule.EnableOutputFifo=false,cRIOModule.NumSyncRegs=11111111,cRIOModule.RsiAttributes=[crioConfig.End]{DAEAC45A-3EEE-47A5-B1E5-527E0FBF18DF}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO7:0;0;ReadMethodType=u8;WriteMethodType=u8{E0CBDF79-F761-47C0-9587-172B6ED6ED8C}resource=/Scan Clock;0;ReadMethodType=bool{E1BFA8B1-90FF-4D15-92E4-150ACF49A6A5}NumberOfSyncRegistersForReadInProject=Auto;resource=/12.8 MHz Timebase;0;ReadMethodType=bool{E46B5AC7-2E03-4503-8E9D-CC5656633A91}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig1;0;ReadMethodType=bool;WriteMethodType=bool{E551E744-A3AD-47FC-9C08-933322447F1C}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO3:0;0;ReadMethodType=u8;WriteMethodType=u8{EC8FC26F-3C03-4C45-9E8F-515D78883BB8}NumberOfSyncRegistersForReadInProject=Auto;resource=/10 MHz Timebase;0;ReadMethodType=bool{EE05F0D9-50B4-4CF6-BBE6-781591B20BC3}ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI MISO (DIO6);0;ReadMethodType=bool;WriteMethodType=bool{F20D3A53-A4DB-4A3E-A6FE-154C45153BD8}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO1;0;ReadMethodType=bool;WriteMethodType=bool{FBCB958E-BF65-46B2-ACC4-5674EFE77A83}NumberOfSyncRegistersForReadInProject=0;resource=/Time Synchronization/Time;0;ReadMethodType=u64{FE516D7F-1DAC-4AD0-B233-71A824CCE82E}ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig2;0;ReadMethodType=bool;WriteMethodType=boolcRIO-9049/Clk40/falsefalseFPGA_EXECUTION_MODEFPGA_TARGETFPGA_TARGET_CLASSCRIO_9049FPGA_TARGET_FAMILYKINTEX7TARGET_TYPEFPGA</Property>
 					<Property Name="configString.name" Type="Str">10 MHz TimebaseNumberOfSyncRegistersForReadInProject=Auto;resource=/10 MHz Timebase;0;ReadMethodType=bool12.8 MHz TimebaseNumberOfSyncRegistersForReadInProject=Auto;resource=/12.8 MHz Timebase;0;ReadMethodType=bool13.1072 MHz TimebaseNumberOfSyncRegistersForReadInProject=Auto;resource=/13.1072 MHz Timebase;0;ReadMethodType=bool40 MHz Onboard ClockResourceName=40 MHz Onboard Clock;TopSignalConnect=Clk40;ClockSignalName=Clk40;MinFreq=40000000.000000;MaxFreq=40000000.000000;VariableFreq=0;NomFreq=40000000.000000;PeakPeriodJitter=250.000000;MinDutyCycle=50.000000;MaxDutyCycle=50.000000;Accuracy=100.000000;RunTime=0;SpreadSpectrum=0;GenericDataHash=D41D8CD98F00B204E9800998ECF8427E;Chassis Temperatureresource=/Chassis Temperature;0;ReadMethodType=i16cRIO_Trig0ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig0;0;ReadMethodType=bool;WriteMethodType=boolcRIO_Trig1ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig1;0;ReadMethodType=bool;WriteMethodType=boolcRIO_Trig2ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig2;0;ReadMethodType=bool;WriteMethodType=boolcRIO_Trig3ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig3;0;ReadMethodType=bool;WriteMethodType=boolcRIO_Trig4NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig4;0;ReadMethodType=boolcRIO_Trig5NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig5;0;ReadMethodType=boolcRIO_Trig6NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig6;0;ReadMethodType=boolcRIO_Trig7NumberOfSyncRegistersForReadInProject=Auto;resource=/cRIO_Trig/cRIO_Trig7;0;ReadMethodType=boolcRIO-9049/Clk40/falsefalseFPGA_EXECUTION_MODEFPGA_TARGETFPGA_TARGET_CLASSCRIO_9049FPGA_TARGET_FAMILYKINTEX7TARGET_TYPEFPGAMod1[crioConfig.Begin]crio.Location=Slot 1[crioConfig.End]Mod2[crioConfig.Begin]crio.Location=Slot 2[crioConfig.End]Mod3/DIO0ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO0;0;ReadMethodType=bool;WriteMethodType=boolMod3/DIO1ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO1;0;ReadMethodType=bool;WriteMethodType=boolMod3/DIO2ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO2;0;ReadMethodType=bool;WriteMethodType=boolMod3/DIO3:0ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO3:0;0;ReadMethodType=u8;WriteMethodType=u8Mod3/DIO3ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO3;0;ReadMethodType=bool;WriteMethodType=boolMod3/DIO4ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO4;0;ReadMethodType=bool;WriteMethodType=boolMod3/DIO5ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO5;0;ReadMethodType=bool;WriteMethodType=boolMod3/DIO6ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO6;0;ReadMethodType=bool;WriteMethodType=boolMod3/DIO7:0ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO7:0;0;ReadMethodType=u8;WriteMethodType=u8Mod3/DIO7:4ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO7:4;0;ReadMethodType=u8;WriteMethodType=u8Mod3/DIO7ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod3/DIO7;0;ReadMethodType=bool;WriteMethodType=boolMod3[crioConfig.Begin]crio.Calibration=1,crio.Location=Slot 3,crio.Type=NI 9401,cRIOModule.DIO3_0InitialDir=0,cRIOModule.DIO7_4InitialDir=0,cRIOModule.EnableDECoM=false,cRIOModule.EnableInputFifo=false,cRIOModule.EnableOutputFifo=false,cRIOModule.NumSyncRegs=11111111,cRIOModule.RsiAttributes=[crioConfig.End]Mod4/DIO0ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO0;0;ReadMethodType=bool;WriteMethodType=boolMod4/DIO1ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO1;0;ReadMethodType=bool;WriteMethodType=boolMod4/DIO2ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO2;0;ReadMethodType=bool;WriteMethodType=boolMod4/DIO3:0ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO3:0;0;ReadMethodType=u8;WriteMethodType=u8Mod4/DIO3ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO3;0;ReadMethodType=bool;WriteMethodType=boolMod4/DIO4ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO4;0;ReadMethodType=bool;WriteMethodType=boolMod4/DIO5ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO5;0;ReadMethodType=bool;WriteMethodType=boolMod4/DIO6ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO6;0;ReadMethodType=bool;WriteMethodType=boolMod4/DIO7:0ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO7:0;0;ReadMethodType=u8;WriteMethodType=u8Mod4/DIO7:4ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO7:4;0;ReadMethodType=u8;WriteMethodType=u8Mod4/DIO7ArbitrationForOutputData=NeverArbitrate;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod4/DIO7;0;ReadMethodType=bool;WriteMethodType=boolMod4[crioConfig.Begin]crio.Calibration=1,crio.Location=Slot 4,crio.Type=NI 9401,cRIOModule.DIO3_0InitialDir=1,cRIOModule.DIO7_4InitialDir=1,cRIOModule.EnableDECoM=false,cRIOModule.EnableInputFifo=false,cRIOModule.EnableOutputFifo=false,cRIOModule.NumSyncRegs=11111111,cRIOModule.RsiAttributes=[crioConfig.End]Mod5/ID SelectArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/ID Select;0;ReadMethodType=bool;WriteMethodType=boolMod5/OvrSmpClk (DIO0)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/OvrSmpClk (DIO0);0;ReadMethodType=bool;WriteMethodType=boolMod5/SPI ClkArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI Clk;0;ReadMethodType=bool;WriteMethodType=boolMod5/SPI Conv (DIO3)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI Conv (DIO3);0;ReadMethodType=bool;WriteMethodType=boolMod5/SPI CS (DIO5)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI CS (DIO5);0;ReadMethodType=bool;WriteMethodType=boolMod5/SPI Func (DIO4)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI Func (DIO4);0;ReadMethodType=bool;WriteMethodType=boolMod5/SPI MISO (DIO6)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI MISO (DIO6);0;ReadMethodType=bool;WriteMethodType=boolMod5/SPI MOSI (DIO7)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI MOSI (DIO7);0;ReadMethodType=bool;WriteMethodType=boolMod5/SPI RdyBsy (DIO2)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/SPI RdyBsy (DIO2);0;ReadMethodType=bool;WriteMethodType=boolMod5/Trigger (DIO1)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod5/Trigger (DIO1);0;ReadMethodType=bool;WriteMethodType=boolMod5[crioConfig.Begin]crio.Calibration=1,crio.Location=Slot 5,crio.Type=NI 9751[crioConfig.End]Mod6/ID SelectArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/ID Select;0;ReadMethodType=bool;WriteMethodType=boolMod6/OvrSmpClk (DIO0)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/OvrSmpClk (DIO0);0;ReadMethodType=bool;WriteMethodType=boolMod6/SPI ClkArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI Clk;0;ReadMethodType=bool;WriteMethodType=boolMod6/SPI Conv (DIO3)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI Conv (DIO3);0;ReadMethodType=bool;WriteMethodType=boolMod6/SPI CS (DIO5)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI CS (DIO5);0;ReadMethodType=bool;WriteMethodType=boolMod6/SPI Func (DIO4)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI Func (DIO4);0;ReadMethodType=bool;WriteMethodType=boolMod6/SPI MISO (DIO6)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI MISO (DIO6);0;ReadMethodType=bool;WriteMethodType=boolMod6/SPI MOSI (DIO7)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI MOSI (DIO7);0;ReadMethodType=bool;WriteMethodType=boolMod6/SPI RdyBsy (DIO2)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/SPI RdyBsy (DIO2);0;ReadMethodType=bool;WriteMethodType=boolMod6/Trigger (DIO1)ArbitrationForOutputData=NeverArbitrate;ArbitrationForOutputEnable=NeverArbitrate;NumberOfSyncRegistersForOutputData=1;NumberOfSyncRegistersForOutputEnable=1;NumberOfSyncRegistersForReadInProject=Auto;resource=/crio_Mod6/Trigger (DIO1);0;ReadMethodType=bool;WriteMethodType=boolMod6[crioConfig.Begin]crio.Calibration=1,crio.Location=Slot 6,crio.Type=NI 9751[crioConfig.End]Mod8[crioConfig.Begin]crio.Location=Slot 8[crioConfig.End]Offset from Time Reference ValidNumberOfSyncRegistersForReadInProject=0;resource=/Time Synchronization/Offset from Time Reference Valid;0;ReadMethodType=boolOffset from Time ReferenceNumberOfSyncRegistersForReadInProject=0;resource=/Time Synchronization/Offset from Time Reference;0;ReadMethodType=i32Reset RT Appresource=/Reset RT App;0;WriteMethodType=boolScan Clockresource=/Scan Clock;0;ReadMethodType=boolSleepresource=/Sleep;0;ReadMethodType=bool;WriteMethodType=boolSystem Resetresource=/System Reset;0;ReadMethodType=bool;WriteMethodType=boolSystem Watchdog ExpiredNumberOfSyncRegistersForReadInProject=Auto;resource=/System Watchdog Expired;0;ReadMethodType=boolTime SourceNumberOfSyncRegistersForReadInProject=0;resource=/Time Synchronization/Time Source;0;ReadMethodType=Targets\NI\FPGA\RIO\CompactRIO\Sync\SyncSource.ctlTime Synchronization FaultNumberOfSyncRegistersForReadInProject=0;resource=/Time Synchronization/Time Synchronization Fault;0;ReadMethodType=boolTimeNumberOfSyncRegistersForReadInProject=0;resource=/Time Synchronization/Time;0;ReadMethodType=u64USER FPGA LEDresource=/USER FPGA LED;0;ReadMethodType=u8;WriteMethodType=u8USER Push ButtonNumberOfSyncRegistersForReadInProject=0;resource=/USER Push Button;0;ReadMethodType=bool</Property>
-					<Property Name="NI.LV.FPGA.InterfaceBitfile" Type="Str">C:\LabVIEW PROJECT\MONARCH\FPGA Bitfiles\monarch_FPGATarget4_APC9049FPGAmain_ilvAUSSK5ys.lvbitx</Property>
+					<Property Name="NI.LV.FPGA.InterfaceBitfile" Type="Str">C:\LabVIEW PROJECT\MONARCH\FPGA Bitfiles\nobleapcmulticyl_FPGATarget4_APC9049FPGAmain_30BIM05nubg.lvbitx</Property>
 				</Item>
 				<Item Name="RIO-DRAM" Type="FPGA Component Level IP">
 					<Property Name="NI.LV.CLIP.DeclarationCategory" Type="Str"></Property>
@@ -2180,8 +2227,44 @@ AddOutputFilter chunkFilter
 						<Property Name="Comp.Xilinx.UseRecommended" Type="Bool">true</Property>
 						<Property Name="DefaultBuildSpec" Type="Bool">false</Property>
 						<Property Name="DestinationDirectory" Type="Path">FPGA Bitfiles</Property>
-						<Property Name="NI.LV.FPGA.LastCompiledBitfilePath" Type="Path">/C/LabVIEW PROJECT/MONARCH/FPGA Bitfiles/monarch_FPGATarget4_APC9049FPGAmain_ilvAUSSK5ys.lvbitx</Property>
-						<Property Name="NI.LV.FPGA.LastCompiledBitfilePathRelativeToProject" Type="Path">FPGA Bitfiles/monarch_FPGATarget4_APC9049FPGAmain_ilvAUSSK5ys.lvbitx</Property>
+						<Property Name="NI.LV.FPGA.LastCompiledBitfilePath" Type="Path">/C/LabVIEW PROJECT/MONARCH/FPGA Bitfiles/nobleapcmulticyl_FPGATarget4_APC9049FPGAmain_30BIM05nubg.lvbitx</Property>
+						<Property Name="NI.LV.FPGA.LastCompiledBitfilePathRelativeToProject" Type="Path">FPGA Bitfiles/nobleapcmulticyl_FPGATarget4_APC9049FPGAmain_30BIM05nubg.lvbitx</Property>
+						<Property Name="ProjectPath" Type="Path">/C/LabVIEW PROJECT/MONARCH/MONARCH.lvproj</Property>
+						<Property Name="RelativePath" Type="Bool">true</Property>
+						<Property Name="RunWhenLoaded" Type="Bool">false</Property>
+						<Property Name="SupportDownload" Type="Bool">true</Property>
+						<Property Name="SupportResourceEstimation" Type="Bool">false</Property>
+						<Property Name="TargetName" Type="Str">FPGA Target 4</Property>
+						<Property Name="TopLevelVI" Type="Ref">/NI-cRIO-9049-020A5DED/Chassis/FPGA Target 4/APC_9049_FPGA_main.vi</Property>
+					</Item>
+					<Item Name="APC_9049_FPGA_main_2" Type="{F4C5E96F-7410-48A5-BB87-3559BC9B167F}">
+						<Property Name="AllowEnableRemoval" Type="Bool">false</Property>
+						<Property Name="BuildSpecDecription" Type="Str"></Property>
+						<Property Name="BuildSpecName" Type="Str">APC_9049_FPGA_main_2</Property>
+						<Property Name="Comp.BitfileName" Type="Str">monarch_FPGATarget4_APC9049FPGAmain2_Cwd6QNjCvXU.lvbitx</Property>
+						<Property Name="Comp.CustomXilinxParameters" Type="Str"></Property>
+						<Property Name="Comp.MaxFanout" Type="Int">-1</Property>
+						<Property Name="Comp.RandomSeed" Type="Bool">false</Property>
+						<Property Name="Comp.Version.Build" Type="Int">0</Property>
+						<Property Name="Comp.Version.Fix" Type="Int">0</Property>
+						<Property Name="Comp.Version.Major" Type="Int">1</Property>
+						<Property Name="Comp.Version.Minor" Type="Int">0</Property>
+						<Property Name="Comp.VersionAutoIncrement" Type="Bool">false</Property>
+						<Property Name="Comp.Vivado.EnableMultiThreading" Type="Bool">true</Property>
+						<Property Name="Comp.Vivado.OptDirective" Type="Str"></Property>
+						<Property Name="Comp.Vivado.PhysOptDirective" Type="Str"></Property>
+						<Property Name="Comp.Vivado.PlaceDirective" Type="Str"></Property>
+						<Property Name="Comp.Vivado.RouteDirective" Type="Str"></Property>
+						<Property Name="Comp.Vivado.RunPowerOpt" Type="Bool">false</Property>
+						<Property Name="Comp.Vivado.Strategy" Type="Str">Default</Property>
+						<Property Name="Comp.Xilinx.DesignStrategy" Type="Str">balanced</Property>
+						<Property Name="Comp.Xilinx.MapEffort" Type="Str">default(noTiming)</Property>
+						<Property Name="Comp.Xilinx.ParEffort" Type="Str">standard</Property>
+						<Property Name="Comp.Xilinx.SynthEffort" Type="Str">normal</Property>
+						<Property Name="Comp.Xilinx.SynthGoal" Type="Str">speed</Property>
+						<Property Name="Comp.Xilinx.UseRecommended" Type="Bool">true</Property>
+						<Property Name="DefaultBuildSpec" Type="Bool">true</Property>
+						<Property Name="DestinationDirectory" Type="Path">FPGA Bitfiles</Property>
 						<Property Name="ProjectPath" Type="Path">/C/LabVIEW PROJECT/MONARCH/MONARCH.lvproj</Property>
 						<Property Name="RelativePath" Type="Bool">true</Property>
 						<Property Name="RunWhenLoaded" Type="Bool">false</Property>
@@ -2195,7 +2278,6 @@ AddOutputFilter chunkFilter
 		</Item>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
-				<Item Name="Clear Errors.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Clear Errors.vi"/>
 				<Item Name="compatCalcOffset.vi" Type="VI" URL="/&lt;vilib&gt;/_oldvers/_oldvers.llb/compatCalcOffset.vi"/>
 				<Item Name="compatFileDialog.vi" Type="VI" URL="/&lt;vilib&gt;/_oldvers/_oldvers.llb/compatFileDialog.vi"/>
 				<Item Name="compatOpenFileOperation.vi" Type="VI" URL="/&lt;vilib&gt;/_oldvers/_oldvers.llb/compatOpenFileOperation.vi"/>
@@ -2377,7 +2459,6 @@ AddOutputFilter chunkFilter
 				<Item Name="FindFirstTag.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/FindFirstTag.vi"/>
 				<Item Name="FindMatchingCloseTag.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/FindMatchingCloseTag.vi"/>
 				<Item Name="Interp1DTableRT.vi" Type="VI" URL="/&lt;vilib&gt;/Powertrain Controls/Device Drivers/Tools/Real-Time/Interp1DTableRT.vi"/>
-				<Item Name="Modbus Master.lvclass" Type="LVClass" URL="/&lt;vilib&gt;/Modbus/master/Modbus Master.lvclass"/>
 				<Item Name="NI_AALBase.lvlib" Type="Library" URL="/&lt;vilib&gt;/Analysis/NI_AALBase.lvlib"/>
 				<Item Name="NI_AALPro.lvlib" Type="Library" URL="/&lt;vilib&gt;/Analysis/NI_AALPro.lvlib"/>
 				<Item Name="NI_Matrix.lvlib" Type="Library" URL="/&lt;vilib&gt;/Analysis/Matrix/NI_Matrix.lvlib"/>
@@ -2390,7 +2471,6 @@ AddOutputFilter chunkFilter
 				<Item Name="Read From XML File(array).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Read From XML File(array).vi"/>
 				<Item Name="Read From XML File(string).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Read From XML File(string).vi"/>
 				<Item Name="Read From XML File.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Read From XML File.vi"/>
-				<Item Name="SubVIs.lvlib" Type="Library" URL="/&lt;vilib&gt;/Modbus/subvis/SubVIs.lvlib"/>
 				<Item Name="ticks2speed.vi" Type="VI" URL="/&lt;vilib&gt;/Powertrain Controls/Device Drivers/Tools/Real-Time/ticks2speed.vi"/>
 				<Item Name="time2ticks.vi" Type="VI" URL="/&lt;vilib&gt;/Powertrain Controls/Device Drivers/Tools/Real-Time/time2ticks.vi"/>
 				<Item Name="Write to XML File(array).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Write to XML File(array).vi"/>
@@ -2422,7 +2502,73 @@ AddOutputFilter chunkFilter
 				<Property Name="NI.PreserveRelativePath" Type="Bool">true</Property>
 			</Item>
 		</Item>
-		<Item Name="Build Specifications" Type="Build"/>
+		<Item Name="Build Specifications" Type="Build">
+			<Item Name="APC_9049_RT" Type="{69A947D5-514E-4E75-818E-69657C0547D8}">
+				<Property Name="App_copyErrors" Type="Bool">true</Property>
+				<Property Name="App_INI_aliasGUID" Type="Str">{C1F2706D-B80D-4780-A285-C2BCD6394F1F}</Property>
+				<Property Name="App_INI_GUID" Type="Str">{E9D10A56-1E7C-4D81-8C28-CBDEE79894AE}</Property>
+				<Property Name="App_serverConfig.httpPort" Type="Int">8002</Property>
+				<Property Name="App_serverType" Type="Int">0</Property>
+				<Property Name="Bld_buildCacheID" Type="Str">{DD0D8E8F-5A44-4AEC-941B-BE72A890F78D}</Property>
+				<Property Name="Bld_buildSpecDescription" Type="Str">9049 RT startup app: CAS/SAVE/TS10ms loops. Built from audit-checked panel defaults, 2026-07-09.</Property>
+				<Property Name="Bld_buildSpecName" Type="Str">APC_9049_RT</Property>
+				<Property Name="Bld_excludeInlineSubVIs" Type="Bool">true</Property>
+				<Property Name="Bld_excludeLibraryItems" Type="Bool">true</Property>
+				<Property Name="Bld_excludePolymorphicVIs" Type="Bool">true</Property>
+				<Property Name="Bld_localDestDir" Type="Path">../builds/NI_AB_PROJECTNAME/NI_AB_TARGETNAME/APC_9049_RT</Property>
+				<Property Name="Bld_localDestDirType" Type="Str">relativeToCommon</Property>
+				<Property Name="Bld_modifyLibraryFile" Type="Bool">true</Property>
+				<Property Name="Bld_previewCacheID" Type="Str">{A1D8FC0D-DF97-42E4-9917-1AC6DDB328DE}</Property>
+				<Property Name="Bld_targetDestDir" Type="Path">/home/lvuser/natinst/bin</Property>
+				<Property Name="Bld_version.minor" Type="Int">1</Property>
+				<Property Name="Destination[0].destName" Type="Str">startup.rtexe</Property>
+				<Property Name="Destination[0].path" Type="Path">/home/lvuser/natinst/bin/startup.rtexe</Property>
+				<Property Name="Destination[0].path.type" Type="Str">&lt;none&gt;</Property>
+				<Property Name="Destination[0].preserveHierarchy" Type="Bool">true</Property>
+				<Property Name="Destination[0].type" Type="Str">App</Property>
+				<Property Name="Destination[1].destName" Type="Str">Support Directory</Property>
+				<Property Name="Destination[1].path" Type="Path">/home/lvuser/natinst/bin/data</Property>
+				<Property Name="Destination[1].path.type" Type="Str">&lt;none&gt;</Property>
+				<Property Name="DestinationCount" Type="Int">2</Property>
+				<Property Name="Source[0].itemID" Type="Str">{96CCDCF3-4161-4792-A154-6BAB7A44CFFA}</Property>
+				<Property Name="Source[0].type" Type="Str">Container</Property>
+				<Property Name="Source[1].destinationIndex" Type="Int">0</Property>
+				<Property Name="Source[1].itemID" Type="Ref">/NI-cRIO-9049-020A5DED/APC_9049_RT_main.vi</Property>
+				<Property Name="Source[1].sourceInclusion" Type="Str">TopLevel</Property>
+				<Property Name="Source[1].type" Type="Str">VI</Property>
+				<Property Name="Source[2].itemID" Type="Ref">/NI-cRIO-9049-020A5DED/RT Loops/APC_9049_CAS_loop.vi</Property>
+				<Property Name="Source[2].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[2].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[2].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[2].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[2].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[2].type" Type="Str">VI</Property>
+				<Property Name="Source[3].itemID" Type="Ref">/NI-cRIO-9049-020A5DED/RT Loops/APC_9049_SAVE_loop.vi</Property>
+				<Property Name="Source[3].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[3].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[3].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[3].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[3].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[3].type" Type="Str">VI</Property>
+				<Property Name="Source[4].itemID" Type="Ref">/NI-cRIO-9049-020A5DED/RT Loops/APC_9049_TS10ms_loop.vi</Property>
+				<Property Name="Source[4].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[4].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[4].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[4].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[4].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[4].type" Type="Str">VI</Property>
+				<Property Name="SourceCount" Type="Int">5</Property>
+				<Property Name="TgtF_companyName" Type="Str">UC Berkeley</Property>
+				<Property Name="TgtF_enableDebugging" Type="Bool">true</Property>
+				<Property Name="TgtF_fileDescription" Type="Str">APC_9049_RT</Property>
+				<Property Name="TgtF_internalName" Type="Str">APC_9049_RT</Property>
+				<Property Name="TgtF_legalCopyright" Type="Str">Copyright © 2026 UC Berkeley</Property>
+				<Property Name="TgtF_productName" Type="Str">APC_9049_RT</Property>
+				<Property Name="TgtF_targetfileGUID" Type="Str">{2379A74C-6E95-40AA-AEA3-F2E5AF8AC235}</Property>
+				<Property Name="TgtF_targetfileName" Type="Str">startup.rtexe</Property>
+				<Property Name="TgtF_versionIndependent" Type="Bool">true</Property>
+			</Item>
+		</Item>
 	</Item>
 	<Item Name="CRIO9056 NTS" Type="RT CompactRIO">
 		<Property Name="alias.name" Type="Str">CRIO9056 NTS</Property>
@@ -2450,10 +2596,10 @@ AddOutputFilter chunkFilter
 		<Property Name="target.IsRemotePanelSupported" Type="Bool">true</Property>
 		<Property Name="target.RTCPULoadMonitoringEnabled" Type="Bool">true</Property>
 		<Property Name="target.RTDebugWebServerHTTPPort" Type="Int">8001</Property>
-		<Property Name="target.RTTarget.ApplicationPath" Type="Path">/c/ni-rt/startup/startup.rtexe</Property>
+		<Property Name="target.RTTarget.ApplicationPath" Type="Path">/home/lvuser/natinst/bin/startup.rtexe</Property>
 		<Property Name="target.RTTarget.EnableFileSharing" Type="Bool">true</Property>
 		<Property Name="target.RTTarget.IPAccess" Type="Str">+*</Property>
-		<Property Name="target.RTTarget.LaunchAppAtBoot" Type="Bool">false</Property>
+		<Property Name="target.RTTarget.LaunchAppAtBoot" Type="Bool">true</Property>
 		<Property Name="target.RTTarget.VIPath" Type="Path">/home/lvuser/natinst/bin</Property>
 		<Property Name="target.server.app.propertiesEnabled" Type="Bool">true</Property>
 		<Property Name="target.server.control.propertiesEnabled" Type="Bool">true</Property>
@@ -2509,6 +2655,7 @@ AddOutputFilter chunkFilter
 		</Item>
 		<Item Name="Support VIs" Type="Folder">
 			<Item Name="APC_9056_9049SharedVarPolling.vi" Type="VI" URL="../APC_9056_9049SharedVarPolling.vi"/>
+			<Item Name="APC_9056_Signals.vi" Type="VI" URL="../APC_9056_Signals.vi"/>
 			<Item Name="APC_9056_additonalSignals.vi" Type="VI" URL="../APC_9056_additonalSignals.vi"/>
 			<Item Name="APC_9056_ClearSoftWarning.vi" Type="VI" URL="../APC_9056_ClearSoftWarning.vi"/>
 			<Item Name="APC_9056_ForceArraySize6b.vi" Type="VI" URL="../APC_9056_ForceArraySize6b.vi"/>
@@ -3981,17 +4128,159 @@ AddOutputFilter chunkFilter
 				<Property Name="NI.PreserveRelativePath" Type="Bool">true</Property>
 			</Item>
 			<Item Name="lvanlys.dll" Type="Document" URL="/&lt;resource&gt;/lvanlys.dll"/>
-			<Item Name="NiFpgaLv.dll" Type="Document" URL="NiFpgaLv.dll">
-				<Property Name="NI.PreserveRelativePath" Type="Bool">true</Property>
-			</Item>
 			<Item Name="APC_PID_VariableMapping.vi" Type="VI" URL="../APC_PID_VariableMapping.vi"/>
-			<Item Name="APC_9056_Signals.vi" Type="VI" URL="../APC_9056_Signals.vi"/>
 			<Item Name="APC_ControlSettings.ctl" Type="VI" URL="../controls/APC_ControlSettings.ctl"/>
 			<Item Name="APC_PIDcontrolSettings.ctl" Type="VI" URL="../controls/APC_PIDcontrolSettings.ctl"/>
 			<Item Name="APC_9049_CycleAvgSignals.vi" Type="VI" URL="../APC_9049_CycleAvgSignals.vi"/>
 			<Item Name="APC_AppendUnits.vi" Type="VI" URL="../APC_AppendUnits.vi"/>
 			<Item Name="APC_ReplaceInNames.vi" Type="VI" URL="../APC_ReplaceInNames.vi"/>
+			<Item Name="NiFpgaLv.dll" Type="Document" URL="NiFpgaLv.dll">
+				<Property Name="NI.PreserveRelativePath" Type="Bool">true</Property>
+			</Item>
 		</Item>
-		<Item Name="Build Specifications" Type="Build"/>
+		<Item Name="Build Specifications" Type="Build">
+			<Item Name="APC_9056_RT" Type="{69A947D5-514E-4E75-818E-69657C0547D8}">
+				<Property Name="App_copyErrors" Type="Bool">true</Property>
+				<Property Name="App_INI_aliasGUID" Type="Str">{F31993EB-FBCD-4244-8F98-B5499AA3A0EE}</Property>
+				<Property Name="App_INI_GUID" Type="Str">{20F14705-F59F-461D-8611-0EFD20C6ABA7}</Property>
+				<Property Name="App_serverConfig.httpPort" Type="Int">8002</Property>
+				<Property Name="App_serverType" Type="Int">1</Property>
+				<Property Name="Bld_buildCacheID" Type="Str">{E3AA5A9D-5D77-4A2B-A1BB-CDFE8C80A662}</Property>
+				<Property Name="Bld_buildSpecDescription" Type="Str">9056 RT startup app: 2026-07-09</Property>
+				<Property Name="Bld_buildSpecName" Type="Str">APC_9056_RT</Property>
+				<Property Name="Bld_excludeInlineSubVIs" Type="Bool">true</Property>
+				<Property Name="Bld_excludeLibraryItems" Type="Bool">true</Property>
+				<Property Name="Bld_excludePolymorphicVIs" Type="Bool">true</Property>
+				<Property Name="Bld_localDestDir" Type="Path">../builds/NI_AB_PROJECTNAME/NI_AB_TARGETNAME/APC_9056_RT</Property>
+				<Property Name="Bld_localDestDirType" Type="Str">relativeToCommon</Property>
+				<Property Name="Bld_modifyLibraryFile" Type="Bool">true</Property>
+				<Property Name="Bld_previewCacheID" Type="Str">{EDA8C7E0-47BC-425E-A777-A5333F38A09F}</Property>
+				<Property Name="Bld_targetDestDir" Type="Path">/home/lvuser/natinst/bin</Property>
+				<Property Name="Bld_version.minor" Type="Int">1</Property>
+				<Property Name="Destination[0].destName" Type="Str">startup.rtexe</Property>
+				<Property Name="Destination[0].path" Type="Path">/home/lvuser/natinst/bin/startup.rtexe</Property>
+				<Property Name="Destination[0].path.type" Type="Str">&lt;none&gt;</Property>
+				<Property Name="Destination[0].preserveHierarchy" Type="Bool">true</Property>
+				<Property Name="Destination[0].type" Type="Str">App</Property>
+				<Property Name="Destination[1].destName" Type="Str">Support Directory</Property>
+				<Property Name="Destination[1].path" Type="Path">/home/lvuser/natinst/bin/data</Property>
+				<Property Name="Destination[1].path.type" Type="Str">&lt;none&gt;</Property>
+				<Property Name="DestinationCount" Type="Int">2</Property>
+				<Property Name="Source[0].Container.applySaveSettings" Type="Bool">true</Property>
+				<Property Name="Source[0].itemID" Type="Str">{2A0BD9C0-2D30-4EC6-8D76-22AA1D15FF54}</Property>
+				<Property Name="Source[0].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[0].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[0].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[0].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[0].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[0].type" Type="Str">Container</Property>
+				<Property Name="Source[1].destinationIndex" Type="Int">0</Property>
+				<Property Name="Source[1].itemID" Type="Ref">/CRIO9056 NTS/APC_9056_RT_main.vi</Property>
+				<Property Name="Source[1].sourceInclusion" Type="Str">TopLevel</Property>
+				<Property Name="Source[1].type" Type="Str">VI</Property>
+				<Property Name="Source[10].Container.applySaveSettings" Type="Bool">true</Property>
+				<Property Name="Source[10].Container.depDestIndex" Type="Int">0</Property>
+				<Property Name="Source[10].itemID" Type="Ref">/CRIO9056 NTS/Support VIs</Property>
+				<Property Name="Source[10].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[10].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[10].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[10].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[10].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[10].type" Type="Str">Container</Property>
+				<Property Name="Source[11].Container.applySaveSettings" Type="Bool">true</Property>
+				<Property Name="Source[11].Container.depDestIndex" Type="Int">0</Property>
+				<Property Name="Source[11].itemID" Type="Ref">/CRIO9056 NTS/Type definitions</Property>
+				<Property Name="Source[11].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[11].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[11].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[11].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[11].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[11].type" Type="Str">Container</Property>
+				<Property Name="Source[12].Container.applySaveSettings" Type="Bool">true</Property>
+				<Property Name="Source[12].Container.depDestIndex" Type="Int">0</Property>
+				<Property Name="Source[12].itemID" Type="Ref">/CRIO9056 NTS/APC_ApplicationFunctions</Property>
+				<Property Name="Source[12].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[12].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[12].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[12].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[12].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[12].type" Type="Str">Container</Property>
+				<Property Name="Source[13].itemID" Type="Ref">/CRIO9056 NTS/APC_9056_WatchDog.vi</Property>
+				<Property Name="Source[13].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[13].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[13].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[13].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[13].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[13].type" Type="Str">VI</Property>
+				<Property Name="Source[2].itemID" Type="Ref">/CRIO9056 NTS/Support VIs/APC_9056_NI9205conf.vi</Property>
+				<Property Name="Source[2].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[2].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[2].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[2].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[2].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[2].type" Type="Str">VI</Property>
+				<Property Name="Source[3].itemID" Type="Ref">/CRIO9056 NTS/Support VIs/APC_9056_NI9208conf.vi</Property>
+				<Property Name="Source[3].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[3].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[3].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[3].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[3].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[3].type" Type="Str">VI</Property>
+				<Property Name="Source[4].itemID" Type="Ref">/CRIO9056 NTS/Support VIs/APC_9056_NI9214conf.vi</Property>
+				<Property Name="Source[4].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[4].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[4].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[4].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[4].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[4].type" Type="Str">VI</Property>
+				<Property Name="Source[5].itemID" Type="Ref">/CRIO9056 NTS/Loops/APC_9056_TS_loop.vi</Property>
+				<Property Name="Source[5].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[5].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[5].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[5].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[5].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[5].type" Type="Str">VI</Property>
+				<Property Name="Source[6].itemID" Type="Ref">/CRIO9056 NTS/Support VIs/APC_9056_LoadINI.vi</Property>
+				<Property Name="Source[6].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[6].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[6].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[6].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[6].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[6].type" Type="Str">VI</Property>
+				<Property Name="Source[7].itemID" Type="Ref">/CRIO9056 NTS/Support VIs/APC_9056_additonalSignals.vi</Property>
+				<Property Name="Source[7].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[7].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[7].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[7].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[7].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[7].type" Type="Str">VI</Property>
+				<Property Name="Source[8].itemID" Type="Ref">/CRIO9056 NTS/Support VIs/APC_9056_SensorCalibrations.vi</Property>
+				<Property Name="Source[8].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[8].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[8].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[8].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[8].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[8].type" Type="Str">VI</Property>
+				<Property Name="Source[9].Container.applySaveSettings" Type="Bool">true</Property>
+				<Property Name="Source[9].Container.depDestIndex" Type="Int">0</Property>
+				<Property Name="Source[9].itemID" Type="Ref">/CRIO9056 NTS/Loops</Property>
+				<Property Name="Source[9].properties[0].type" Type="Str">Remove front panel</Property>
+				<Property Name="Source[9].properties[0].value" Type="Bool">false</Property>
+				<Property Name="Source[9].properties[1].type" Type="Str">Remove block diagram</Property>
+				<Property Name="Source[9].properties[1].value" Type="Bool">true</Property>
+				<Property Name="Source[9].propertiesCount" Type="Int">2</Property>
+				<Property Name="Source[9].type" Type="Str">Container</Property>
+				<Property Name="SourceCount" Type="Int">14</Property>
+				<Property Name="TgtF_companyName" Type="Str">UC Berkeley</Property>
+				<Property Name="TgtF_enableDebugging" Type="Bool">true</Property>
+				<Property Name="TgtF_fileDescription" Type="Str">APC_9056_RT</Property>
+				<Property Name="TgtF_internalName" Type="Str">APC_9056_RT</Property>
+				<Property Name="TgtF_legalCopyright" Type="Str">Copyright © 2026 UC Berkeley</Property>
+				<Property Name="TgtF_productName" Type="Str">APC_9056_RT</Property>
+				<Property Name="TgtF_targetfileGUID" Type="Str">{DA924435-9183-46B6-BC67-D32261C79E17}</Property>
+				<Property Name="TgtF_targetfileName" Type="Str">startup.rtexe</Property>
+				<Property Name="TgtF_versionIndependent" Type="Bool">true</Property>
+			</Item>
+		</Item>
 	</Item>
 </Project>
