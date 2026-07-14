@@ -197,7 +197,7 @@ coerce** (a `combustion detected?` gate that skips CA-based checks when
 `HRmax−HRmin ≈ 0`) before the rebuild; **(2)** for SIL-1 the phasing checks can
 only be exercised with a **real pressure source** driving the CAS channels (all
 6 `Pcyl`, since late-combustion is per-cylinder OR'd), not turned off by a big
-number. Confirm the returned value with `flat_set/` through the SIL-0 harness, or
+number. Confirm the returned value with `trace-sets/flat_set/` through the SIL-0 harness, or
 by probing the live `CA50` on the panel. Same family as the NaN-at-Unflatten
 bench bug — **non-finite sanitization is a systemic gap in the analytics** (F8).
 
@@ -309,7 +309,7 @@ can drive all of it.
 (2026-07-11).** → **Click-level step-by-step: `docs/sil0-scope-of-work.md`.**
 Generate traces (real MONARCH geometry, from picture15 — bore 0.112,
 ½-stroke `Lm`=0.0745, rod `Lb`=0.217, CR 12.8, offset −0.00099):
-`python tools/gen_cas_traces.py sil0_traces --cycles 20 --mode mixed
+`python tools/gen_cas_traces.py trace-sets/sil0_traces --cycles 20 --mode mixed
 --fire-from 10 --misfire 3:14 --knock 1:16:2.5 --bore 0.112 --stroke 0.149
 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099 [--q-fired 6000]`. The
 generator emits **`cycle_NNNN_phased.csv` (6×7200, already phased, TDC at
@@ -348,11 +348,11 @@ variable (the trap that kept those VIs off the desktop harness).
 **Step 1 — Generate the motored trace set.**
 
 ```
-python tools/gen_cas_traces.py motored_set --cycles 30 --mode motored \
+python tools/gen_cas_traces.py trace-sets/motored_set --cycles 30 --mode motored \
   --bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099
 ```
 
-Writes into `motored_set/`: raw `cycle_NNNN.csv` (9×7200 — Pcyl1–6, Ppre, Psyst,
+Writes into `trace-sets/motored_set/`: raw `cycle_NNNN.csv` (9×7200 — Pcyl1–6, Ppre, Psyst,
 Pexh), **`cycle_NNNN_phased.csv` (6×7200, each cylinder already in its own frame,
 TDC at sample 3600 — these feed `APC_HRL` directly)**, and `truth.json` (the
 computed IMEPg/IMEPn/Pmax/CA50 per cycle·cylinder). `--mode motored` =
@@ -363,7 +363,7 @@ statistics. *Accept:* 30 `*_phased.csv` + `truth.json` present; the generator
 prints the per-cycle period.
 
 **Step 2 — Run the set through the harness → metrics, and re-confirm the math.**
-Point `APC_SIL0_HRL_Desktop.vi` (My Computer) at `motored_set/`: List Folder
+Point `APC_SIL0_HRL_Desktop.vi` (My Computer) at `trace-sets/motored_set/`: List Folder
 (`*_phased.csv`) → For loop → Read Delimited Spreadsheet (**comma** delimiter) →
 `support/APC_HRL.vi` with `Pcyl` = the 6×7200 array, `exhaust pressure` =
 `Initialize Array(3.0, 7200)` (flat — **must** be wired or pegging → NaN),
@@ -371,11 +371,11 @@ Point `APC_SIL0_HRL_Desktop.vi` (My Computer) at `motored_set/`: List Folder
 cylinders, so its `IMEPg/IMEPn/Pmax/CA50` come out as **6-element arrays**; the
 inner loop writes one row per (cycle, cyl) — `[cycle, cyl, IMEPg, IMEPn, Pmax,
 CA50]`, **cycle = outer i+1, cyl = inner i+1** — through a concatenating tunnel →
-Write Delimited Spreadsheet → `motored_set/labview_metrics.csv`. Then sanity-check
+Write Delimited Spreadsheet → `trace-sets/motored_set/labview_metrics.csv`. Then sanity-check
 before trusting any threshold derived from it:
 
 ```
-python tools/compare_hrl.py motored_set/truth.json motored_set/labview_metrics.csv
+python tools/compare_hrl.py trace-sets/motored_set/truth.json trace-sets/motored_set/labview_metrics.csv
 ```
 
 *Accept:* `labview_metrics.csv` has 30×6 = 180 numeric rows and `compare_hrl`
@@ -385,7 +385,7 @@ Step 3 — every threshold below is derived from these numbers.)
 **Step 3 — Recommend and enter the motoring thresholds.**
 
 ```
-python tools/tune_thresholds.py motored_set/labview_metrics.csv --mode motored \
+python tools/tune_thresholds.py trace-sets/motored_set/labview_metrics.csv --mode motored \
   --pmax-hard-limit <engine over-pressure ceiling, bar>
 ```
 

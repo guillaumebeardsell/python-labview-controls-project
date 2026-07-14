@@ -11,10 +11,9 @@ traffic*.jsonl
 desktop.ini
 
 # SIL / synthetic-trace scratch — regenerate with tools/gen_cas_traces.py
-motored_set/
-fired_set/
-sil0_traces/
-flat_set/
+# (all sets live under trace-sets/; only its README is tracked)
+trace-sets/*
+!trace-sets/README.md
 **/labview_metrics.csv
 
 # LabVIEW debugging captures (bench screenshots)

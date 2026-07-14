@@ -1,7 +1,7 @@
 """Recommend 9049 cylinder-pressure warning thresholds from a SIL run's metrics.
 
-    python tools/tune_thresholds.py motored_set/labview_metrics.csv --mode motored
-    python tools/tune_thresholds.py fired_set/labview_metrics.csv   --mode fired
+    python tools/tune_thresholds.py trace-sets/motored_set/labview_metrics.csv --mode motored
+    python tools/tune_thresholds.py trace-sets/fired_set/labview_metrics.csv   --mode fired
 
 Purpose (see docs/9049-openloop-audit.md F3): the 9049's `Pcyl_Diag` compares
 each combustion metric against a Warning and an Error limit from the

@@ -57,9 +57,9 @@ plan; this doc is the *current state + what to do next + what's still soft*.
 1. **Set the motoring warning thresholds** (closes the #1 pre-fuel risk, 9049
    audit F3: `CylPressError` false-tripping and vetoing first fire).
    - Generate a motored set:
-     `python tools/gen_cas_traces.py motored_set --cycles 30 --mode motored --bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099`
-   - Run it through `APC_SIL0_HRL_Desktop.vi` → `motored_set/labview_metrics.csv`.
-   - `python tools/tune_thresholds.py motored_set/labview_metrics.csv --mode motored --pmax-hard-limit <engine limit>`
+     `python tools/gen_cas_traces.py trace-sets/motored_set --cycles 30 --mode motored --bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099`
+   - Run it through `APC_SIL0_HRL_Desktop.vi` → `trace-sets/motored_set/labview_metrics.csv`.
+   - `python tools/tune_thresholds.py trace-sets/motored_set/labview_metrics.csv --mode motored --pmax-hard-limit <engine limit>`
      → recommended `MaxPCylMax` / `MaxIMEPstdError` / `MaxDevFromAvg` + the
      **disarm list** (`CA50max`, `MaxDevFromExpectedIMEP` — motored false-trippers).
    - Enter those into the 9049 warning XML via the UI CYLINDER (Errors) screen.

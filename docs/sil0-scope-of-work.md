@@ -44,10 +44,10 @@ python tools/tune_thresholds.py --help      # recommends 9049_WarningLevels from
 
 **Terminal:**
 ```
-python tools/gen_cas_traces.py motored_set --cycles 30 --mode motored \
+python tools/gen_cas_traces.py trace-sets/motored_set --cycles 30 --mode motored \
   --bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099
 ```
-Writes into `motored_set/`: `cycle_NNNN.csv` (9×7200 raw), **`cycle_NNNN_phased.csv`
+Writes into `trace-sets/motored_set/`: `cycle_NNNN.csv` (9×7200 raw), **`cycle_NNNN_phased.csv`
 (6×7200, each cylinder in its own frame, TDC at sample 3600 — the harness reads these)**,
 and `truth.json`. `--mode motored` = compression/expansion only → IMEP ≈ −1 bar, Pmax ≈
 150 bar at this geometry.
@@ -60,16 +60,16 @@ and `truth.json`. `--mode motored` = compression/expansion only → IMEP ≈ −
 
 **LabVIEW (click-level):**
 1. In `APC_SIL0_HRL_Desktop.vi`, click the **`traces folder`** browse (folder) button and
-   select the **`motored_set`** folder (the harness globs `*_phased.csv` inside it).
+   select the **`trace-sets/motored_set`** folder (the harness globs `*_phased.csv` inside it).
 2. Click the **Run** arrow (or **Ctrl+R**). The For-loop steps every phased CSV → reads it
    (comma delimiter) → `support/APC_HRL.vi` (which loops over the 6 cylinders internally, so
    `IMEPg/IMEPn/Pmax/CA50` come out as 6-element arrays) → writes one row per (cycle, cyl)
-   `[cycle, cyl, IMEPg, IMEPn, Pmax, CA50]` to **`motored_set/labview_metrics.csv`**.
+   `[cycle, cyl, IMEPg, IMEPn, Pmax, CA50]` to **`trace-sets/motored_set/labview_metrics.csv`**.
 3. Watch `Pressure Trace` sweep and `CombustionAnalysisCluster` update per file.
 
 **Terminal (sanity gate before trusting any threshold):**
 ```
-python tools/compare_hrl.py motored_set/truth.json motored_set/labview_metrics.csv
+python tools/compare_hrl.py trace-sets/motored_set/truth.json trace-sets/motored_set/labview_metrics.csv
 ```
 *Accept:* `labview_metrics.csv` has 30×6 = 180 numeric rows and `compare_hrl` prints
 **"ALL metrics within tolerance"**. If it fails, fix the harness before proceeding.
@@ -80,7 +80,7 @@ python tools/compare_hrl.py motored_set/truth.json motored_set/labview_metrics.c
 
 **Terminal:**
 ```
-python tools/tune_thresholds.py motored_set/labview_metrics.csv --mode motored \
+python tools/tune_thresholds.py trace-sets/motored_set/labview_metrics.csv --mode motored \
   --pmax-hard-limit <engine over-pressure ceiling, bar — get from the team>
 ```
 Prints the full `9049_WarningLevels` set (each field as `<field>Warning` / `<field>Error`)
@@ -152,9 +152,9 @@ writing them to CSV yet.
 
 Generate a fired set and tune a fired profile the same way:
 ```
-python tools/gen_cas_traces.py fired_set --cycles 30 --mode fired --fire-from 0 \
+python tools/gen_cas_traces.py trace-sets/fired_set --cycles 30 --mode fired --fire-from 0 \
   --bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099 [--q-fired 6000]
-python tools/tune_thresholds.py fired_set/labview_metrics.csv --mode fired --pmax-hard-limit <ceiling>
+python tools/tune_thresholds.py trace-sets/fired_set/labview_metrics.csv --mode fired --pmax-hard-limit <ceiling>
 ```
 Fired mode arms `CA50max` (from data) and, with the MAPO column, `MAPOmax`;
 `MaxDevFromExpectedIMEP` stays disarmed unless Expected IMEP is actually driven.
