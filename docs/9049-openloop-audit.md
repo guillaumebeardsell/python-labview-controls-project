@@ -468,7 +468,8 @@ that's SIL-2's job. Agenda:
    from `CrankSigOut` (which carries simulated signals in sim mode), so CAS
    acquisition should clock — the Deck's "Trig0 = ENC A" text describes
    pass-through. Confirm: CAS_loop stops timing out and delivers 7200-sample
-   cycles (of whatever is on the 9222 terminals).
+   cycles (of whatever is on the 9222 terminals). **→ CONFIRMED on the bench
+   (2026-07-14): `rpm from DAQ` = the TS10ms-set rpm, so Trig0 clocks acquisition in sim mode.**
 3. Spark/DI scheduling: enable via `PC_ControlSettings` with the state gate
    satisfied (drive `9049_Global_SYSTEMSTATE` ≥ 2 by running the 9056, or SV
    injection, or — bench-only — Override mode w/ F1 noted); observe
@@ -524,7 +525,11 @@ Every item ⚠ must be re-verified on the *deployed build*, not the dev copy:
 
 ## 9. Open questions
 
-- Trig0-in-sim (decides SIL-1 item 2) — export says yes, bench confirms.
+- ~~Trig0-in-sim (decides SIL-1 item 2)~~ **RESOLVED (2026-07-14, bench): YES.** With the EPT
+  sim running, `APC_9049_CAS_loop`'s `rpm from DAQ` tracked the `SimPeriod` rpm set on TS10ms —
+  so `cRIO_Trig0` (from `CrankSigOut`) clocks CAS acquisition in sim mode. Acquisition testing
+  does **not** need SIL-2's real encoder. (Also confirmed same session: `Graph time` delivers
+  full 7200-sample cycles + DAQ error 0 — Step 2 fully closed.)
 - Watchdog auto-recovery semantics (SIL-1 drill).
 - Deployed warning-XML values; `Enque?`/Override/Sim saved defaults.
 - Echo bitmask vs 1/0 (F4) — live capture.

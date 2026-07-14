@@ -28,6 +28,30 @@ plan; this doc is the *current state + what to do next + what's still soft*.
 
 ---
 
+## Update 2026-07-14 — SIL-1 bench started + tooling
+
+- **SIL-1 begun on the real 9049 (EPT sim).** **Trig0 follows the sim — CONFIRMED
+  (Step 2 closed):** CAS `rpm from DAQ` = the `SimPeriod` rpm set on TS10ms,
+  `Graph time` delivers full 7200-sample cycles, DAQ error 0. ⇒ the
+  CAS → analytics → `Pcyl_Diag` chain runs in sim mode on-target; **SIL-2's encoder
+  is not needed for acquisition testing.** Resolved the audit §9 open question.
+- **Click-level SOWs now exist:** `docs/sil0-scope-of-work.md` (thresholds/math) and
+  `docs/sil1-scope-of-work.md` (sync → CAS → gating → drills → false-trip matrix),
+  written against the real front panels (TS10ms `EPTControl`/`EPTData`, CAS `Graph time`,
+  IGNDI `NumberOfActiveIGN_DI`).
+- **Correction from the panels:** the 9049 crank is a **3600-line encoder** (54 kHz A
+  @ 900 rpm, 108 kHz @ 1800), **not** a missing-tooth wheel; sync is Z-index + cam.
+- **Tooling:** `tools/compare_hrl.py` is now **header-aware** — matches CSV columns by
+  name, so one metrics file (with the added `mapo`/`imepstd` columns) feeds both
+  `compare_hrl` and `tune_thresholds`; covered by `tests/test_compare_hrl.py`
+  (**suite 180 green**). New `docs/crio-file-access.md` (WinSCP/PuTTY to the cRIO).
+- **Flagged as NEW work (not built):** motoring-vs-fired warning-limit **profiles** —
+  the 9049 has a single slot (`9049_WarningLevels` → one `CylWarningLevels.xml`, no state
+  input). Needs a second profile + a state-driven selector. Backlog item in
+  `docs/migration-seam.md` (3), detail in `docs/9049-openloop-audit.md` Step 3.
+
+---
+
 ## What to do next (in order)
 
 1. **Set the motoring warning thresholds** (closes the #1 pre-fuel risk, 9049

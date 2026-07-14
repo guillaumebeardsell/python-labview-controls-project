@@ -47,9 +47,24 @@ Signal/gate detail lives there; this doc is the click-level procedure.
    `cat /home/lvuser/natinst/bin/CylWarningLevels.xml`). If absent, do SIL-0 Step 3 first.
 4. Python command path ready (for the SA/SOI sweep in Step 4): gateway with `source=PYTHON`,
    `examples/monarch_operate.py` / `tools/send_command.py` — see `docs/command-path-asbuilt.md`.
-5. Open, ready to watch: **`APC_9049_RT_main.vi`** (top level), and the **`TS10ms_loop`** and
-   **`CAS_loop`** sub-panels (SimEnable/SimPeriod/Override live on `TS10ms_loop`; `Enque?`,
-   `Cycles to measure` on `CAS_loop`).
+5. **Run `APC_9049_RT_main.vi`** — its *own* panel is just the title screen; the live
+   controls/indicators are on its parallel **loop sub-VIs**. Open each one's front panel to
+   interact (double-click the subVI in the RT_main block diagram while it runs, or open it from
+   the project). Where things live:
+   - **`APC_9049_TS10ms_loop.vi`** — the **`EPTControl`** cluster (`SimEnable`, `SimPeriod`,
+     `SyncEnable`, `WatchdogIn`, `NumberOfCrankTeeth`, `MissedCrankFlagClr`/`MissedCamFlagClr`),
+     the **`EPTData`** indicator cluster (`CrankStalled`, `SyncStopped`, `MissedCrankFlag`,
+     `MissedCamFlag`, `CrankCount`, `CurrentPosition`, `Period`, `CrankSigOS`), top-level
+     **`Speed (RPM)`**, `Override PC settings` + `manual spark/injection enable` + `manual SA`,
+     the `InjectionEnable`/`SparkEnable` 6-LED arrays, `Manual Clear Sync Errors`,
+     `Must Use Cam & Z` / `1/2 Z pulse`, `PFI0 mode`, and the `DIControl` / `DI_Data_Mod5/6`
+     clusters.
+   - **`APC_9049_CAS_loop.vi`** — the **`Graph time`** cycle chart (0…7200), **`rpm from DAQ`**,
+     **`Enque?`**, **`ForceReSync`**, `error in` / `CAS DAQmx error`.
+   - **`APC_9049_FPGA_IGNDI_supervisor.vi`** — **`NumberOfActiveIGN_DI`**, `SI1–6`/`DI1–6` LEDs,
+     `Number of inactive sparks/injections`.
+   *(Deployed/headless, none of these panels are visible and controls take their compiled
+   defaults — F6; interactive SIL-1 is the only place you drive them by hand.)*
 
 *Accept:* target reachable; motoring XML present; command path answers a no-op.
 
@@ -57,60 +72,112 @@ Signal/gate detail lives there; this doc is the click-level procedure.
 
 ## Step 1 — Start RT_main + virtual crankshaft, confirm sync
 
-1. Run **`APC_9049_RT_main.vi`** interactively from the dev environment (or a bench build).
-2. On the **`TS10ms_loop`** panel: set **`EPTControl.SimEnable = TRUE`** and
-   **`SimPeriod`** for the target rpm — `SimPeriod = 60·4e7 / (rpm·3600)` → **741 ≈ 900 rpm**,
-   **370 ≈ 1800 rpm** (or use the vendor `speed2ticks.vi`).
-3. Confirm the sim is producing signals: `SimCrankSig` / `SimCamSig` indicators toggling
-   (scope-checkable).
+1. **Run `APC_9049_RT_main.vi`** (dev environment, or a bench build). Open the
+   **`APC_9049_TS10ms_loop.vi`** panel.
+2. On that panel, expand the **`EPTControl`** cluster and set **`SimEnable = TRUE`**;
+   set **`SimPeriod`** for the target rpm — `SimPeriod = 60·4e7 / (rpm·3600)` → **741 ≈ 900 rpm**,
+   **370 ≈ 1800 rpm** (saved default is 500 ≈ 1333 rpm; or use the vendor `speed2ticks.vi`).
+   Leave **`SyncEnable = TRUE`** and **`NumberOfCrankTeeth = 3600`**. Confirm
+   `Must Use Cam & Z` / `1/2 Z pulse` match the engine's actual sensor set (F6).
+3. **Confirm the sim is alive:** in **`EPTData`**, `CrankSigOS` shows activity and the sync
+   fields below start moving. *Caveat:* the raw crank is a **3600-line encoder →
+   54 kHz A @ 900 rpm** (108 kHz @ 1800), far above panel-eyeball rate, so an indicator only
+   tells you alive-vs-dead — read the real **pass** off the sync fields, not a "toggle."
 
-*Accept (sync acquired):* `CrankStalled` and `SyncStopped` **clear**; `CrankCount` /
-`CurrentPosition` **rolling**; `Speed(RPM)` matches the `SimPeriod` you set.
+*Accept (sync acquired) — in `EPTData` + top-level `Speed (RPM)`:* `CrankStalled` **OFF**,
+`SyncStopped` **OFF**, `MissedCrankFlag`/`MissedCamFlag` **OFF**; `CrankCount` and
+`CurrentPosition` **incrementing/rolling**; `Speed (RPM)` ≈ the rpm you dialed. If
+`SyncStopped` stays TRUE, click **`Manual Clear Sync Errors`** (and `MissedCrankFlagClr` +
+`MissedCamFlagClr`) once and re-check — persistent = cam/Z config mismatch (chase before Step 2).
+
+> **Scoping the sim (optional raw check — replaces the earlier "missing-tooth" description,
+> which does not apply: this is an incremental encoder, no missing tooth).** In sim mode the
+> physical encoder inputs are internally replaced, so the sim crank/cam live *inside the FPGA*
+> — scopeable only if the bitfile routes them to a module pin (check the FPGA I/O node /
+> [EPT-UM] for a monitor terminal). If routed: scope (or better, a logic analyzer for the
+> encoder rate) DC-coupled, 0–5 V, timebase ~2 µs/div to resolve 54 kHz **A**; **trigger on the
+> Z index** (once/rev) to stabilize, and confirm one **cam** pulse per two revs. Verify the
+> A-rate tracks rpm. If it isn't routed out, don't chase it — the `EPTData` sync fields are the
+> real proof, and raw-encoder scoping is properly a **SIL-2** task (there you generate A/B/Z/cam
+> yourself and scope them at the source).
 
 ---
 
 ## Step 2 — Does Trig0 follow the sim? (CAS acquisition) — *open question, bench-decides*
 
-The FPGA export shows `cRIO_Trig0` wired from `CrankSigOut` (which carries the simulated
-signals in sim mode), so CAS acquisition **should** clock. Confirm on hardware:
-1. Watch **`CAS_loop`**: it should **stop timing out** (no more ~1 Hz idle retry) and start
-   delivering **7200-sample cycles** (of whatever the 9222 terminals float at).
+The FPGA export shows the CAS sample clock `cRIO_Trig0` wired from EPT's `CrankSigOut`, which
+carries the simulated signal in sim mode — so with sync acquired (Step 1) CAS **should** clock.
+Confirm on the CAS panel:
+1. Open the **`APC_9049_CAS_loop.vi`** front panel.
+2. Watch the **`Graph time`** chart (X = 0…7200 samples): with sync it should **fill with a
+   full 7200-sample trace once per engine cycle**; before sync it's flat/stale and the loop
+   sits in its ~1 Hz DAQ-timeout retry.
+3. Read **`rpm from DAQ`** — it should be ≈ your dialed rpm. Because it's derived from the
+   Trig0/encoder clock, a correct value **is** the confirmation that Trig0 follows the sim.
+   Cross-check against `Speed (RPM)` on the TS10ms panel.
+4. Confirm **no DAQ error** — `error in` and `CAS DAQmx error` clusters read code **0**.
+5. If it won't clock, click **`ForceReSync`** once and re-check.
 
-*Accept:* CAS_loop delivers full 7200-sample cycles at the simulated cycle rate. **Record
-the answer** to the Trig0-in-sim open question (audit §9). If it does *not* clock, SIL-1
-acquisition testing needs SIL-2's real encoder — note and escalate.
+*Accept:* `Graph time` delivers full 7200-sample cycles at the simulated cycle rate (**133 ms
+@ 900 rpm**), `rpm from DAQ` ≈ setpoint, DAQ error 0. **Record the answer** to the Trig0-in-sim
+open question (audit §9). If it never clocks, Trig0 does **not** follow the sim → CAS-acquisition
+testing needs SIL-2's real encoder into Mod3 DIO0–3 — note and escalate.
+
+> **Result (2026-07-14): ✅ Step 2 CLOSED — Trig0 follows the sim.** `rpm from DAQ` = the rpm set
+> on TS10ms, `Graph time` delivers full 7200-sample cycles, and the DAQ error clusters read 0.
+> CAS acquisition clocks in sim mode on the real 9049; **no SIL-2 encoder needed for acquisition
+> testing**, and the CAS → analytics → `Pcyl_Diag` chain is now exercisable in sim (Steps 3–6).
 
 ---
 
 ## Step 3 — Verify the motoring profile on-target: CLEAR → `CylPressError = FALSE` (F3)
 
-The pressure inputs are floating 9222 terminals, so the diagnostics may false-trip on
-startup garbage (first-cycle zero-pad, motored-CA50 noise, Expected-IMEP-0 trap — F3).
-1. With the motoring XML loaded, let CAS run a few cycles.
-2. From the PC UI, fire **CLEAR WARNINGS** (`APC_PC_UI_Errors`) → `APC_MASTER_ClearWarnings`
-   → 9049 relay `APC_SLAVE_ClearWarnings`.
-3. Observe `9049_Global_CylPressError`.
+Pressure inputs are floating 9222 terminals, so the diagnostics can false-trip on startup
+garbage (first-cycle zero-pad, motored-CA50 noise, Expected-IMEP-0 trap — F3).
+1. With sync + CAS running (Steps 1–2) and the motoring XML loaded, let CAS deliver a few
+   cycles (watch `Graph time` fill).
+2. On the PC, open **`APC_PC_UI_Errors.vi`** → **SIGNAL WARNINGS / CYLINDER** area → click
+   **CLEAR WARNINGS** (drives `APC_MASTER_ClearWarnings` → 9049 relay `APC_SLAVE_ClearWarnings`,
+   which resets the per-category **Error** feedback-latches).
+3. Read **`9049_Global_CylPressError`** — in NI **Distributed System Manager** (`10.1.10.171`
+   → `APC_SharedVars` → `9049_Global_CylPressError`), or via the UI's error LEDs.
 
-*Accept:* after CLEAR, `CylPressError = FALSE` and **stays** false under steady sim motoring
-(no floating-input latch). If it re-latches immediately, the motoring thresholds are too
-tight for the floating inputs — widen per SIL-0 Step 3 (or drive the channels, Step 6).
+*Accept:* after CLEAR, `CylPressError = FALSE` and **stays** FALSE under steady sim motoring.
+If it re-latches, note *which* category tripped from the harness `PcylDiagWarningsAndErrors`
+flags (max-pressure / cyclic-variability / misfire-from-IMEP / self-reg / cyl-to-cyl / knock /
+late-combustion) and widen that one threshold per SIL-0 Step 3 — or drive the channel (Step 6).
+This is the on-hardware version of the SIL-0 CLEAR gate.
 
 ---
 
 ## Step 4 — State-gated spark/DI scheduling
 
-Per-cylinder enable is `¬CylPressError ∧ ActivateCylinder ∧ UI-enable ∧ (SYSTEMSTATE ≥ 2)`,
-spark and DI separately. Drive the state gate and scope the outputs.
-1. **Satisfy the state gate** — get `9049_Global_SYSTEMSTATE ≥ 2` by one of: running the 9056
-   (real relay), shared-variable injection, or — **bench-only** — `Override` mode (log F1).
-2. Enable cylinders via `PC_ControlSettings` (the real command path).
-3. Observe **`NumberOfActiveIGN_DI` = 12** (6 spark + 6 DI).
-4. **Scope** the **Mod4 spark** and **Mod5/6 DI** outputs (dummy loads / probes only).
-5. **Sweep SA / SOI** from the **Python command path** (`monarch_operate.py`) and watch
-   `dT inj` / `SparkOut` move accordingly.
+Per-cylinder enable = `¬CylPressError ∧ ActivateCylinder ∧ UI-enable ∧ (SYSTEMSTATE ≥ 2)`,
+spark and DI separately (the confirmed TS10ms gate). Drive the gate, watch the counts, scope
+the outputs.
+1. **(Only if scoping DI)** on TS10ms `DIControl`, set `ModuleEnable` / `HVEnable` /
+   `InjectEnable` per the bench plan and check `DI_Data_Mod5/6.ModulePresent` — but first
+   **decode `Fault1 = 126`** (F9) before trusting DI health. Keep the NI-9751 Key de-energized
+   otherwise.
+2. **Satisfy the state gate** — get `9049_Global_SYSTEMSTATE ≥ 2` by: running the 9056 (real
+   relay), injecting the SV in DSM, or — **bench-only** — TS10ms `Override PC settings = TRUE`
+   + `manual spark/injection enable` LEDs (log F1). Override *bypasses* the gate, so use it only
+   to prove output wiring, never to conclude the gate works (that's step-5c).
+3. **Enable cylinders via the real command path** — from Python (`monarch_operate.py`), set
+   InjectionEnable/SparkEnable; the `InjectionEnable` / `SparkEnable` 6-LED arrays on TS10ms
+   should light.
+4. On **`FPGA_IGNDI_supervisor`**: confirm **`NumberOfActiveIGN_DI` = 12**, `SI1–6` + `DI1–6`
+   LEDs on, `Number of inactive sparks/injections` = 0.
+5. **Scope the outputs** — spark on **Mod4** (DIO), DI on **Mod5/6**. Sync your scope with the
+   DI module's built-in trigger via TS10ms `DIControl → DI Scope Trigger Event` (e.g. INJECTION
+   PULSE). Dummy loads / probes only.
+6. **Sweep SA / SOI from Python** — change spark advance and injection SOI via the command
+   path; watch the scheduled edges move on the scope and the on-panel `SA [CADBTDC]` /
+   injection-window values update.
 
-*Accept:* outputs appear **only** with the state gate satisfied and `CylPressError` false;
-SA/SOI commands from Python move the scheduled edges as expected.
+*Accept:* outputs appear **only** with `SYSTEMSTATE ≥ 2` and `CylPressError` FALSE;
+`NumberOfActiveIGN_DI` = 12; Python SA/SOI moves the scheduled edges. Override-forced outputs
+(step 2) prove wiring only — the gate test is step-5c.
 
 ---
 
@@ -118,24 +185,29 @@ SA/SOI commands from Python move the scheduled edges as expected.
 
 Run each, record pass/fail + observed behaviour in the commissioning book:
 
-- **5a — Watchdog.** Stop the RT loop (abort / breakpoint) → FPGA `WatchdogIn` stops toggling
-  → **outputs die**. Resume → **document the recovery behaviour** (auto-resume vs latched —
-  audit §9 open question).
-- **5b — Sync-loss.** Inject a sync loss (stop the sim / glitch `SimPeriod`) → `SyncStopped`
-  TRUE, `CrankCount`/`CurrentPosition` → 0 (does **not** latch) → outputs gate off; restore →
-  re-sync.
-- **5c — State-gate walk.** Step `SYSTEMSTATE` below 2 → spark/DI provably **dead**; ≥ 2 →
-  enabled. Prove it from the **real command path**, not Override.
-- **5d — `CylPressError` veto + clear.** Force a trip (overrange a channel past `MaxPCylMax`
-  via a function generator, Step 6) → `CylPressError` latches → spark/DI gated off → **CLEAR
-  WARNINGS** releases it → gating restored.
-- **5e — Echo live-capture (F4).** Drive **all six cylinders enabled**, capture
-  `9049_ControlSettings`, and read whether **[1] InjectionEnable / [5] SparkEnable** are
-  **1 or 63** (bitmask), and that **[0] is PFI0-mode, not system state**. Reconcile, then
-  **fix `supervisory/monarch/settings_9049.py`** to match reality.
-- **5f — E-stop.** Exercise the e-stop path end-to-end with the 9049 in the loop.
-- **5g — Recording (F6).** Set **`Enque? = TRUE`**, run a **REC** drill → confirm readable
-  **TDMS** files appear; record the intended compiled-default of `Enque?`.
+- **5a — Watchdog.** On TS10ms, `EPTControl.WatchdogIn` toggles each 10 ms tick and
+  `FPGA Heartbeat` blinks. Stop the RT loop (abort `RT_main`, or breakpoint TS10ms) → WatchdogIn
+  stops → the FPGA kills spark/DI (IGNDI `SI/DI` LEDs off, `NumberOfActiveIGN_DI` → 0). Restart →
+  **document whether sync + outputs auto-recover or need a manual re-arm** (audit §9).
+- **5b — Sync-loss.** Set `EPTControl.SimEnable = FALSE` (or perturb `SimPeriod`) → `EPTData.SyncStopped`
+  TRUE, `MissedCrankFlag`/`MissedCamFlag` may set, `CrankCount`/`CurrentPosition` → 0 (does **not**
+  latch a stop) → outputs gate off. Restore `SimEnable = TRUE` → click `Manual Clear Sync Errors`
+  (+ `MissedCrankFlagClr`/`MissedCamFlagClr`) → confirm re-sync (Step 1 accept).
+- **5c — State-gate walk.** From the **real command path** step `SYSTEMSTATE` 0→1→2→3: IGNDI
+  `SI/DI` LEDs and `NumberOfActiveIGN_DI` must be **0 below state 2** and 12 at ≥ 2. Do this with
+  `Override PC settings = FALSE` — Override masks the gate.
+- **5d — `CylPressError` veto + clear.** Force a trip (Step 6 — overrange a Pcyl channel past its
+  `MaxPCylMax` with a function generator) → `9049_Global_CylPressError` latches → IGNDI `SI/DI`
+  LEDs off / `NumberOfActiveIGN_DI` drops → PC **CLEAR WARNINGS** → gating restored.
+- **5e — Echo live-capture (F4).** Enable all six cylinders; capture `9049_ControlSettings`
+  (DSM or the Python telemetry). Read whether **[1] InjectionEnable / [5] SparkEnable** are
+  **1 or 63** (Boolean-array-to-number bitmask), and that **[0] = the `PFI0 mode` control, not
+  system state**. Reconcile → **fix `supervisory/monarch/settings_9049.py`**.
+- **5f — E-stop.** Trip the physical e-stop with the 9049 in the loop → outputs die → confirm
+  the recovery path. End-to-end, not simulated.
+- **5g — Recording (F6).** On CAS_loop set **`Enque? = TRUE`**, run a REC drill (the SAVE loop) →
+  confirm readable **TDMS** files land (pull them per `docs/crio-file-access.md`) → record the
+  intended compiled-default of `Enque?`.
 
 *Accept:* all drills pass; F4 echo reconciled and `settings_9049.py` updated; watchdog and
 sync-loss recovery behaviours documented.
@@ -155,17 +227,20 @@ floating 9222. Pick a pressure-injection method:
 - **`UsePcylDatabase`** (canned data) — fastest but it's an F5 hazard flag and its render was
   ambiguous; if used, VERIFY it's returned to FALSE afterwards.
 
-For each injected fault, confirm the **mapped Error** (F3 table: misfire-from-IMEP /
-self-reg / cyl-to-cyl / knock / late-combustion / max-pressure) **trips and latches**
-`CylPressError`, and that **CLEAR WARNINGS** clears it. Produce the **false-trip matrix**
-(which fault trips which metric at the loaded limits) for the commissioning book.
+For each injected fault, watch the harness **`PcylDiagWarningsAndErrors`** flags and
+`9049_Global_CylPressError` (DSM on `10.1.10.171`) and confirm the **mapped Error** (F3 table:
+misfire-from-IMEP / self-reg / cyl-to-cyl / knock / late-combustion / max-pressure) **trips and
+latches**, IGNDI `NumberOfActiveIGN_DI` drops, and PC **CLEAR WARNINGS** clears it. Produce the
+**false-trip matrix** (which fault trips which metric at the loaded limits) for the commissioning
+book.
 
 ---
 
 ## SIL-1 exit criteria / deliverables
 
 - [ ] Sync acquired on-target at ≥1 rpm setpoint; `Speed(RPM)` correct.
-- [ ] **Trig0-follows-sim answered** (audit §9); CAS delivers 7200-sample cycles.
+- [x] **Trig0-follows-sim = YES — Step 2 closed** (2026-07-14 bench: `rpm from DAQ` = set rpm,
+      `Graph time` full 7200-sample cycles, DAQ error 0).
 - [ ] Motoring profile validated on-target: CLEAR → `CylPressError=FALSE` holds under motoring.
 - [ ] State-gated spark/DI scheduling scoped; SA/SOI sweep from Python confirmed.
 - [ ] Drills 5a–5g passed and documented; **watchdog recovery** + **sync-loss** behaviours recorded.

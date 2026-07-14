@@ -9,7 +9,9 @@ cylinder through `APC_HRL`, and writes ONE CSV row per (cycle, cylinder):
 
     cycle,cylinder,imep_g,imep_n,pmax,pmax_atdc,ca50
 
-(header row optional; extra columns ignored). This tool joins that against
+(a header row, when present, matches columns by name — so extra columns like
+`mapo`/`imepstd` in any order are fine; without a header it falls back to the
+positional 6- or 7-column layout). This tool joins that against
 `truth.json` and reports per-metric agreement, so you can (a) confirm the HRL
 math matches the spec and (b) see where the LabVIEW volume/pegging quirks
 (the author's "FIX STROKE CALC" etc.) bite. Exit code 1 if any metric exceeds
@@ -26,6 +28,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -39,18 +42,60 @@ METRICS = {
 }
 
 
+# header cell (normalized: lowercased, non-alphanumerics stripped) -> canonical field
+_ALIASES = {
+    "cycle": {"cycle"},
+    "cylinder": {"cylinder", "cyl"},
+    "imep_g": {"imepg", "imepgbar"},
+    "imep_n": {"imepn", "imepnbar"},
+    "pmax": {"pmax", "pmaxbar"},
+    "pmax_atdc": {"pmaxatdc"},
+    "ca50": {"ca50", "ca50atdc", "ca50cadatdc"},
+}
+
+
+def _norm(s: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", s.lower())
+
+
+def _header_map(header: list[str]) -> dict[str, int] | None:
+    """Map a header row -> {canonical_field: column_index}, or None if it names nothing we know."""
+    m: dict[str, int] = {}
+    for i, cell in enumerate(header):
+        n = _norm(cell)
+        for canon, aliases in _ALIASES.items():
+            if n in aliases:
+                m.setdefault(canon, i)
+    return m or None
+
+
 def load_labview(path: Path) -> dict[tuple[int, int], dict]:
     """Read the harness CSV -> {(cycle, cyl): {metric: value}}.
 
-    Accepts either column layout after cycle,cylinder:
+    Header-aware: if the first row names columns, fields are matched by name (so
+    the harness can add `mapo`/`imepstd`/`pmax_atdc` in any order — unknown columns
+    are ignored). Otherwise the positional fallback after cycle,cylinder is:
       7 cols: cycle,cylinder,imep_g,imep_n,pmax,pmax_atdc,ca50
       6 cols: cycle,cylinder,imep_g,imep_n,pmax,ca50   (no Pmax-angle field)
     """
     out: dict[tuple[int, int], dict] = {}
     with path.open(encoding="utf-8-sig", newline="") as fh:
-        rows = list(csv.reader(fh))
-    start = 1 if rows and not _is_num(rows[0][0]) else 0  # skip a header row
-    data = [r for r in rows[start:] if len(r) >= 2 and _is_num(r[0])]
+        rows = [r for r in csv.reader(fh) if r]
+    if not rows:
+        return out
+    hmap = _header_map(rows[0]) if not _is_num(rows[0][0]) else None
+    data = [r for r in rows if len(r) >= 2 and _is_num(r[0])]
+
+    if hmap and "cycle" in hmap and "cylinder" in hmap:
+        cyc_i, cyl_i = hmap["cycle"], hmap["cylinder"]
+        metric_cols = {m: hmap[m] for m in METRICS if m in hmap}
+        for r in data:
+            cycle, cyl = int(float(r[cyc_i])), int(float(r[cyl_i]))
+            out[(cycle, cyl)] = {m: float(r[i]) for m, i in metric_cols.items()
+                                 if i < len(r) and _is_num(r[i])}
+        return out
+
+    # No/unrecognized header -> positional layout.
     ncols = max((len(r) for r in data), default=0)
     order = (
         ("imep_g", "imep_n", "pmax", "pmax_atdc", "ca50") if ncols >= 7
@@ -75,7 +120,8 @@ def _is_num(s: str) -> bool:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Compare LabVIEW APC_HRL output vs synthetic-trace ground truth")
     ap.add_argument("truth_json", help="truth.json from gen_cas_traces.py")
-    ap.add_argument("labview_csv", help="harness CSV: cycle,cylinder,imep_g,imep_n,pmax,pmax_atdc,ca50")
+    ap.add_argument("labview_csv", help="harness CSV: cycle,cylinder,imep_g,imep_n,pmax[,pmax_atdc],ca50 "
+                                        "(header row matched by name if present; extra columns ignored)")
     ap.add_argument("--imep-tol", type=float, default=None, help="override IMEP tolerance [bar]")
     args = ap.parse_args()
 

@@ -128,13 +128,21 @@ writing them to CSV yet.
 1. Unbundle **`MAPO [bar/CAD]`** and **`IMEPstd [bar]`** from `CombustionAnalysisCluster`
    alongside the existing four metrics.
 2. Extend the inner-loop **Build Array** to include them.
-3. Write a header row naming the columns (the tool matches by name, order-independent):
+3. **Write a header row** naming the columns. Both `compare_hrl` and `tune_thresholds` match
+   columns **by name** when a header is present (names are normalized — `MAPO [bar/CAD]` →
+   `mapo`), so extra columns and any order are fine and **one file feeds both tools**:
    ```
-   cycle,cylinder,imep_g,imep_n,pmax,mapo,ca50,imepstd
+   cycle,cylinder,imep_g,imep_n,pmax,ca50,mapo,imepstd
    ```
-4. Re-run Steps 1–2, then `tune_thresholds`: the report now reads "analytics IMEPstd column"
-   and, in `--mode fired`, emits a numeric `MAPOmax`. Motored still disarms `MAPOmax` but
-   tightens `MaxIMEPstd` from the real column.
+   Simplest way to emit it: a second **Write Delimited Spreadsheet** for the header — a 1-D
+   **string** array of the names, delimiter `,`, **append?=FALSE** — wired *ahead* of the
+   numeric write by chaining its `new file path` output into the numeric write's `file path`
+   input, with the numeric write set to **append?=TRUE** (both delimiters comma; numeric
+   format `%.6f`, system-decimal-point OFF).
+4. Re-run Steps 1–2, then `tune_thresholds`: `compare_hrl` reads the header'd file directly,
+   and the tuner report now reads "analytics IMEPstd column" and, in `--mode fired`, emits a
+   numeric `MAPOmax`. Motored still disarms `MAPOmax` but tightens `MaxIMEPstd` from the real
+   column.
 
 ---
 
