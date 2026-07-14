@@ -181,6 +181,26 @@ variant; the trip is `metric > threshold`):
 plus `samples for running IMEP std` (I32). `tools/tune_thresholds.py` emits this
 exact set (Warning+Error) from a SIL metrics CSV.
 
+**F3a — disarm-by-threshold FAILS for the phasing checks on no-combustion data
+(confirmed live 2026-07-14, SimEnable).** With `CA50maxError` set to the disarm
+sentinel `1e6` (verified loaded in `9049_WarningLevels` via the UI), the
+late-combustion error **still latches** in SimEnable mode. Root cause: with no
+real combustion the pressure is flat (floating 9222 / sim), so the MFB
+normalization inside `APC_HRL`→`APC_9049_HRL_apparentHRL` divides by
+`HRmax−HRmin ≈ 0` → **CA50 (and CA03/CA10/CA90/CA97) come out non-finite
+(NaN/Inf)** — which beats *any* finite limit (`+Inf ≥ 1e6` is TRUE; a NaN defeats
+a negated/in-range compare). The `-99` sentinel array in `APC_HRL` shows the
+author anticipated CA-detection failure, but that default is **not** reaching the
+comparison in this mode. Implications: **(1)** you cannot "disarm" a phasing check
+by raising its threshold — the diagnostics need a **validity guard / non-finite
+coerce** (a `combustion detected?` gate that skips CA-based checks when
+`HRmax−HRmin ≈ 0`) before the rebuild; **(2)** for SIL-1 the phasing checks can
+only be exercised with a **real pressure source** driving the CAS channels (all
+6 `Pcyl`, since late-combustion is per-cylinder OR'd), not turned off by a big
+number. Confirm the returned value with `flat_set/` through the SIL-0 harness, or
+by probing the live `CA50` on the panel. Same family as the NaN-at-Unflatten
+bench bug — **non-finite sanitization is a systemic gap in the analytics** (F8).
+
 Actions: build a **motoring threshold set** (MaxDevFromExpectedIMEP, CA50max and
 MAPOmax disarmed — motoring can't knock and has no combustion phasing; IMEP-std
 and dev-from-avg generous; MaxPCylMax ≈ observed motored peak ×1.3, capped at the

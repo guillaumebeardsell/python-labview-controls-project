@@ -14,6 +14,7 @@ desktop.ini
 motored_set/
 fired_set/
 sil0_traces/
+flat_set/
 **/labview_metrics.csv
 
 # LabVIEW debugging captures (bench screenshots)

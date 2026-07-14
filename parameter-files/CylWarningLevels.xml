@@ -1,0 +1,68 @@
+<?xml version='1.0' standalone='yes' ?>
+<LVData xmlns="http://www.ni.com/LVData">
+<Version>20.0</Version>
+<Cluster>
+<Name>CylinderDiagnosticsCluster</Name>
+<NumElts>15</NumElts>
+<I32>
+<Name>samples for running IMEP std</Name>
+<Val>20</Val>
+</I32>
+<DBL>
+<Name>MaxDevFromExpectedIMEPError [bar]</Name>
+<Val>1000000.00000000000000</Val>
+</DBL>
+<DBL>
+<Name>MaxDevFromExpectedIMEPWarning [bar]</Name>
+<Val>1000000.00000000000000</Val>
+</DBL>
+<DBL>
+<Name>MaxDevFromAvgError [bar]</Name>
+<Val>0.80000000000000</Val>
+</DBL>
+<DBL>
+<Name>MaxDevFromSelfAvgWarning [bar]</Name>
+<Val>0.50000000000000</Val>
+</DBL>
+<DBL>
+<Name>MaxDevFromSelfAvgError [bar]</Name>
+<Val>0.80000000000000</Val>
+</DBL>
+<DBL>
+<Name>MaxDevFromAvgWarning [bar]</Name>
+<Val>0.50000000000000</Val>
+</DBL>
+<DBL>
+<Name>MaxIMEPstdWarning [bar]</Name>
+<Val>0.20000000000000</Val>
+</DBL>
+<DBL>
+<Name>MaxIMEPstdError [bar]</Name>
+<Val>0.30000000000000</Val>
+</DBL>
+<DBL>
+<Name>MAPOmaxError [bar/CAD]</Name>
+<Val>1000000.00000000000000</Val>
+</DBL>
+<DBL>
+<Name>MAPOmaxWarning [bar/CAD]</Name>
+<Val>1000000.00000000000000</Val>
+</DBL>
+<DBL>
+<Name>CA50maxError [CADATDC]</Name>
+<Val>1000000.00000000000000</Val>
+</DBL>
+<DBL>
+<Name>CA50maxWarning [CADATDC]</Name>
+<Val>1000000.00000000000000</Val>
+</DBL>
+<DBL>
+<Name>MaxPCylMaxError [bar]</Name>
+<Val>196.09999999999999</Val>
+</DBL>
+<DBL>
+<Name>MaxPCylMaxWarning [bar]</Name>
+<Val>181.00000000000000</Val>
+</DBL>
+</Cluster>
+</LVData>
