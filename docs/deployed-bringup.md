@@ -41,7 +41,10 @@ surfaced during commissioning), and the recurring rules.
 
 0. Pre-checks: actuator/valve power OFF (SAFE state actively drives outputs);
    welded-switch pass on panel defaults (see `docs/9049-openloop-audit.md`
-   §8: Override=OFF, SimEnable=OFF, UsePcylDatabase=OFF, Enque?=ON).
+   §8: Override=OFF, SimEnable=OFF, UsePcylDatabase=OFF, **`SIM pressure?`=OFF**
+   (CAS sim branch), Enque?=ON, **`Load INI on startup`=TRUE** (F3b — and the
+   deployed `CylWarningLevels.xml` must be the motoring profile, **not the
+   drill XML**)).
 1. **File → Save All**; confirm the Error List has no "edited in another
    application instance" items.
 2. Under `NI-cRIO-9049…` → Build Specifications → `APC_9049_RT`

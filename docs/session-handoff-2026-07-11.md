@@ -21,10 +21,11 @@ plan; this doc is the *current state + what to do next + what's still soft*.
   (IMEPg Δ0.001, Pmax Δ0.002 bar, CA50 Δ0.11°). The 9049 heat-release / IMEP /
   CA50 code is proven against known truth. Recipe in
   **`docs/9049-openloop-audit.md` §7**.
-- **Test suite: 183 green** (`pytest`).
+- **Test suite: 191 green** (`pytest`; was 183 at this handoff's writing).
 - **The frontier is now LabVIEW + hardware**, not Python. Python phases A/B are
   done and live-verified; the open work is thresholds → SIL-1 → bench →
-  fire, plus a few real safety gaps below.
+  fire, plus a few real safety gaps below. *(⇒ see the Update blocks below:
+  as of 2026-07-16 the thresholds + SIL-1 protection half are DONE.)*
 
 ---
 
@@ -52,9 +53,41 @@ plan; this doc is the *current state + what to do next + what's still soft*.
 
 ---
 
+## Update 2026-07-15/16 — false-trip matrix COMPLETE + F3 dispositions
+
+- **SIL-1 Step 6 false-trip/latch matrix COMPLETE 7/7** (2026-07-14): synthetic
+  pressure fed through the real chain via the new CAS_loop sim branch
+  (`SIM pressure?`, pattern **`cycle_????.csv`**); every warning/error tripped on
+  exactly its target cylinders, latched, and cleared. Record sheet:
+  `docs/cRIO9049 Warning Matrix.xlsx`. Tool: `tools/gen_warning_matrix.py`
+  (7 sets + all-armed drill XML + manifest + `--xlsx`).
+- **Four as-built defects found + dispositioned** (audit F3a–F3d): F3a non-finite
+  CA50 noise trips → cured by sim pressure + the user-built **SYSTEMSTATE ≥ 2
+  state gate** in `CombCluster2Array` (live-verified both directions); **F3b root
+  cause: `Pcyl_Diag` "Load INI on startup" saved FALSE — thresholds NEVER loaded
+  since the system was built** (fixed; carry into deployed builds; verify
+  protections by probe, never the display); F3c display order verified correct
+  (name-bound); **F3d: all three misfire checks are one-sided low-side** —
+  misfire-from-IMEP INERT until `Expected IMEP` is wired from IMEP-REF (decision:
+  no Abs; any `Pcyl_Diag` change ⇒ re-run the matrix as regression gate).
+- **W2 settled by the matrix runs** (per-state arming observed live).
+- **Steps 4–5 remain** — click-level SOW rewritten 2026-07-15/16
+  (`docs/sil1-scope-of-work.md` 4a–4f, drills 5a–5h). Pending architecture
+  decision for engine-only running: `docs/engine-only-9056-tradeoff.md`.
+- Close-out still OWED on the bench: restore the **motoring**
+  `CylWarningLevels.xml` (drill XML must never ride into a fueled run) +
+  `SIM pressure? = FALSE`.
+
+---
+
 ## What to do next (in order)
 
-1. **Set the motoring warning thresholds** (closes the #1 pre-fuel risk, 9049
+*(Items 1 and 3 below are DONE as of the 07-15/16 update above; item 2's matrix
+half is done — Steps 4–5 remain. Kept for the historical record.)*
+
+1. ~~**Set the motoring warning thresholds**~~ ✅ DONE (2026-07-14; and the real
+   #1 risk turned out to be F3b — thresholds never loaded — see update above).
+   (closes the #1 pre-fuel risk, 9049
    audit F3: `CylPressError` false-tripping and vetoing first fire).
    - Generate a motored set:
      `python tools/gen_cas_traces.py trace-sets/motored_set --cycles 30 --mode motored --bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099`
@@ -64,17 +97,21 @@ plan; this doc is the *current state + what to do next + what's still soft*.
      **disarm list** (`CA50max`, `MaxDevFromExpectedIMEP` — motored false-trippers).
    - Enter those into the 9049 warning XML via the UI CYLINDER (Errors) screen.
      Keep a **separate fired profile** (re-run with a `--mode fired` set).
-2. **SIL-1 — virtual crankshaft.** On the real 9049, set `EPTControl.SimEnable`
+2. **SIL-1 — virtual crankshaft.** ⇒ *Half done (see update above): Steps 0–3 +
+   the Step-6 matrix are complete (sync, CAS, analytics, latch/veto, W2 settled);
+   **Steps 4–5 remain** — `docs/sil1-scope-of-work.md` 4a–4f + drills 5a–5h.*
+   On the real 9049, set `EPTControl.SimEnable`
    TRUE (`SimPeriod = 60·4e7/(rpm·3600)`) and watch the whole engine-sync stack
    run with no engine: sync, spark/DI scheduling, CAS acquisition, the analytics
    above, IGNDI supervisor, both watchdogs. Agenda: `docs/9049-openloop-audit.md`
    §7 SIL-1. **Pre-fuel checklist there is mandatory before any fueled step.**
-3. **Fix the broken 9049 combustion VIs** (blocker for rebuilding the 9049):
-   the SIL-0 trace-harness work left `CombCluster2Array`/`PressureAnalytics`/
-   `keyCA50`/`keyKnock` non-executable via a **target-relative** `9049_Global_CylPressError`
-   node. Fix = keep those VIs under the **9049 target** (single-process vars are
-   9049-local; "Absolute" binding is greyed out by design). Don't network-publish
-   the safety globals.
+3. ~~**Fix the broken 9049 combustion VIs**~~ ✅ RESOLVED — the chain runs on
+   the 9049 again (the complete Step-6 matrix executed through
+   `CombCluster2Array`/`PressureAnalytics`/`keyCA50`/`keyKnock`, incl. the new
+   state gate). Residual: the F3c typedef-order alignment stays as rebuild debt.
+   (Original issue: the SIL-0 trace-harness work left them non-executable via a
+   **target-relative** `9049_Global_CylPressError` node; fix = keep those VIs
+   under the **9049 target**; don't network-publish the safety globals.)
 
 ---
 
@@ -192,13 +229,27 @@ The whole PC-side command path is now resolved from in-repo exports
 (2026-07-11): `VariableMapping` = telemetry-return (not the command writer); the
 gateway = source-select + thin validation + telemetry contract; the fresh
 `UI_Main` (re-printed 07-11) = the B3.c source-select redirect + `PC_HB`
-handover, confirmed as-built per ICD §7.4/§7.5. **No VI prints outstanding.**
+handover, confirmed as-built per ICD §7.4/§7.5.
+
+**✅ Second print batch DONE (delivered + analyzed 2026-07-14)** — the 9056 warning
+chain (`ErrorMask`, `MaskErrors`, `MergeCylErrors`, `ClearSoftWarning`), PC
+`ClearErrorButton`, `9049_checkAI`, `9049_CycleAvgSignals`, `9056_FPGA_main`.
+Findings write-up: **`docs/9056-warning-policy-asbuilt.md`** — the Phase-A3
+as-built reference (4-tier raster limits, per-state arming masks, latch/clear
+semantics, cylinder error→"send to motoring" scoring, gaps W1–W7) plus the
+**9056 FPGA RT-stall safe-hold confirmation** (both cRIOs now have verified
+below-RT fallbacks). Note before citing a VI as live: check membership in
+`MONARCH.lvproj`, not the disk listing — `TS100ms_loop`, `MODBUSTCP_HealingLoop`,
+`HRLtest`, `SIL0_TraceHarness` are on-disk orphans.
+
+**Still outstanding: one print** — `APC_9056_LoadINI.vi` (requested with the
+batch, not delivered; wanted as the 9056 config-persistence pattern for the
+second warning profile + load-fail default).
 
 The remaining non-VI item:
-- **A MAPO/knock harness column** — `Pcyl_Diag`'s knock check (`MAPOmax`) can't
-  be tuned until the SIL harness also writes MAPO + IMEPstd columns (both are
-  already in `CombustionAnalysisCluster`; just unbundle and add to the
-  Build-Array in `APC_SIL0_HRL_Desktop`).
+- ~~**A MAPO/knock harness column**~~ ✅ DONE (2026-07-14) — the harness metrics
+  file carries `mapo`/`imepstd` columns and both `compare_hrl.py` and
+  `tune_thresholds.py` read them by header name.
 
 Actual build tasks (not discoveries): implement `UI_HeartBeat` (ICD §7.5) and
 widen gateway range validation — see robustness gaps #1–2.
@@ -209,9 +260,10 @@ widen gateway range validation — see robustness gaps #1–2.
 
 | Tool | What it does |
 |---|---|
-| `gen_cas_traces.py` | Synthetic CAS cycles: raw `cycle_NNNN.csv` (9×7200, full chain) + phased `cycle_NNNN_phased.csv` (6×7200, feed `APC_HRL` directly) + `truth.json`. Real MONARCH geometry via `--bore/--stroke/--conrod/--cr/--pin-offset`. Motored/fired/mixed, injectable misfire/knock. |
-| `compare_hrl.py` | Scores the harness `labview_metrics.csv` (cycle,cylinder,imep_g,imep_n,pmax[,pmax_atdc],ca50 — 6 or 7 col) vs `truth.json`; per-metric worst-Δ + pass/fail. |
+| `gen_cas_traces.py` | Synthetic CAS cycles: raw `cycle_NNNN.csv` (9×7200, full chain) + phased `cycle_NNNN_phased.csv` (6×7200, feed `APC_HRL` directly) + `truth.json`. Real MONARCH geometry via `--bore/--stroke/--conrod/--cr/--pin-offset`. Motored/fired/mixed, injectable misfire/knock; `--q-jitter` (cyclic variability) + continuous cyclic drift ramps (added 07-14/15). |
+| `compare_hrl.py` | Scores the harness `labview_metrics.csv` vs `truth.json`; header-aware column matching (incl. `mapo`/`imepstd`); per-metric worst-Δ + pass/fail. |
 | `tune_thresholds.py` | Reads a motored/fired `labview_metrics.csv` → recommended 9049 warning limits with margin + the disarm list. `--pmax-hard-limit` clamps to the physical ceiling. |
+| `gen_warning_matrix.py` *(added 07-14)* | One command → the whole SIL-1 false-trip suite: 7 trace sets under `trace-sets/warning_matrix/`, the all-armed `CylWarningLevels.drill.xml`, expected-trip `manifest.md`/`.json` (one-sided-check-aware), `--xlsx` record sheet. |
 
 LabVIEW harness: `APC_SIL0_HRL_Desktop.vi` (My Computer). Gotchas baked into the
 recipe: `APC_HRL` has **no geometry input** (internal `VOL`) and runs its **own

@@ -9,11 +9,30 @@ Python's authority until the phase gating it is closed.
 their own piece and point here. Step-by-step instructions for each phase live in
 `docs/phases/` (one file per phase, linked from each section below).
 
-## Current status (2026-07-11)
+## Current status (2026-07-16)
 
-**Phases A & B COMPLETE and live-verified. Both cRIOs now run AUTONOMOUS on
-hardware (cold-boot verified). 9049 combustion analytics validated in SIL-0.**
+**Phases A & B COMPLETE and live-verified. Both cRIOs run AUTONOMOUS on hardware
+(cold-boot verified). SIL-0 COMPLETE (9049 analytics math validated). SIL-1
+half-complete: the diagnostics/protection half is DONE — the false-trip/latch
+matrix passed 7/7 on the real 9049 — the actuation half (Steps 4–5) remains.**
 The frontier is now LabVIEW/hardware, not Python.
+
+- **SIL-1 (2026-07-14, bench)** — Steps 0–3 done; **Step 2 CLOSED: Trig0 follows
+  the sim** (no SIL-2 encoder needed for CAS-acquisition testing); **Step 6
+  false-trip matrix COMPLETE 7/7** (synthetic pressure via the CAS_loop sim
+  branch; every warning/error trips on exactly its target cylinders, latches,
+  clears; record sheet `docs/cRIO9049 Warning Matrix.xlsx`). Four as-built
+  defects found + dispositioned (audit F3a–F3d): non-finite-CA50 noise trips
+  (cured: sim pressure + the user-built **SYSTEMSTATE ≥ 2 state gate** in
+  `CombCluster2Array`, live-verified); **thresholds never loaded since build**
+  (`Pcyl_Diag` "Load INI on startup" saved FALSE — fixed; must be carried into
+  deployed builds); display order verified correct (name-bound); **misfire
+  checks are one-sided low-side** (misfire-from-IMEP INERT until `Expected
+  IMEP` is wired from IMEP-REF — decision: no Abs; any `Pcyl_Diag` change ⇒
+  re-run the matrix as regression gate). **Remaining: Steps 4–5** (state-gated
+  spark/DI scheduling + drills) — click-level SOW: `docs/sil1-scope-of-work.md`
+  (4a–4f, 5a–5h). Pending architecture decision for engine-only running:
+  `docs/engine-only-9056-tradeoff.md`.
 
 - **Phase A** — done; live shadow-compare 100% across all 5 states + inputs.
 - **Phase B** — **exit gate passed 2026-07-09.** Command path built end-to-end
@@ -26,15 +45,21 @@ The frontier is now LabVIEW/hardware, not Python.
 - **Autonomous deployment (NEW, this session)** — both cRIOs boot startup
   `.rtexe`s, PC apps as EXEs, Python observes/commands; cold-boot verified.
   Five deployment bugs fixed. Full runbook: `docs/deployed-bringup.md`.
-- **SIL-0 (NEW)** — 9049 HRL/IMEP/CA50 math validated vs known truth (425
-  comparisons all within tol) via `APC_SIL0_HRL_Desktop.vi` + `tools/compare_hrl.py`.
-  `docs/9049-openloop-audit.md` §7; **click-level SOW: `docs/sil0-scope-of-work.md`**
-  (remaining: threshold derivation + MAPO/IMEPstd columns; false-trip matrix is SIL-1).
+- **SIL-0 — COMPLETE (2026-07-11)** — 9049 HRL/IMEP/CA50 math validated vs known
+  truth (425 comparisons all within tol) via `APC_SIL0_HRL_Desktop.vi` +
+  `tools/compare_hrl.py`, incl. MAPO/IMEPstd columns. `docs/9049-openloop-audit.md`
+  §7; click-level SOW: `docs/sil0-scope-of-work.md`. Threshold profiles derived
+  (`tools/tune_thresholds.py` → `parameter-files/CylWarningLevels.xml` motoring +
+  `tools/gen_warning_matrix.py` → all-armed drill XML); the latch tests ran in
+  SIL-1 (Step 6, complete — see above).
 - **Phase C** — Python built; C3/C4/C5 unverified (needs bench + 2nd operator).
 - **Phase D** — framework + sim built; blocked on the **D0 procedure sheets (team)**.
-- **Next:** motoring threshold tuning (`tools/tune_thresholds.py`) → SIL-1
-  virtual crankshaft → motored bench run. See `docs/session-handoff-2026-07-11.md`.
-- Suite **183 green** (was 108 at the 2026-07-07 block below).
+- **Next:** SIL-1 Steps 4–5 (`docs/sil1-scope-of-work.md`): spark/DI scheduling
+  from both writers + the drills (watchdog, sync-loss, state-gate walk,
+  CylPressError veto, F4 echo capture, e-stop, recording). Team inputs owed:
+  engine mechanical peak-pressure rating (drill Pmax limits are
+  statistics-derived, uncapped), procedure sheets, bench + 2nd operator.
+- Suite **191 green** (was 108 at the 2026-07-07 block below).
 
 <details><summary>Prior status (2026-07-07) — Phase A validation detail</summary>
 
@@ -104,7 +129,7 @@ gated on B exit). Phase D: sequencing framework + sim plant model + draft
 venting/purge/thermal-warmup sequences built and fault-injection tested
 (content gated on D0 sheets). Phase E engines: temporal rules + scheduler built
 (values TBD(team)). `Settings9049` modeled (flatten confirmation pending); CI
-runs the suite (183 tests) on 3.10/3.12. **What remains is LabVIEW work, joint
+runs the suite (191 tests) on 3.10/3.12. **What remains is LabVIEW work, joint
 decisions, and team-supplied content — see `docs/handoff.md`.** **All export blockers cleared 2026-07-06**: StateMachine per-frame export
 (A1.0 answered — clamp values, sort-based MIN, absolute ManualState override
 confirmed), `TS_loop` (B0 answered — WatchDog unwired, response must be built) and

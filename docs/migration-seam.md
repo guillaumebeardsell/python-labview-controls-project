@@ -24,6 +24,16 @@ that watchdog.** Safe-state limiting (feeds closed, vents open, cooling max, dyn
 stopped, IGN/DI off) is likewise enforced on the cRIOs (the 9056 StateMachine), not the
 PC.
 
+**Confirmed on the 9056 too (2026-07-14, from the `APC_9056_FPGA_main` print):** the 9056
+FPGA runs its own RT-stall watchdog — an `RT watchdog` boolean the RT side must keep
+toggling, checked on a 10 ms clock; on counter overflow (`Counter max` default 100 ⇒ 1 s)
+it forces **all analog outs to 0 and all digital outs FALSE** ("SAFE state is applied if
+RT watchdog is not alive"). So the plant/gas side has a below-RT hardware fallback
+symmetric to the 9049's spark/DI kill; **both cRIOs safe-hold if their RT loop dies.**
+Caveats: the RT-configured `Counter max` on the deployed build is unconfirmed, and
+AO=0/DO=FALSE is safe only because actuators are fail-safe de-energized (vents 0=open).
+Details in `docs/9056-warning-policy-asbuilt.md` (side findings).
+
 ## Architecture (4 targets)
 
 | Target | Top VI | Role |
@@ -182,6 +192,11 @@ path.
    warning→max-state clamp + severity→reaction map, and **author the temporal rules**
    the original dev left unbuilt. Pairs with (1): it produces
    `STATE LIMITATION FROM WARNINGS`.
+   - **As-built ground truth now documented (2026-07-14):** the full 9056 chain
+     (WarningIntegration's 4-tier × 16-slot × 5-raster limits, per-state arming masks,
+     max-latch + soft/master clear, cylinder W→1/E→3 scoring, severity→state map) is in
+     **`docs/9056-warning-policy-asbuilt.md`**, incl. the W1–W7 gap list (per-cylinder
+     state-arming table likely inert, no temporal rules, clamp output still unwired).
    - **Motoring vs fired warning-limit profiles (NEW — not in the as-built).** Today the
      9049 has a *single* limit set (`9049_WarningLevels` → one hardcoded `CylWarningLevels.xml`,
      no state input; the UI edits one slot). Motoring and firing need different thresholds and
@@ -190,6 +205,14 @@ path.
      the MOTORING↔FIRING transition, with a cRIO-side fail-safe default (load-fail ⇒ tighter
      set / safe-hold). Profile *selection* is BRAIN/Python scope; profile *load + enforcement*
      stay on the 9049. See `docs/9049-openloop-audit.md` Step 3.
+   - **F3d follow-ups for any 9049 warning-chain port (decided 2026-07-15):** the three
+     misfire checks are ONE-SIDED low-side (no Abs — keep it that way); `Expected IMEP`
+     must be wired from the commanded `IMEP-REF` (as-built it's an unwired 0 ⇒ the check
+     is INERT); the 9049 now state-gates late-combustion + misfire-from-IMEP on
+     `SYSTEMSTATE ≥ 2` (built + live-verified). Any change to `Pcyl_Diag` ⇒ re-run the
+     false-trip matrix (`tools/gen_warning_matrix.py`) as the regression gate. Note the
+     Python port `supervisory/monarch/warning_policy.py` still lacks per-state arming
+     (gap documented in its docstring).
 4. **Run sequencing / recipes** → **Phase D** (greenfield, highest operational value) —
    cranking, purge, light-off, venting + recovery, misfire recovery, WF quality check.
    Needs an operating-procedure **spec from the team** (not in the code/docs). Build in

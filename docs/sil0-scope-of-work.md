@@ -11,10 +11,14 @@ variable that only exists on the 9049). So the **latch / false-trip matrix is SI
 the real 9049 — not part of SIL-0. SIL-0 delivers *numbers and thresholds*; SIL-1 proves
 *trip-and-latch behaviour*.
 
-**Status (2026-07-11):** the **math is validated** — 425 comparisons, all within tolerance
-(worst |Δ|: IMEPg 0.001 bar, Pmax 0.002 bar, CA50 0.112 CADATDC). Steps 0–2 below are the
-*repro* of that; the **remaining SIL-0 work is Steps 3–4** (motoring thresholds, optional
-MAPO/IMEPstd columns, fired profile). Step 5 is listed for completeness but belongs to SIL-1.
+**Status (2026-07-14): SIL-0 COMPLETE.** The **math is validated** (2026-07-11 — 425
+comparisons, all within tolerance; worst |Δ|: IMEPg 0.001 bar, Pmax 0.002 bar, CA50
+0.112 CADATDC); the MAPO/IMEPstd columns were added; the motoring profile was derived,
+loaded, and validated on-target; and the false-trip matrix ran **7/7 in SIL-1 Step 6**
+(2026-07-14, `tools/gen_warning_matrix.py` + record sheet
+`docs/cRIO9049 Warning Matrix.xlsx`). This doc stays as the *repeatable recipe* — it is
+the regression procedure whenever `Pcyl_Diag`, the harness, or the thresholds change
+(F3d rule: any `Pcyl_Diag` change ⇒ re-run the matrix).
 
 Derived from `docs/9049-openloop-audit.md` §7. Geometry flags throughout are the picture15
 as-built: `--bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099`.
@@ -171,13 +175,16 @@ is restored.
 ## SIL-0 exit criteria / deliverables
 
 - [x] Math validated: `compare_hrl` "ALL within tolerance" on a mixed set (done 2026-07-11).
-- [ ] `labview_metrics.csv` regenerated with the **MAPO + IMEPstd** columns (Step 4).
-- [ ] **Motoring** `9049_WarningLevels` profile derived, entered, and **saved to
-      `CylWarningLevels.xml`** on the 9049; CLEAR→`CylPressError=FALSE` confirmed.
-- [ ] **Fired** profile derived and recorded (kept as a *separate* set — see the one-slot
-      caveat; do not overwrite the motoring set on the 9049 before a motoring run).
-- [ ] False-trip matrix (which fault trips which metric at the chosen limits) documented in
-      the commissioning book — **verified in SIL-1**.
+- [x] `labview_metrics.csv` regenerated with the **MAPO + IMEPstd** columns (done 2026-07-14).
+- [x] **Motoring** `9049_WarningLevels` profile derived, entered, and **saved to
+      `CylWarningLevels.xml`** on the 9049; CLEAR→`CylPressError=FALSE` confirmed
+      (done 2026-07-14 — after the F3b Load-INI root-cause fix; SIL-1 Step 3 exceeded it).
+- [x] **Fired**-strength profile derived and recorded as the all-armed **drill XML**
+      (`trace-sets/warning_matrix/CylWarningLevels.drill.xml` — separate file, one-slot
+      caveat respected; ⚠ `MaxPCylMax` statistics-derived, uncapped pending the mechanical
+      rating; must never ride into a fueled run).
+- [x] False-trip matrix documented — **COMPLETE 7/7 in SIL-1 Step 6 (2026-07-14)**;
+      record sheet `docs/cRIO9049 Warning Matrix.xlsx`.
 
 ## Known gotchas (from the audit)
 

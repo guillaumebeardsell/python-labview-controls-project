@@ -51,6 +51,7 @@ python examples/monarch_listen.py                   #   read-only observer -> re
 python tools/compare_flatten.py <labview_flatten.json>   # diff a LabVIEW cluster flatten vs the contract
 python tools/shadow_compare.py monarch.jsonl              # replay decisions vs the ported StateMachine
 python examples/monarch_operate.py                        # operator CLI (needs source=PYTHON on the gateway)
+python tools/gen_warning_matrix.py                        # SIL-1 false-trip drill suite (7 sets + drill XML + manifest)
 ```
 
 Environment: developed on a Windows control-room PC (Python 3.10, `.venv`). `requires-python` is
@@ -115,15 +116,26 @@ watchdog proof → bench command → sequencing → commissioning; authority gat
 `docs/handoff.md` (how to continue this project — what's done, what only humans supply,
 task guidance for smaller models, and the invariants that must never be weakened);
 `docs/9049-openloop-audit.md` (the cRIO-9049 RT/FPGA audit for open-loop commissioning +
-the layered SIL plan — EPT built-in crank simulator, synthetic pressure traces via
-`tools/gen_cas_traces.py`, pre-fuel checklist); `docs/deployed-bringup.md` (deployed-mode
-build/deploy procedure + the rules learned at first autonomous bringup, 2026-07-09 —
-PC apps as EXEs only, single shared-variable host, no builds from out-of-sync VIs);
-`docs/command-path-asbuilt.md` (the **verified** PC⇄cRIO command path — source-select,
+the layered SIL plan + the F3a–F3d as-built defect dispositions — EPT built-in crank
+simulator, synthetic pressure traces via `tools/gen_cas_traces.py`, pre-fuel checklist);
+`docs/sil0-scope-of-work.md` + `docs/sil1-scope-of-work.md` (**click-level SIL procedures**;
+SIL-0 complete 07-11, SIL-1 Steps 0–3 + the 7/7 false-trip matrix complete 07-14 —
+Steps 4–5, spark/DI scheduling + drills, are the live next work); `docs/deployed-bringup.md`
+(deployed-mode build/deploy procedure + the rules learned at first autonomous bringup,
+2026-07-09 — PC apps as EXEs only, single shared-variable host, no builds from out-of-sync
+VIs); `docs/command-path-asbuilt.md` (the **verified** PC⇄cRIO command path — source-select,
 `PC_HB` ownership, WatchDog, the loss-of-PC SAFE clamp armed in both modes — with per-VI
 diagram-page evidence; the "how does the command path actually work as-built" reference);
-`docs/session-handoff-2026-07-11.md` (current state: autonomous deployment, SIL-0, next
-steps, robustness gaps, tools).
+`docs/9056-warning-policy-asbuilt.md` (the as-built 9056 warning→state-clamp chain — 4-tier
+raster limits, per-state arming masks, latch/clear semantics, cylinder error scoring, the
+W1–W7 gap list, and the 9056 FPGA RT-stall safe-hold — the Phase-A3 ground truth);
+`docs/engine-only-9056-tradeoff.md` (decision memo: run engine-only with or without the
+9056); `docs/crio-file-access.md` (WinSCP/PuTTY file access to the cRIOs);
+`docs/cRIO9049 Warnings.xlsx` (warning/error reference: definitions + motoring/fired
+values) + `docs/cRIO9049 Warning Matrix.xlsx` (the filled 7/7 false-trip record sheet);
+`docs/session-handoff-2026-07-11.md` (handoff: autonomous deployment, SIL-0, robustness
+gaps, tools — with 07-14/15/16 update blocks; **status itself lives in
+`docs/migration-plan.md`**).
 
 ## Conventions
 

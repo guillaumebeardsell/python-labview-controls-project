@@ -1,9 +1,11 @@
 # Handoff — continuing this project without the original assistant
 
-> **Newest state: `docs/session-handoff-2026-07-11.md`** — autonomous
-> deployment working (cold-boot verified), SIL-0 analytics validated, the
-> current next-steps, and the robustness gaps. Read that + `migration-plan.md`
-> for *where things are*; this file is about *how to keep working*.
+> **Where things are: `docs/migration-plan.md` (authoritative status, updated
+> 2026-07-16)** — SIL-0 complete; SIL-1 protection half complete (7/7 false-trip
+> matrix, F3a–F3d defects dispositioned); next = SIL-1 Steps 4–5
+> (`docs/sil1-scope-of-work.md`). Background detail: the 07-11 session handoff
+> (`docs/session-handoff-2026-07-11.md`, with 07-14/15/16 update blocks).
+> This file is about *how to keep working*.
 
 Written 2026-07-07 (Python deliverables front-loaded); the frontier has since
 moved to LabVIEW/hardware — see the banner above. This file is about *how to
@@ -16,7 +18,11 @@ keep working* — with a cheaper/newer AI model, or by hand.
   symptom→cause table: `docs/deployed-bringup.md`.
 - **SIL-0 analytics validated (2026-07-11):** 9049 HRL/IMEP/CA50 vs known truth,
   425 comparisons all within tol. `docs/9049-openloop-audit.md` §7; tools
-  `gen_cas_traces.py` / `compare_hrl.py` / `tune_thresholds.py`.
+  `gen_cas_traces.py` / `compare_hrl.py` / `tune_thresholds.py` /
+  `gen_warning_matrix.py` (the SIL-1 drill-suite generator).
+- **SIL-1 protection half (2026-07-14):** false-trip/latch matrix 7/7 on the
+  real 9049 via synthetic pressure; F3a–F3d as-built defects found +
+  dispositioned. `docs/sil1-scope-of-work.md` (Steps 4–5 remain).
 - Transport + ICD v0.1, live telemetry pipeline, `ControlSettings` contract
   (confirmed vs live flatten), reconnect resilience.
 - **Phase A code**: StateMachine port (validated LIVE — 100% agreement, all 5
@@ -42,7 +48,7 @@ keep working* — with a cheaper/newer AI model, or by hand.
    change is wrong.
 2. **Telemetry is the only truth**; ACK = validated, not done; rebuild from
    telemetry after reconnect; stale ⇒ stop commanding.
-3. **The suite stays green** (`pytest`, 183 tests, CI enforces). A red test is
+3. **The suite stays green** (`pytest`, 191 tests, CI enforces). A red test is
    a stop-the-line event, not an inconvenience.
 4. **Contract lockstep**: any `APC_ControlSettings.ctl` change ⇒ re-run
    `tools/compare_flatten.py` on a fresh flatten (workflow:
@@ -90,7 +96,7 @@ pattern and to run `pytest` before claiming done.
 
 1. `README.md` → `docs/migration-plan.md` (authoritative status) →
    `docs/migration-seam.md` (why the boundary is where it is).
-2. `pip install -e ".[dev]" && pytest` — 183 tests, sub-2 s.
+2. `pip install -e ".[dev]" && pytest` — 191 tests, sub-5 s.
 3. Offline demo of everything: terminal 1
    `python -m supervisory.monarch.simserver_monarch --source PYTHON --speedup 5`,
    terminal 2 `python examples/monarch_operate.py` → `status`, `mode motoring`,

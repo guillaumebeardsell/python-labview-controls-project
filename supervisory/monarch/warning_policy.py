@@ -36,6 +36,22 @@ Simplification (noted): the VI merges CylPresWarnings/CylPresErrors bitfields
 into per-kind cylinder warnings upstream of the max. This port accepts
 already-merged cylinder LEVELS via `extra_levels` — the bitfield decode lives
 with the 9049 contract when that gets modeled.
+
+KNOWN GAPS vs the as-built (2026-07-14 print decode,
+docs/9056-warning-policy-asbuilt.md — this port predates it):
+
+* Per-state ARMING masks: the as-built arms/disarms channels by system state
+  (the per-state arming tables); this port evaluates every channel in every
+  state. No state input exists here yet.
+* The 9049-side state gate (built + live-verified 2026-07-14, SIL-1 6c):
+  late-combustion and misfire-from-IMEP flags are AND'd with
+  `9049_Global_SYSTEMSTATE >= 2` upstream of the latches in
+  CombCluster2Array. Any future port of the 9049 cylinder chain must include
+  it, and remember the misfire checks are ONE-SIDED low-side (F3d).
+* Also note W5 (as-built defect, not a port bug): on the 9056 the
+  STATE LIMITATION FROM WARNINGS output is computed but NOT consumed by the
+  StateMachine — only the watchdog clamp acts. This port models the intended
+  behaviour, which is AHEAD of the as-built until W5 is fixed.
 """
 
 from __future__ import annotations
