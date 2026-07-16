@@ -22,7 +22,8 @@ def test_load_and_stats(tmp_path):
     ]
     got = load(_write(tmp_path, rows))
     assert len(got) == 6
-    assert abs(cyl_to_cyl_spread(got) - 0.2) < 1e-9      # |-1.0 - -1.2| within a cycle
+    # one-sided (F3d): worst LOW-side dev = cycle mean (-1.1) minus lowest cyl (-1.2)
+    assert abs(cyl_to_cyl_spread(got) - 0.1) < 1e-9
     assert running_imep_std(got) > 0                      # IMEPn changes cycle to cycle
 
 

@@ -223,11 +223,18 @@ def build_cycle(
     burn_dur_cad: float,
     kappa_fired: float,
     noise_bar: float,
-    drift_bar: float,
+    drift_ramps: list[tuple[float, float]],
     rng: random.Random,
 ) -> tuple[list[list[float]], dict, list[list[float]]]:
     """One raw 9x7200 block, its per-cylinder truth record, and the 6x7200
-    phased single-cylinder frames (for feeding APC_HRL directly)."""
+    phased single-cylinder frames (for feeding APC_HRL directly).
+
+    drift_ramps: per-cylinder (start, end) piezo offset [bar], applied as a
+    linear ramp across the block. The caller carries end -> next cycle's start,
+    so the offset is CONTINUOUS across cycle files — a per-cycle constant
+    offset would step at the file boundary, and PPhaseCorrection's two-cycle
+    stitch turns that step into a fake heat-release spike that corrupts
+    MFB/CA50 for mid-offset cylinders (found live 2026-07-14, SIL-1)."""
     raw = [[0.0] * N_SAMPLES for _ in range(len(ROWS))]
     truth: dict = {"cylinders": {}}
 
@@ -251,10 +258,11 @@ def build_cycle(
     for cyl in range(1, 7):
         offset = CYL_OFFSETS[cyl - 1]
         frame = cyl_frames[cyl - 1]
-        off0 = rng.uniform(-drift_bar, drift_bar)  # piezo offset; pegging must remove it
+        d0, d1 = drift_ramps[cyl - 1]  # piezo offset ramp; pegging must remove it
         row = raw[cyl - 1]
         for i in range(N_SAMPLES):
-            row[i] = frame[(i - offset) % N_SAMPLES] + off0 + rng.gauss(0.0, noise_bar)
+            drift = d0 + (d1 - d0) * i / (N_SAMPLES - 1)
+            row[i] = frame[(i - offset) % N_SAMPLES] + drift + rng.gauss(0.0, noise_bar)
 
     # Prechamber = attenuated, slightly lagged cyl 6 (small PrechamberPeakDiff).
     off6 = CYL_OFFSETS[5]
@@ -309,6 +317,10 @@ def main() -> int:
     ap.add_argument("--kappa-exp", type=float, default=1.62, help="motored expansion kappa (> comp = heat loss)")
     ap.add_argument("--kappa-fired", type=float, default=1.45)
     ap.add_argument("--q-fired", type=float, default=3000.0, help="heat released per fired cycle [J]")
+    ap.add_argument("--q-jitter", type=float, default=0.0,
+                    help="per-cycle random q_fired scaling, fraction (0.1 = ±10%%): a PURE "
+                         "cyclic-variability fault (trips MaxIMEPstd without misfire flags); "
+                         "same q for all 6 cylinders in a cycle, so cyl-to-cyl dev stays clean")
     ap.add_argument("--soc", type=float, default=-8.0, help="start of combustion [CADATDC]")
     ap.add_argument("--burn-dur", type=float, default=45.0, help="Wiebe 0-100%% duration [CAD]")
     ap.add_argument("--bore", type=float, default=Geometry.bore_m)
@@ -342,6 +354,15 @@ def main() -> int:
         "cycles": {},
     }
 
+    # Piezo drift as a continuous per-cylinder random walk: each cycle ramps
+    # linearly from the previous cycle's end value to a fresh target, so there
+    # is never a step at a file boundary (see build_cycle docstring). The walk
+    # is CYCLIC — the last cycle ramps back to the first cycle's start value —
+    # so a sim player looping the set forever sees no step at the wrap either.
+    drift_targets = [[rng.uniform(-args.drift, args.drift) if args.drift > 0 else 0.0
+                      for _ in range(6)] for _ in range(args.cycles + 1)]
+    drift_targets[args.cycles] = drift_targets[0]  # close the loop
+
     for cycle in range(1, args.cycles + 1):
         if args.mode == "motored":
             fired_cyls: set[int] = set()
@@ -351,12 +372,21 @@ def main() -> int:
             fired_cyls = set(range(1, 7)) if cycle >= args.fire_from else set()
         fired_cyls -= {cyl for (cyl, cyc) in misfires if cyc == cycle}
         knock_now = {cyl: amp for (cyl, cyc), amp in knocks.items() if cyc == cycle}
+        # Per-cycle heat release: only draw from the RNG when jitter is on, so
+        # --q-jitter 0 (the default) leaves the noise/drift stream — and hence
+        # all previously generated sets — byte-identical.
+        q_cycle = args.q_fired
+        if args.q_jitter > 0.0:
+            q_cycle = args.q_fired * (1.0 + rng.uniform(-args.q_jitter, args.q_jitter))
+
+        drift_ramps = list(zip(drift_targets[cycle - 1], drift_targets[cycle]))
 
         raw, truth, phased = build_cycle(
             volumes, args.rpm, args.p_int, args.p_exh, args.kappa_comp,
-            args.kappa_exp, fired_cyls, knock_now, args.q_fired, args.soc,
-            args.burn_dur, args.kappa_fired, args.noise, args.drift, rng,
+            args.kappa_exp, fired_cyls, knock_now, q_cycle, args.soc,
+            args.burn_dur, args.kappa_fired, args.noise, drift_ramps, rng,
         )
+        truth["q_fired_j"] = round(q_cycle, 1)
         write_cycle_csv(out / f"cycle_{cycle:04d}.csv", raw)          # 9x7200 raw (full CAS chain)
         write_cycle_csv(out / f"cycle_{cycle:04d}_phased.csv", phased)  # 6x7200 phased (feed APC_HRL)
         truth_all["cycles"][str(cycle)] = truth

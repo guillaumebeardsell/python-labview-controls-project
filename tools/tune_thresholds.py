@@ -8,10 +8,11 @@ each combustion metric against a Warning and an Error limit from the
 `9049_WarningLevels` FGV; `CombCluster2Array` OR-reduces the **Error** flags,
 **latches** them (feedback nodes, cleared only by `APC_SLAVE_ClearWarnings`),
 and drives `9049_Global_CylPressError` — which gates spark & DI. So one spurious
-Error sample latches a fire-veto until an operator clears it. Those limits have
-**never been set for this engine**, and several checks **false-trip** on a
-motored engine (CA50 is noise, `Expected IMEP` is an unwired 0 → the misfire
-check trips on anything). This tool reads the metrics the SIL harness computed
+Error sample latches a fire-veto until an operator clears it. Those limits had
+**never been set for this engine** (F3b: never even loaded), and several checks
+**false-trip** on a motored engine (CA50 is noise; `Expected IMEP` is an unwired
+0, which under the one-sided F3d check makes misfire-from-IMEP INERT, not a
+tripper — disarm it until wired). This tool reads the metrics the SIL harness computed
 (`APC_SIL0_HRL_Desktop` → `labview_metrics.csv`) and emits a **recommended
 Warning/Error set** with margin, plus the **disarm list** for checks that can't
 be meaningfully armed in this mode. Feed the result into the 9049 warning XML
@@ -22,9 +23,12 @@ variant; verified from `APC_9049_LoadWarningConfig.vi` / `APC_Pcyl_Diag.vi`):
   metric flag        →  threshold field       (compared value)
   maximum pressure   →  MaxPCylMax            (Pmax)
   cyclic variability →  MaxIMEPstd            (running IMEPn std)
-  misfire cyl-to-cyl →  MaxDevFromAvg         (|IMEPg − cylinder-mean|)
-  misfire self reg   →  MaxDevFromSelfAvg     (|IMEPn − own running mean|)
-  misfire from IMEP  →  MaxDevFromExpectedIMEP(|IMEPn − Expected IMEP|)
+  misfire cyl-to-cyl →  MaxDevFromAvg         (cyl-mean − IMEPg, LOW side only)
+  misfire self reg   →  MaxDevFromSelfAvg     (own mean − IMEPn, LOW side only)
+  misfire from IMEP  →  MaxDevFromExpectedIMEP(Expected − IMEPn, LOW side only)
+NOTE (F3d): the three misfire checks are ONE-SIDED as-built — they trip only
+when IMEP falls BELOW the reference by more than the limit; a high IMEP never
+trips them (Pmax/MAPO cover the high side). Threshold = allowed low-side drop.
   knock              →  MAPOmax               (MAPO — NOT in the metrics CSV)
   late combustion    →  CA50max               (CA50)
 plus `samples for running IMEP std` (I32) — the std window length (default 20).
@@ -117,11 +121,13 @@ def _num(s: str) -> bool:
 
 
 def cyl_to_cyl_spread(rows: list[dict]) -> float:
-    """Max within-cycle IMEPg spread (max-min across the 6 cylinders)."""
+    """Worst within-cycle LOW-side deviation: cycle-mean IMEPg minus the lowest
+    cylinder. Matches the one-sided as-built `MaxDevFromAvg` check (F3d) — a
+    high cylinder never trips it, so only the drop below the mean sizes the limit."""
     by_cycle: dict[int, list[float]] = {}
     for r in rows:
         by_cycle.setdefault(r["cycle"], []).append(r["imep_g"])
-    return max((max(v) - min(v) for v in by_cycle.values() if len(v) > 1), default=0.0)
+    return max((st.mean(v) - min(v) for v in by_cycle.values() if len(v) > 1), default=0.0)
 
 
 def running_imep_std(rows: list[dict]) -> float:
@@ -133,7 +139,7 @@ def running_imep_std(rows: list[dict]) -> float:
 
 
 def self_avg_dev(rows: list[dict]) -> float:
-    """Worst deviation of any cycle's IMEPn from that cylinder's own mean.
+    """Worst LOW-side drop of any cycle's IMEPn below that cylinder's own mean (one-sided, F3d).
 
     This is the `misfire self reg` metric (`MaxDevFromSelfAvg`), distinct from
     the cyl-to-cyl spread (`MaxDevFromAvg`): here each cylinder is judged
@@ -145,7 +151,7 @@ def self_avg_dev(rows: list[dict]) -> float:
     for v in by_cyl.values():
         if len(v) > 1:
             m = st.mean(v)
-            worst = max(worst, max(abs(x - m) for x in v))
+            worst = max(worst, m - min(v))  # LOW side only (F3d one-sided check)
     return worst
 
 
@@ -196,7 +202,7 @@ def main() -> int:
         f"observed cyclic IMEPn std {obs_std:.3f} → ×{args.std_margin:g} (floor 0.3); "
         "prevents first-acquisition zero-padded-cycle latch")
     add("MaxDevFromAvg", round(max(obs_spread * 3, 0.5), 3), round(max(obs_spread * 4, 0.8), 3), "bar",
-        f"observed cyl-to-cyl IMEPg spread {obs_spread:.3f} → generous (identical synthetic cyls ⇒ ~0)")
+        f"observed cyl-to-cyl IMEPg low-side dev {obs_spread:.3f} → generous (identical synthetic cyls ⇒ ~0)")
     add("MaxDevFromSelfAvg", round(max(obs_selfdev * 3, 0.5), 3), round(max(obs_selfdev * 4, 0.8), 3), "bar",
         f"observed self-avg IMEPn dev {obs_selfdev:.3f} → generous (per-cyl cyclic misfire catch)")
 

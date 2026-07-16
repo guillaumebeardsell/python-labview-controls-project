@@ -1,7 +1,8 @@
 # tools/ — operator & verification utilities
 
-Standalone scripts (stdlib + this package only; no extra deps). Each has a
-`--help` and a module docstring with usage. Grouped by what you're doing.
+Standalone scripts (stdlib + this package; `.xlsx` outputs additionally need
+`openpyxl`, included in `pip install -e ".[dev]"`). Each has a `--help` and a
+module docstring with usage. Grouped by what you're doing.
 
 ## SIL-0 — validate the 9049 combustion analytics off-hardware
 
@@ -24,6 +25,23 @@ gen_cas_traces.py ──► cycle_NNNN_phased.csv ──►  APC_SIL0_HRL_Deskto
 
 See `docs/9049-openloop-audit.md` §7 (SIL plan, harness recipe) for the full
 workflow and the confirmed field↔flag↔metric map.
+
+## SIL-1 — the on-target warning false-trip matrix
+
+One command builds the whole drill; the traces play through the CAS_loop
+sim-pressure branch (`docs/sil1-scope-of-work.md` Step 6) while `SimEnable`
+runs the virtual crankshaft.
+
+```
+gen_warning_matrix.py ──► trace-sets/warning_matrix/<7 sets>/   ──copy──► cRIO /home/lvuser/sim/
+                      ├─► CylWarningLevels.drill.xml (ALL armed) ──swap──► cRIO …/bin/CylWarningLevels.xml
+                      ├─► manifest.md/json (COMPUTED expected trips per set)
+                      └─► --xlsx "docs/cRIO9049 Warning Matrix.xlsx" (bench record sheet)
+```
+
+| Tool | Does |
+|---|---|
+| `gen_warning_matrix.py` | Emit the 7-set false-trip suite (clean motored/fired controls + overpressure, late-combustion, knock, misfire, cyclic-variability via `--q-jitter`), the all-armed drill XML (fired-profile values derived from the clean-fired truth), and the manifest whose expected Warning/Error calls are **computed from truth.json against the drill thresholds** (knock asserted from the injection spec). Restore the motoring XML after the drill. |
 
 ## Command path — exercise & verify the Python⇄LabVIEW link
 

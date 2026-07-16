@@ -118,7 +118,7 @@ def test_build_cycle_shape_and_phasing():
     raw, truth, phased = build_cycle(
         VOLS, 900.0, 2.9, 3.0, 1.58, 1.52, fired_cyls=set(), knock={},
         q_fired_j=0.0, soc_atdc=-8.0, burn_dur_cad=45.0, kappa_fired=1.45,
-        noise_bar=0.0, drift_bar=0.0, rng=rng,
+        noise_bar=0.0, drift_ramps=[(0.0, 0.0)] * 6, rng=rng,
     )
     assert len(raw) == len(ROWS) == 9
     assert all(len(r) == N_SAMPLES for r in raw)
@@ -142,3 +142,64 @@ def test_firing_order_is_1_5_3_6_2_4():
 
 def test_imepg_window_matches_hrl_convention():
     assert IMEPG_WINDOW == (1800, 5400)  # CAD 180..540 = -180..+180 ATDC
+
+
+# --- --q-jitter (CLI, cyclic-variability fault) ----------------------------
+
+
+def _run_cli(tmp_path, name, *extra):
+    import subprocess, sys, json
+    out = tmp_path / name
+    subprocess.run(
+        [sys.executable, "tools/gen_cas_traces.py", str(out), "--cycles", "4",
+         "--mode", "fired", "--noise", "0", "--drift", "0", "--seed", "7", *extra],
+        check=True, capture_output=True)
+    return json.loads((out / "truth.json").read_text())
+
+
+def test_q_jitter_default_off_is_deterministic_and_uniform(tmp_path):
+    a = _run_cli(tmp_path, "a")
+    b = _run_cli(tmp_path, "b")
+    assert a["cycles"] == b["cycles"]  # same seed, jitter off -> identical
+    qs = [a["cycles"][str(c)]["q_fired_j"] for c in range(1, 5)]
+    assert qs == [3000.0] * 4  # constant q, recorded per cycle
+    imeps = [a["cycles"][str(c)]["cylinders"]["1"]["imep_g_bar"] for c in range(1, 5)]
+    assert max(imeps) - min(imeps) < 1e-9  # identical cycles
+
+
+def test_q_jitter_varies_imep_cycle_to_cycle_but_not_cyl_to_cyl(tmp_path):
+    t = _run_cli(tmp_path, "j", "--q-jitter", "0.2")
+    qs = [t["cycles"][str(c)]["q_fired_j"] for c in range(1, 5)]
+    assert len(set(qs)) > 1 and all(2400.0 <= q <= 3600.0 for q in qs)  # ±20%
+    # cycle-to-cycle IMEP spread appears (the MaxIMEPstd fault)...
+    imeps = [t["cycles"][str(c)]["cylinders"]["1"]["imep_g_bar"] for c in range(1, 5)]
+    assert max(imeps) - min(imeps) > 0.5
+    # ...but within a cycle all 6 cylinders stay equal (cyl-to-cyl dev clean)
+    for c in range(1, 5):
+        cyls = t["cycles"][str(c)]["cylinders"]
+        vals = [cyls[str(k)]["imep_g_bar"] for k in range(1, 7)]
+        assert max(vals) - min(vals) < 1e-9
+
+
+def test_drift_is_continuous_across_cycle_files(tmp_path):
+    """The piezo-drift offset must not step at a file boundary: the two-cycle
+    stitch in PPhaseCorrection turns a step into a fake heat-release spike
+    (live false late-combustion trips on cyls 3/5, 2026-07-14)."""
+    import subprocess, sys, csv
+    out = tmp_path / "d"
+    subprocess.run(
+        [sys.executable, "tools/gen_cas_traces.py", str(out), "--cycles", "3",
+         "--mode", "motored", "--noise", "0", "--drift", "0.2", "--seed", "3"],
+        check=True, capture_output=True)
+    blocks = []
+    for n in (1, 2, 3):
+        blocks.append([[float(x) for x in r]
+                       for r in csv.reader(open(out / f"cycle_{n:04d}.csv"))])
+    for cyl in range(6):
+        for b in range(3):
+            # boundary continuity: last sample of block b -> first of block
+            # (b+1) mod N — including the WRAP (the sim player loops the set)
+            step = abs(blocks[(b + 1) % 3][cyl][0] - blocks[b][cyl][-1])
+            # the waveform itself moves < 0.01 bar/sample here; a drift step
+            # would add up to 0.4 bar
+            assert step < 0.05, f"cyl {cyl+1} block {b}: boundary step {step:.3f} bar"

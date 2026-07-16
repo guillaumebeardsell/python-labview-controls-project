@@ -1,7 +1,8 @@
 # trace-sets/ — synthetic CAS trace sets (SIL scratch)
 
 Home for every synthetic pressure-trace set used by the SIL work (`motored_set/`,
-`fired_set/`, `flat_set/`, `sil0_traces/`, …). Everything in here except this README is
+`fired_set/`, `flat_set/`, `warning_matrix/` — the SIL-1 drill suite from
+`tools/gen_warning_matrix.py` — …). Everything in here except this README is
 **gitignored** — the sets are regenerable:
 
 ```
