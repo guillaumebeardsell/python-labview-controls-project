@@ -61,8 +61,10 @@ Signal/gate detail lives there; this doc is the click-level procedure.
      clusters.
    - **`APC_9049_CAS_loop.vi`** — the **`Graph time`** cycle chart (0…7200), **`rpm from DAQ`**,
      **`Enque?`**, **`ForceReSync`**, `error in` / `CAS DAQmx error`.
-   - **`APC_9049_FPGA_IGNDI_supervisor.vi`** — **`NumberOfActiveIGN_DI`**, `SI1–6`/`DI1–6` LEDs,
-     `Number of inactive sparks/injections`.
+   - ~~`APC_9049_FPGA_IGNDI_supervisor.vi`~~ — **do NOT read this panel: it is an FPGA
+     subVI, its panel shows saved defaults, never live data** (the stale `Fault1=126`
+     came from it). `NumberOfActiveIGN_DI` / `Number of inactive sparks/injections` are
+     live only if surfaced to RT — see 4e.1 step 0.
    *(Deployed/headless, none of these panels are visible and controls take their compiled
    defaults — F6; interactive SIL-1 is the only place you drive them by hand.)*
 
@@ -160,11 +162,15 @@ angles, Python moves them over the **real command path**, and the observables (L
 
 ### 4a — Bench footprint + the state-relay chain (read before wiring anything)
 
-> **Pending architecture decision:** `docs/engine-only-9056-tradeoff.md` (2026-07-16)
-> weighs running engine-only **without** the 9056 (Option B: a local state limiter + PC_HB
-> watchdog on the 9049). This step is written for the **as-built** chain below (Option A /
-> status quo). If Option B is adopted, 4c and drill 5c/5h re-target the local limiter and
-> the whole matrix + gate drills re-run on the modified build (the memo's regression gate).
+> **Architecture decision — DECIDED 2026-07-16** (`docs/engine-only-9056-tradeoff.md`):
+> engine-only testing **runs the 9056 alongside the 9049** — the dyno command
+> (`DynoControl → DYNO-REF`, a 9056 AO) and all engine-health reads (oil P/T, coolant/
+> exhaust temps, torque, fuel) live on the 9056. This step's as-built three-tier chain is
+> therefore the **final** configuration, not an interim. Conditions from the memo that land
+> in this SOW: verify the 9056 RT app starts clean with plant modules missing (−200088-class),
+> plant loops commanded to mode 0 and holding it, drills 5a/5b/5f run on this exact
+> two-chassis config. (The 9049-local PC_HB watchdog remains roadmap work for Python command
+> authority — if it is ever built, the matrix + gate drills re-run on the modified build.)
 
 The gate input `9049_Global_SYSTEMSTATE` is **not a knob you can set on the 9049** — it is
 the tail of a relay chain, so this is the first SIL-1 step that needs **all three tiers
@@ -181,18 +187,33 @@ Running config for all of Step 4 (and Step 5):
 1. **9049**: `RT_main` with sim crank + CAS delivering cycles (Steps 1–3 green). Best: keep
    the 6a sim branch playing **`baseline_motored`** — real finite traces hold
    `CylPressError = FALSE` (the drill XML must NOT be loaded; motoring profile only).
-2. **9056**: its RT app running (the real relay — no shortcut; see below).
+2. **9056**: its RT app running (the real relay — no shortcut; see below). First time on
+   this bench: confirm it starts clean with the plant disconnected — no −200088-class DAQ
+   startup race, loops iterating, `9056_HeartBeat` toggling in DSM — and that the plant
+   controllers sit at **mode 0 and hold it** as the state rises (tradeoff-memo conditions
+   1–2).
 3. **PC**: `UI_System` + `UI_Main` (+ the gateway if commanding from Python). The PC **must
    stay alive**: a frozen `PC_HB` trips `PCnotResponding` → the loss-of-PC clamp Selects −1
    → SAFE, in either mode (`docs/command-path-asbuilt.md` §5).
 
 As-built facts that matter here:
-- **The only state limiter actually wired is the watchdog clamp** —
-  `PCnotResponding ∨ 9049notResponding ∨ 9056notResponding → Select(−1 : 3)`. The
-  warnings-derived limit is computed but **not consumed** (gap W5,
-  `docs/9056-warning-policy-asbuilt.md`). So floating 9056 plant sensors **cannot** hold the
-  state down on this bench; if the state won't rise, look at the three `*notResponding` LEDs
-  on `UI_Main`, not at warnings.
+- **The state limiter has TWO live inputs — the watchdog clamp AND the warnings clamp.**
+  ~~W5 (warnings limit computed but unconsumed)~~ was **refuted live 2026-07-16**: a
+  latched severity-3 warning drove `warn_lim=1` in `status` and pinned the state at
+  MOTORING in both UI and PYTHON modes until CLEAR WARNINGS. So when the state won't
+  rise, the diagnostic order is: **(1) `status` → `warn_lim`** (3 = no warnings limit;
+  2/1/−1 = a severity 2/3/4 condition is latched — go to `UI_Errors`, **photograph the
+  lit lamps before clearing**, then CLEAR WARNINGS); **(2) the watchdog flags** —
+  `UI_Main` shows two of the three OR inputs as LEDs (`9056_PCnotResponding`,
+  `9056_9049notResponding` — panel names carry a `9056_` prefix; there is no plain
+  `PCnotResponding` LED); the third, `9056notResponding` (the 9056's self-check), has
+  **no LED** — check it in DSM. Remember raster severities **max-latch** (a passing trip
+  persists across state drops until cleared), and rasters arm only at MOTORING+ (W1) —
+  so the first climb to 1 can itself latch the warning that then blocks 2.
+- **Floating/disconnected 9056 plant channels CAN clamp the state** (consequence of the
+  live warnings clamp) — managing the 9056 plant warning limits/masks is a real
+  precondition of this two-chassis bench, not a future-W5 concern
+  (`docs/engine-only-9056-tradeoff.md`).
 - **DSM injection of `9049_Global_SYSTEMSTATE` is a trap**: CAS_loop re-writes it from the
   polled 9056 value every cycle (~133 ms @ 900 rpm), so a hand-written value is clobbered
   almost immediately (watch it snap back in DSM). Use the real chain.
@@ -209,18 +230,34 @@ edges, regardless of the gate — so this sub-step comes first even for a spark-
    `InjectEnable` FALSE for now).
 2. Read **`DI_Data_Mod5`** and **`DI_Data_Mod6`**: `ModulePresent` TRUE on both; record
    `Fault1`/`Fault2` exactly as displayed.
-3. **Decode `Fault1 = 126` against the NI-9751 manual** (it is a bitfield — write down the
-   meaning of every set bit in the commissioning book; audit §9 open question). A
+3. **Decode any nonzero `Fault1`/`Fault2` against the NI-9751 manual** (bitfields — write
+   down the meaning of every set bit in the commissioning book; audit §9/F9). A
    missing-HV-supply fault is *expected* on this bench (HV locked out) — record it and move
    on; anything pointing at the module or driver channels themselves must be chased before
    trusting any DI observable.
+   > **✅ 4b ACCEPTED 2026-07-16** (`screenshots/DIControl_before-state.png` +
+   > `DIControl_enabled-state.png`): `ModulePresent` TRUE on both Mod5/Mod6;
+   > **`Fault1 = 0`, `Fault2 = 0` on both, with all enables FALSE and with
+   > `ModuleEnable = TRUE`** — the historical `Fault1 = 126` (F9) was a stale saved-panel
+   > snapshot, not a live fault. Reads proven live (TempSense 26→27 under enable,
+   > LVSense 85⇄84). Senses consistent with LV-powered / HV-locked-out modules: LVSense
+   > 84–85, HVSense 15 / HVSense2 1 (HVTarget 100 V), HW rev 70 / FW rev 5.
+   > **Residuals for 4e (first HV energize):** a supply fault can only appear when HV is
+   > expected — decode any nonzero fault then; and confirm the **LVSense scaling** in the
+   > NI-9751 manual (84–85 raw — verify units before trusting LV-supply margin).
 4. Energize the 9751s / Key **only** for the scope sub-steps in 4e that need them, per the
    bench plan; de-energize after.
 
 ### 4c — Raise the state over the real command path
 
-1. Start all three tiers (4a). On `UI_Main`: `9056notResponding` / `9049notResponding` /
-   `PCnotResponding` all **off**; e-stop clear.
+1. Start all three tiers (4a). On `UI_Main` (left edge, verified against the 07-14 panel
+   print) the three watchdog LEDs are the **9056's verdicts about the other tiers**:
+   `9056_PCnotResponding` and `9056_9049notResponding` **off**; `9056_MTRnotResponding`
+   will be **ON with the membrane PLC absent — expected and harmless** (MTR is not in the
+   SAFE-clamp OR). There is **no 9056-liveness LED** — the 9056 cannot report itself dead
+   (a dead 9056 just freezes these LEDs at their last value). Confirm 9056 liveness from
+   `9056_HeartBeat` toggling in DSM, or the `9056_MeasAndCalc` array / `SystemState`
+   display updating on the panel. E-stop clear.
 2. Choose the command source. For the Python sweep: flip the HMI source switch to **PYTHON**
    (the `PYTHON (effective)` LED confirms), then on the PC:
    ```
@@ -229,18 +266,57 @@ edges, regardless of the gate — so this sub-step comes first even for a spark-
    **`--safety-only-mirror` matters**: without it the HMI panel's own requests mirror through
    Python and re-assert within a tick — the panel and your CLI fight over the intent. With it,
    panel e-stop + force overrides still flow (the safety floor), but mode/set belong to the CLI.
+   > ⚠ **Operator caution (observed live 2026-07-16):** in PYTHON mode the panel's state
+   > slider is **inert — including at −1**. Requesting "emergency" via the slider is a mode
+   > request, not an e-stop, and the safety-only mirror drops it by design. The panel's live
+   > safety controls in this mode are **EMERGENCY STOP & VENT** and the two **FORCE** buttons
+   > only. To reach −1: panel E-STOP button (mirrored — **✅ VERIFIED live 2026-07-16: pressed
+   > in PYTHON + safety-only-mirror mode, state clamped to −1**), CLI `estop` (settable,
+   > **never clearable, from the CLI — HMI clears only**), or the
+   > physical e-stop. CLI `mode safe` also lowers the state but does not declare an e-stop.
 3. `status` → expect `connected=True stale=False commanding=True state=0 source=PYTHON`.
-4. `mode idling` → within a tick or two `status` shows `state=2`. Confirm the echo end-to-end:
-   DSM (`10.1.10.171` → `APC_SharedVars`) → `9049_Global_SYSTEMSTATE` = **2**.
-5. If the state won't rise: re-check the three `*notResponding` LEDs (the clamp is the only
-   wired limiter — 4a), the e-stop, and `command_source`; a NACK reason appears in
+4. **Step up the ladder one state per request** — the StateMachine rate-limits upward
+   moves to **+1 per step** (as-built, pixel-verified; observed live 2026-07-16: `mode
+   idling` from STAND_BY lands at MOTORING first). This is a deliberate safety feature —
+   keep it. So: `mode motoring` → confirm `state=1` in `status`, then `mode idling` →
+   `state=2`. (Downward moves are immediate — no stepping needed to descend.) Confirm the
+   echo end-to-end: DSM (`10.1.10.171` → `APC_SharedVars`) → `9049_Global_SYSTEMSTATE` =
+   **2**. The CLI now **refuses >+1 upward requests** with the step to request instead
+   (`ladder_refusal` in `examples/monarch_operate.py`; downward is unrestricted).
+   > ✅ **RESOLVED (2026-07-16):** the stuck-at-MOTORING episode was a **latched
+   > severity-3 warning** — `status` showed `warn_lim=1` (severity 3 → limit MOTORING),
+   > the state pinned at `min(requested, 1)` in both modes, and clearing warnings
+   > restored `warn_lim=3` and full ladder operation. This observation is also the W5
+   > refutation (the warnings→state clamp is live — see 4a). Lesson for this step: check
+   > `warn_lim` in `status` FIRST whenever the state won't rise. Source of the trip was
+   > not captured before clearing — next occurrence, photograph `UI_Errors` first.
+5. If the state won't rise: re-check the watchdog flags (`9056_PCnotResponding` /
+   `9056_9049notResponding` LEDs, plus `9056notResponding` in DSM — the clamp is the only
+   wired limiter, 4a), the e-stop, and `command_source`; a NACK reason appears in
    `status` as `last_nack=…`.
 
-### 4d — Enable spark/DI, watch the counters
+### 4d — Enable spark/DI, watch the counters — ✅ PASSED 2026-07-16
+(operator-run; timing set + masters + per-cylinder enables over the Python command path,
+`SparkEnable`/`InjectionEnable` LED arrays as expected). Counter observable initially
+skipped — `FPGA_IGNDI_supervisor` is an FPGA subVI whose own panel is never live (saved
+defaults only, the F3b trap; the `Fault1=126` snapshot came from exactly this) — then
+**closed same day** after the counters were surfaced into TS10ms (4e.1 step 0):
+**`NumberOfActiveIGN_DI` = 12 confirmed with all six cylinders activated.** Implication
+recorded: 12 includes the six SI channels ⇒ the 9751s' **`Key` is present** and spark
+command edges are being scheduled — Mod4 should show pulses on the scope in 4e.2.
+**Still owed:** the 4d.3 truth test against the counter
+(`set activate_cylinder [false,true,false,false,false,false]` → count = **2**) — folded
+into 4e.1 step 3.
 
 **Set timing before enables** — the gateway range-checks `Speed ref` **only**; SA/DI values
 pass through **unvalidated** (`docs/command-path-asbuilt.md` §3), so type carefully. Bench
-values (JSON, **no spaces** inside a value — the CLI splits on whitespace; booleans lowercase):
+values (JSON, **no spaces** inside a value — the CLI splits on whitespace). The CLI
+validates each value against the field's declared type **before** it touches the intent
+(added after the 2026-07-16 incident where `set ign_enable FALSE` landed a string in a
+bool field and every subsequent 1 Hz emit NACKed `parse` until restart) — so
+`TRUE`/`False`/`1`/`0` all coerce fine, and garbage is REFUSED locally with the intent
+untouched. If you ever do see a `parse`-NACK loop: restart the CLI — the intent re-seeds
+clean from the telemetry echo.
 ```
 set spark_advance_cadbtdc 20
 set di_advance_cadbtdc 60
@@ -255,7 +331,8 @@ set di_enable true
 Observe, in order:
 1. TS10ms — the **`SparkEnable`** and **`InjectionEnable`** 6-LED arrays all light (the
    gate output, post-`SYSTEMSTATE`/`CylPressError`).
-2. **`FPGA_IGNDI_supervisor`** — `NumberOfActiveIGN_DI` = **12** (6 SI + 6 DI), `SI1–6` +
+2. **`FPGA_IGNDI_supervisor` counters** (read via the RT indicator from 4e.1 step 0 —
+   never from the subVI's own panel) — `NumberOfActiveIGN_DI` = **12** (6 SI + 6 DI), `SI1–6` +
    `DI1–6` LEDs on, `Number of inactive sparks/injections` = 0. *Caveat:* SI channels only
    count with the `Key` present (4b) — DI = 6 but SI = 0 with everything enabled points at
    Key/9751 power, not the gate.
@@ -265,44 +342,150 @@ Observe, in order:
 
 ### 4e — Scope the edges + sweep SA/SOI from Python
 
-Hookup (dummy loads / probes only — treat connectors as live):
-- **Spark** = Mod4 `DIO0–5` (cyl 1–6). **DI** = Mod5/Mod6 outputs.
-- Trigger: TS10ms `DIControl → DI Scope Trigger Event` (e.g. INJECTION PULSE), or the FPGA's
-  **Trig1** once-per-cycle pulse if it's routed out — anything cycle-locked.
+**Preconditions (all from earlier steps — verify, don't assume):** state = 2 over the real
+command path (`status` → `state=2`, `warn_lim=3`); baseline_motored playing, `CylPressError
+= FALSE`; 4d gate LEDs lit (all 12); `DIControl.ModuleEnable = TRUE`, faults 0/0 (4b).
 
-Expected geometry at 900 rpm (cycle = 133.3 ms, **1° = 0.185 ms**): six spark pulses per
-cycle spaced **120° = 22.2 ms** (TDC offsets 0/480/240/600/120/360 — firing order
-1-5-3-6-2-4); spark **dwell is hard-coded 4 ms** in `SparkSettings` (≈ 21.6° @ 900 rpm).
+**4e.1 — Energize the 9751s (spark needs the Key — nothing on Mod4 moves without it):**
+0. **First, surface the supervisor counters into TS10ms (one-time dev-mode edit, carried
+   over from 4d).** ✅ Confirmed 2026-07-16: `NumberOfActiveIGN_DI` **does** reach a
+   top-level FPGA indicator on `APC_9049_FPGA_main` — so no recompile is needed; the
+   Read/Write Control route below works as-is. Click-level:
+   1. **Stop the running system first** (you cannot edit a running VI): stop `RT_main`
+      cleanly, note the time in the book.
+   2. In the project (RT target context), open **`APC_9049_TS10ms_loop.vi`** → block
+      diagram (Ctrl+E).
+   3. Find the existing FPGA read of **`DI_Data_Mod5`/`DI_Data_Mod6`** — an **FPGA
+      Read/Write Control** node sitting on the FPGA reference wire (section D of the
+      diagram, where EPTControl/DI_Control are written).
+   4. **Grow that same node instead of adding a new one** (one node per tick is the
+      idiomatic/cheap way): hover its bottom edge → drag down to add one element (or
+      right-click → *Add Element*).
+   5. Click the new element's name → the dropdown lists every top-level control/indicator
+      in the referenced FPGA VI → select **`NumberOfActiveIGN_DI`**. (While you're there,
+      add **`Number of inactive sparks`** and **`Number of inactive injections`** too —
+      two more elements, same node — they make 4e failures self-explaining.)
+   6. Right-click each new element's output terminal → **Create → Indicator**. Arrange the
+      three indicators on the TS10ms front panel next to the `DI_Data_Mod5/6` clusters,
+      and label the group "IGNDI supervisor (live)".
+   7. Save. **Sanity-check the edit is read-only:** the diff (Ctrl+Shift+D against the
+      previous version, or visual) must show ONLY the grown read node + three indicators —
+      no gate logic touched. This is a display-only change, so the full matrix regression
+      is not triggered; the one-look check after restart is that the 4d gate LEDs still
+      behave (masters off → dark, on → lit).
+   8. Re-run `RT_main` interactively. The three indicators now update every 10 ms tick —
+      **watch `NumberOfActiveIGN_DI` actually change** before trusting it (the campaign
+      rule: only trust a number you've watched change). Expected right now, pre-Key:
+      DI-side counts only.
+   9. **Deployed-build note (deployed-bringup rule #3):** the deployed rtexe is now stale
+      against this VI — rebuild it before the next headless session, or record "TS10ms
+      edited 2026-07-16, rtexe stale" on the deployment sheet.
+   - Never read the counters off `APC_9049_FPGA_IGNDI_supervisor.vi`'s own panel — it is
+     an FPGA subVI; its panel shows saved defaults, not live data.
+1. Per the bench plan, energize the 9751 **low-voltage supply only** (HV stays locked out
+   until 4e.3). Treat every output connector as live from this point.
+2. Re-read `DI_Data_Mod5/6`: `ModulePresent` still TRUE; **record `Fault1`/`Fault2`** — this
+   is the F9 residual check (a supply-related bit appearing *now* is meaningful — decode it
+   against the NI-9751 manual before continuing). Also note `LVSense` and settle its
+   **scaling** against the manual (84–85 raw, units unconfirmed — 4b residual).
+3. On the counter indicator surfaced in step 0 (if available): `NumberOfActiveIGN_DI`
+   should now read **12** (SI channels join once the Key is present). If DI = 6 / SI = 0
+   persists → Key/9751 supply, not the gate; stop and chase. Also re-run the 4d.3
+   truth test against it once (`activate_cylinder [false,true,false,false,false,false]`
+   → count = **2**), closing 4d's skipped observable.
+   > ✅ **Verified on the DEPLOYED SIM build (2026-07-16/17,** `APC_9049_RT SIM` rtexe:
+   > SimEnable=TRUE, SIM pressure?=TRUE/baseline_fired, debugging on): headless boot →
+   > `NumberOfActiveIGN_DI = 12` **only at state ≥ 2 (idling/firing) with IGN/DI enables
+   > ON** — the counter-level state-gate proof (drill 5c's core observation, scope leg
+   > still owed). **Confirmed from BOTH writers** (`Python in command` TRUE and FALSE):
+   > CLI and UI_Main panel each drive the full chain to `NumberOfActiveIGN_DI = 12` —
+   > 4f's enable leg done early; only the timing sweeps (4e.4 Python, 4f SA/SOI from the
+   > panel) remain to be proven at the pins. Implication: the compiled `DIControl.ModuleEnable` = TRUE (Key present
+   > deployed) — **this build schedules real coil/DI commands whenever state ≥ 2**; the
+   > never-fuel custody marker on this build spec is load-bearing. Record the full
+   > defaults row on the build description + deployment sheet.
 
-The sweep (record commanded value vs measured edge for each point):
-1. `set spark_advance_cadbtdc 10` → `20` → `30`: each +10° moves the spark edge
-   **1.85 ms earlier** relative to the cycle trigger; the TS10ms `SA [CADBTDC]` indicator
-   follows each step.
-2. `set di_advance_cadbtdc 40` → `60`: SOI edge moves 3.7 ms. `set di_duration_ms 1.5` → `3`:
-   pulse width changes 1.5 ms.
+**4e.2 — Scope hookup + one static cycle picture (spark only, no HV needed):**
+1. Probe **Mod4 `DIO0`** (cyl-1 spark command) on CH1, scope ground per the bench plan
+   (10× probe, DC coupling). CH2 → a second spark channel (`DIO4` = cyl 5, the next in
+   firing order) *or* a cycle-locked trigger if one is routed out (FPGA **Trig1**, or the
+   9751's internal scope via `DIControl → DI Scope Trigger Event` — already set to
+   INJECTION PULSE from 4b).
+2. Timebase **20 ms/div**, trigger on CH1 rising edge. At 900 rpm one engine cycle
+   (720°) = **133.3 ms**, so **1° = 0.185 ms**.
+3. Verify the static picture before sweeping anything: cyl-1 pulses repeat every 133.3 ms;
+   CH2 (cyl 5) leads/lags by **120° = 22.2 ms** (TDC offsets 0/480/240/600/120/360, firing
+   order 1-5-3-6-2-4); zoom to **1 ms/div** and confirm spark **dwell = 4 ms** (hard-coded
+   in `SparkSettings`; ≈ 21.6° at 900 rpm). Photograph both views.
+
+**4e.3 — (Only if scoping DI current) HV up, per bench plan:**
+1. Dummy loads on the Mod5/6 injector outputs confirmed wired; nobody's hands near them.
+2. `DIControl`: `HVEnable → TRUE` (HVTarget is already 100 V). Watch `HVSense` climb toward
+   ~100; record where it settles. Re-read `Fault1/2` once more (HV-present is the last new
+   condition that can raise a bit).
+3. `InjectEnable → TRUE`. The 9751's internal scope (`DI Scope Trigger Event` = INJECTION
+   PULSE, `DI Scope Channel 2` = INTERNAL HIGH) now gives you the drive waveform without
+   extra probes; an external current probe on a dummy-load lead is the independent check.
+4. **De-energize order at the end of the session:** `InjectEnable` FALSE → `HVEnable` FALSE
+   → wait for `HVSense` to decay → LV supply off. Log the times.
+
+**4e.4 — The Python sweep (record commanded vs measured for every point):**
+Reference method: keep DI SOI **fixed** and use its edge as the angular reference while
+sweeping SA (or CH2's cyl-5 spark if DI isn't up) — you're measuring *relative* shifts, so
+any cycle-locked edge works as the ruler.
+1. ```
+   set spark_advance_cadbtdc 10
+   ```
+   → cursor-measure the CH1 edge against the reference. Then `20`, then `30`: each +10°
+   step moves the spark edge **1.85 ms earlier**. The TS10ms `SA [CADBTDC]` indicator must
+   follow each step (that's the echo; the scope is the truth).
+2. ```
+   set di_advance_cadbtdc 40
+   ```
+   then `60`: SOI edge moves **3.7 ms** earlier. Then
+   ```
+   set di_duration_ms 1.5
+   ```
+   then `3`: pulse **width** changes by 1.5 ms, edges' *start* unmoved.
 3. *If DI edges refuse to move:* the DI window limits are **diagram constants**
    (`Window_Start/End` printed as 90/−30 DBTDC; the GDoc says 200/0) — an SOI outside the
    window may simply not schedule. Check the window before suspecting the command path.
-4. Repeat one spark point at a second rpm (e.g. 1800 → 1° = 0.093 ms) to confirm the
-   angle-domain scheduling scales with speed.
+4. Speed scaling: `set speed_ref 1800` (gateway range-checks this one), let the sim crank
+   settle, repeat ONE spark point — at 1800 rpm 1° = **0.093 ms**, so the same 10° step
+   now moves the edge 0.93 ms. Same angle, half the milliseconds = the scheduler is truly
+   angle-domain. Return to 900.
+5. Tolerance: measured Δt within **±0.2 ms** of predicted (≈ ±1° at 900 rpm) per point;
+   log every (commanded, predicted, measured) triple in the commissioning book.
 
 ### 4f — Same sweep from the HMI (UI mode) — the other writer
 
 The GUI is the *second* legitimate writer of `PC_ControlSettings` (B3.c promote,
 `docs/command-path-asbuilt.md` §2), and the F3b lesson applies to its controls too: a panel
 knob can display a value that never reaches the cluster field it claims to set. Prove each
-control at the pins, once:
-1. Flip the HMI source switch back to **UI** (the `PYTHON (effective)` LED goes off). Sanity:
-   a Python `set` now NACKs `source is UI` — expected, note it.
-2. On the **`APC_PC_UI_Main`** panel set, one at a time: **`Spark advance [CADBTDC]`**,
-   **`DI advance [CADBTDC]`**, **`DI duration [ms]`** — use *different* values than the 4e
-   sweep (e.g. SA 25, SOI 50, duration 2.0) so a stale echo can't masquerade as a pass.
-3. For each: the scope edge / pulse width moves by the predicted ms (same arithmetic as 4e)
-   and the TS10ms `SA [CADBTDC]` indicator follows. A control whose edge does **not** move is
-   a UI-wiring defect — record which one and chase it in `UI_Main`'s cluster assembly.
-4. Also confirm the enables from the panel once (`IGN enable` / `DI enable` / the cylinder
-   checkboxes) drive the same twelve lights as 4d did from Python.
-5. Return the source switch to whichever mode the next step needs.
+control at the pins, once. Scope setup unchanged from 4e.
+
+1. **Switch writers:** on `UI_Main` flip **`Python in command`** to OFF (top-left toggle;
+   the **`PYTHON (effective)`** LED below it goes dark). Sanity check the handover both
+   ways: in the CLI, `set spark_advance_cadbtdc 15` must now come back
+   `REFUSED: not commanding (command_source=UI)` — expected, note it in the book.
+2. **Spark advance:** on `UI_Main`, in the numeric box next to **`SA [CADBTDC]`** (beside
+   the IGN enable switch), type **25** and press Enter. Watch: (a) the TS10ms
+   `SA [CADBTDC]` indicator follows within a tick, (b) the scope edge lands **1.85 ms ×
+   (25−last_SA)/10°** from where 4e left it. Use *different* values than the 4e sweep
+   (25 here vs 10/20/30 there) so a stale echo can't masquerade as a pass.
+3. **DI advance:** same procedure in the **`DI advance [CADBTDC]`** box (the one that
+   showed 160 on the panel print) → type **50**, Enter → SOI edge moves the predicted ms.
+4. **DI duration:** **`DI duration [ms]`** box → type **2**, Enter → pulse width 2 ms on
+   the scope, leading edge unmoved.
+5. **A control whose edge does NOT move is a UI-wiring defect** — record which one and
+   chase it in `UI_Main`'s cluster-assembly diagram (the `APCControlSettings` bundle);
+   don't work around it silently.
+6. **Enables from the panel, once:** toggle **`IGN enable switch`** and **`DI enable
+   switch`** OFF→ON, and the six **Activate cylinder** checkboxes — the same twelve TS10ms
+   gate LEDs from 4d must respond identically to the panel as they did to Python.
+7. **Restore:** set the panel values back to the 4e bench values, flip `Python in command`
+   back ON if the next step commands from the CLI, and confirm `status` shows
+   `commanding=True` again.
 
 *Accept:* outputs appear **only** with `SYSTEMSTATE ≥ 2` and `CylPressError` FALSE;
 `NumberOfActiveIGN_DI` = 12 (and = 2 in the single-cylinder test); SA/SOI/duration move the
@@ -412,6 +595,20 @@ Run 5a/5b (destructive to the session) **last** if you want to chain the others 
   `PCnotResponding` → the 9056 clamp Selects −1 → SAFE; the 9049 echo follows and outputs
   die. Restart the UI, clear, recover. The PYTHON-mode leg is already covered (drills
   B4-1/2). **Update the caveat note in `docs/command-path-asbuilt.md` when done.**
+
+- **5i — Loss-of-9056** *(first run informally 2026-07-16: force-stopped `APC_9056_RT`
+  mid-run → **no warning anywhere, state requests dead, every 9056-published SV frozen
+  at its last value** — the gap documented in `docs/command-path-asbuilt.md` §6a).*
+  Formal drill, bench-safe (HV locked out, dummy loads):
+  1. Two-chassis config at state ≥ 2, gate LEDs lit (4d), sim pressure playing.
+  2. Kill `APC_9056_RT` → record: the three `9056_*notResponding` LEDs stay green
+     (frozen), `9049_Global_SYSTEMSTATE` freezes at 2, and the TS10ms **gate LEDs stay
+     lit on stale state** — photograph it; that image is the case for the fix.
+  3. Confirm the survivors: physical e-stop still kills outputs; FPGA watchdog intact.
+  4. Restart the 9056 (reboot-order rules, `docs/deployed-bringup.md`), clear, recover.
+  *Accept:* behaviour recorded; re-run after the two §6a build tasks (PC-computed
+  watchdog LEDs on `UI_Main`; 9049-side staleness→−1 clamp on the state relay) to show
+  the LEDs go red and the gate closes.
 
 *Accept:* all drills pass; F4 echo reconciled and `settings_9049.py` updated; watchdog,
 sync-loss, and e-stop recovery sequences documented click-by-click (they become the
@@ -715,7 +912,7 @@ remains the right pattern for that cleanup when the closed loop work starts.
       ALL-ARMED drill XML; `CylPressError=FALSE` holds (2026-07-14).
 - [ ] State-gated spark/DI scheduling scoped; SA/SOI/duration sweep confirmed from **both
       writers** — Python (4e) and the UI_Main panel (4f).
-- [ ] Drills 5a–5g passed and documented; **watchdog recovery** + **sync-loss** behaviours
+- [ ] Drills 5a–5i passed and documented; **watchdog recovery** + **sync-loss** behaviours
       recorded (+ optional 5h closes the command-path §5 UI-mode-clamp caveat).
 - [ ] **F4 echo reconciled** → `supervisory/monarch/settings_9049.py` corrected.
 - [x] False-trip / latch matrix produced — COMPLETE 7/7 (2026-07-14; record sheet filled;

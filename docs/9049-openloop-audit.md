@@ -680,7 +680,15 @@ Every item ⚠ must be re-verified on the *deployed build*, not the dev copy:
 - Deployed warning-XML values; `Enque?`/Override/Sim saved defaults.
 - Echo bitmask vs 1/0 (F4) — live capture.
 - Does the Arduino encoder emulator still exist in the lab? (SIL-2)
-- `Fault1 = 126` meaning (NI 9751 manual) (F9).
+- ~~`Fault1 = 126` meaning (NI 9751 manual) (F9)~~ **RESOLVED for the pre-HV bench
+  (2026-07-16, SIL-1 4b; `screenshots/DIControl_before-state.png` +
+  `DIControl_enabled-state.png`):** `Fault1 = 0` / `Fault2 = 0` on both 9751s with all
+  enables FALSE **and** with `ModuleEnable = TRUE`; `ModulePresent` TRUE ×2; reads
+  proven live (TempSense 26→27, LVSense 85⇄84). The historical 126 was a stale
+  saved-panel snapshot, not a live fault. **Residual:** supply faults can only appear
+  when HV is expected — if a nonzero fault appears at first HV energize (4e / SIL-3),
+  decode it against the NI-9751 manual then (also check LVSense scaling — 84–85 raw;
+  confirm units before trusting the LV-supply margin).
 - ~~Engine geometry values~~ **RESOLVED** — bore 0.112 / stroke 0.149 / rod
   0.217 / CR 12.8 / pin-offset −0.00099 (picture15), used in SIL-0 and validated
   (§7, 425 comparisons in tolerance). Remaining: confirm picture15 matches the

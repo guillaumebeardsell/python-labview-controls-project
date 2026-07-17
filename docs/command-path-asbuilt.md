@@ -48,7 +48,7 @@ mode). This is ICD §7.4, and it is as-built (see §2, §3).
 | `UI_System` has **no** source-select and **no** `UI_HeartBeat`. | `APC_PC_UI_System` (all pages) |
 | `UI_Main` reads the global and assembles the full `APCControlSettings` cluster (EMERGENCY STOP, Requested mode, spark/DI advance+duration, Speed ref, IGN/DI enable, Activate cylinder, Force idling/motoring, PID refs). | `APC_PC_UI_Main/…d.png` (2026-07-11 export) |
 | **Source-select redirect (B3.c) — as-built.** `UI_Main` writes `PC_OperatorRequests` **always**; a case gated on `CommandSource_IsPython` promotes `PC_OperatorRequests → PC_ControlSettings` **only in the FALSE (UI-mode) case**. | `APC_PC_UI_Main/…d.png`, source-select case crop |
-| `PYTHON (effective)` LED + `9056_PCnotResponding`/`9049notResponding`/`MTRnotResponding` reads are on the `UI_Main` panel (B3.b affordances). | `APC_PC_UI_Main/…d.png` |
+| `PYTHON (effective)` LED + `9056_PCnotResponding`/`9056_9049notResponding`/`9056_MTRnotResponding` reads are on the `UI_Main` panel (B3.b affordances; exact panel labels, `9056_` prefix — **no 9056-liveness LED exists**, and no plain `PCnotResponding`). | `APC_PC_UI_Main/…p.png` |
 
 > **Stale-export note:** the `UI_Main` export was **re-printed 2026-07-11 01:59**.
 > An earlier 2026-07-08 copy predated B3.c and showed the UI writing
@@ -135,7 +135,45 @@ armed in BOTH modes.** Verified from the 2026-07-10 `TS_loop` export:
 
 ---
 
-## 6. The one real gap — `UI_HeartBeat` (specified, NOT built)
+## 6. The real gaps
+
+### 6a. Loss-of-9056 — NOTHING responds (discovered live 2026-07-16)
+
+Bench observation (SIL-1, two-chassis config): **force-stopping `APC_9056_RT` mid-run
+raises no warning anywhere and clamps nothing.** Walk the watchdog coverage:
+
+| Dies | Response |
+|---|---|
+| PC | ✅ 9056 WatchDog → SAFE clamp (§5) |
+| 9049 RT | ✅ FPGA watchdog kills spark/DI (>4 Hz) |
+| **9056** | ❌ **nothing** — every 9056-published SV (incl. `SystemState_SM`, the three `*notResponding` flags, `9056_MeasAndCalc`) freezes at its last value; SV reads serve stale data without error |
+
+Consequences while the 9056 is dead: the `9049_Global_SYSTEMSTATE` echo freezes — **if
+state was ≥2, the 9049 spark/DI gate stays open on stale state**; the loss-of-PC clamp
+is gone (it lives on the 9056); the UI/CLI e-stop path through the StateMachine is dead.
+Only the physical e-stop chain and the 9049 FPGA RT-stall watchdog remain.
+
+Two build tasks (both PC/9049-side, neither exists today) — **click-level build
+instructions: `docs/hb-hardening-clicklevel.md`** (Tasks A/B there; Task C = the
+gateway `operator_requests` field that makes the Python safety mirror real):
+
+1. **Observability — PC-computed watchdog LEDs on `UI_Main`** (operator decision
+   2026-07-16): add PC-local stall counters (the `APC_9056_WatchDog` pattern, ~5 s
+   threshold) on `9049_HeartBeat` and `9056_HeartBeat`, plus an MTR LED driven by the
+   PC's own Modbus comms status (the PC is the Modbus master — first-hand knowledge).
+   Keep `9056_PCnotResponding` as a fourth, relabeled LED ("PC HB fault — 9056 view"):
+   it is the only external check on the PC's own heartbeat path; the adjacent
+   PC-computed `9056notResponding` going red tells the operator when to distrust it.
+2. **Control path — 9049-side staleness clamp on the state relay**: in `CAS_loop`,
+   if `9056_MeasAndCalc` stops updating for N cycles, write **−1** to
+   `9049_Global_SYSTEMSTATE` instead of relaying the stale value → the TS10ms gate
+   closes. Same family as the 9049-local hardening in
+   `docs/engine-only-9056-tradeoff.md`; any change here re-runs the false-trip matrix +
+   gate drills (regression rule).
+
+Drill: kill-9056 is now SOW Step 5 drill **5i** (`docs/sil1-scope-of-work.md`).
+
+### 6b. `UI_HeartBeat` (specified, NOT built)
 
 Because `PC_HB` follows Python in PYTHON mode (§4), it **cannot** detect the
 operator console (the HMI that holds the software e-stop + monitoring) dying

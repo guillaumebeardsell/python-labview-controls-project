@@ -72,11 +72,42 @@ plan; this doc is the *current state + what to do next + what's still soft*.
   no Abs; any `Pcyl_Diag` change ⇒ re-run the matrix as regression gate).
 - **W2 settled by the matrix runs** (per-state arming observed live).
 - **Steps 4–5 remain** — click-level SOW rewritten 2026-07-15/16
-  (`docs/sil1-scope-of-work.md` 4a–4f, drills 5a–5h). Pending architecture
-  decision for engine-only running: `docs/engine-only-9056-tradeoff.md`.
+  (`docs/sil1-scope-of-work.md` 4a–4f, drills 5a–5i). ~~Pending architecture
+  decision~~ → DECIDED 07-16: run both cRIOs (see next update block).
 - Close-out still OWED on the bench: restore the **motoring**
   `CylWarningLevels.xml` (drill XML must never ride into a fueled run) +
   `SIM pressure? = FALSE`.
+
+---
+
+## Update 2026-07-16 (PM) — Step 4 bench day: 4a–4d PASSED, W5 refuted, loss-of-9056 gap
+
+- **Architecture DECIDED: engine-only runs BOTH cRIOs** — dyno command (`DYNO-REF`) and
+  all engine-health reads (oil/coolant/exhaust/torque/fuel) live on the 9056
+  (`docs/engine-only-9056-tradeoff.md`).
+- **SIL-1 4a–4d PASSED** over the real command path + Python CLI: state ladder (+1 per
+  step up, instant down), **panel e-stop verified in PYTHON mode** (clamps −1), DI-module
+  health (F9 CLOSED — `Fault1=126` was a stale saved panel; live = 0/0), gate LEDs, and
+  `NumberOfActiveIGN_DI = 12` (⇒ **Key present**, spark edges scheduling). Counters
+  surfaced into TS10ms via grown R/W Control node (rtexe now stale — rebuild). Next:
+  4d.3 truth test (count=2), then 4e scope + SA/SOI sweep, 4f HMI sweep.
+- **W5 REFUTED LIVE:** the warnings→state clamp IS consumed — a latched severity-3
+  warning drove `warn_lim=1` and pinned the state at MOTORING in both modes until CLEAR
+  WARNINGS. Diagnostic order now: `status`→`warn_lim` first; photograph UI_Errors before
+  clearing (source of this trip was lost). Floating plant channels CAN clamp — manage
+  9056 limits/masks every engine-only session.
+- **Loss-of-9056 gap (new, `docs/command-path-asbuilt.md` §6a):** killing `APC_9056_RT`
+  raises NOTHING — 9056-published SVs freeze, 9049 gate stays open on stale state ≥2.
+  Build tasks: PC-computed watchdog LEDs on `UI_Main` (operator decision) + 9049-side
+  staleness→−1 clamp on the state relay. Drill **5i** added.
+- **CLI hardened** (`examples/monarch_operate.py`, 202 tests green): >+1 upward mode
+  requests REFUSED with the step to request; `set` values validated against field types
+  (a bad `set ign_enable FALSE` had poisoned the intent → infinite `parse`-NACK loop).
+- Traps codified: FPGA-subVI panels show saved defaults (never read
+  `FPGA_IGNDI_supervisor`'s panel); UI_Main watchdog LEDs are `9056_*`-prefixed 9056
+  verdicts (no 9056-liveness LED). **Verify:** does gateway telemetry carry
+  `operator_requests`? If absent, the safety-only mirror is inert (check
+  `operate_traffic.jsonl`).
 
 ---
 

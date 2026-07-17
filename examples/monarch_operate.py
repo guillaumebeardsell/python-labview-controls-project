@@ -12,6 +12,11 @@ never CLEARED from here (operator/HMI only).
 Commands:
   status                          one-line plant + link + sequence status
   mode safe|standby|motoring|idling|firing
+                                  upward moves one step at a time — the 9056
+                                  StateMachine rate-limits to +1 per step, so
+                                  a >+1 upward request is REFUSED here with
+                                  the step to request instead (downward is
+                                  immediate and unrestricted)
   set <path> <value>              e.g. set speed_ref 900
                                   set pid_control_references.tcoolant.ec_tt_001_ref 60
   force idling|motoring on|off
@@ -30,6 +35,8 @@ import logging
 import threading
 import time
 
+from pydantic import BaseModel, TypeAdapter
+
 from supervisory import Recorder, TcpPlantLink
 from supervisory.engine import Supervisor
 from supervisory.monarch import MonarchTelemetry, monarch_parser
@@ -42,6 +49,25 @@ from supervisory.sequencing import Status
 MODES = {"safe": SystemState.SAFE, "standby": SystemState.STAND_BY,
          "motoring": SystemState.MOTORING, "idling": SystemState.IDLING,
          "firing": SystemState.FIRING}
+MODE_WORDS = {v: k for k, v in MODES.items()}
+
+
+def ladder_refusal(current: int | None, target: SystemState) -> str | None:
+    """Refuse upward mode requests that jump more than one state.
+
+    The 9056 StateMachine rate-limits upward transitions to +1 per step
+    (as-built), so a bigger jump would be silently clamped on the plant and
+    the operator would see the state settle below what they asked for. This
+    check is operator clarity, not safety — LabVIEW enforces the ladder
+    regardless. Downward requests are immediate on the plant and always
+    pass; with the current state unknown, the request passes through.
+    """
+    if current is None or int(target) <= current + 1:
+        return None
+    nxt = MODE_WORDS[SystemState(current + 1)]
+    return (f"REFUSED: state ladder — {SystemState(current).name}({current}) → "
+            f"{target.name}({int(target)}) jumps {int(target) - current} states; "
+            f"the 9056 steps +1 at a time. Request 'mode {nxt}' first.")
 
 log = logging.getLogger("operate")
 
@@ -105,6 +131,11 @@ class Session:
             return f"REFUSED: not commanding (command_source={src}); flip source on the HMI"
         return None
 
+    def current_state(self) -> int | None:
+        view = self.last_view
+        tm = view.telemetry if view else None
+        return int(tm.system_state) if isinstance(tm, MonarchTelemetry) else None
+
     def status_line(self) -> str:
         view = self.last_view
         if view is None:
@@ -139,18 +170,31 @@ def parse_value(raw: str):
 
 def set_path(session: Session, path: str, raw: str) -> str:
     value = parse_value(raw)
+    applied = {}
 
     def change(settings):
         obj = settings
         parts = path.split(".")
         for part in parts[:-1]:
             obj = getattr(obj, part)
-        if not hasattr(obj, parts[-1]):
+        leaf = parts[-1]
+        if not hasattr(obj, leaf):
             raise AttributeError(path)
-        setattr(obj, parts[-1], value)
+        coerced = value
+        if isinstance(obj, BaseModel) and leaf in type(obj).model_fields:
+            # Validate/coerce against the field's declared type BEFORE the
+            # assignment: a bad value must never land in the intent — the
+            # commander re-emits the whole cluster at 1 Hz, so one poisoned
+            # field means every subsequent command NACKs 'parse' until a
+            # restart (observed live 2026-07-16 with `set ign_enable FALSE`).
+            # Bonus: pydantic's lax mode makes TRUE/False/1/0 all valid bools.
+            ann = type(obj).model_fields[leaf].annotation
+            coerced = TypeAdapter(ann).validate_python(value)
+        setattr(obj, leaf, coerced)
+        applied["value"] = coerced
 
     session.commander.modify(change)
-    return f"set {path} = {value!r}"
+    return f"set {path} = {applied['value']!r}"
 
 
 def main() -> int:
@@ -195,9 +239,11 @@ def main() -> int:
                 elif cmd == "status":
                     outcome = s.status_line()
                 elif cmd == "mode" and rest and rest[0] in MODES:
-                    outcome = s.guard() or (
-                        s.commander.request_mode(MODES[rest[0]])
-                        or f"requested_mode={rest[0]}")
+                    target = MODES[rest[0]]
+                    outcome = (s.guard()
+                               or ladder_refusal(s.current_state(), target)
+                               or s.commander.request_mode(target)
+                               or f"requested_mode={rest[0]}")
                 elif cmd == "set" and len(rest) == 2:
                     outcome = s.guard() or set_path(s, rest[0], rest[1])
                 elif cmd == "force" and len(rest) == 2 and rest[0] in ("idling", "motoring"):

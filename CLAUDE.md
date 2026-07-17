@@ -129,8 +129,11 @@ diagram-page evidence; the "how does the command path actually work as-built" re
 `docs/9056-warning-policy-asbuilt.md` (the as-built 9056 warning→state-clamp chain — 4-tier
 raster limits, per-state arming masks, latch/clear semantics, cylinder error scoring, the
 W1–W7 gap list, and the 9056 FPGA RT-stall safe-hold — the Phase-A3 ground truth);
-`docs/engine-only-9056-tradeoff.md` (decision memo: run engine-only with or without the
-9056); `docs/crio-file-access.md` (WinSCP/PuTTY file access to the cRIOs);
+`docs/engine-only-9056-tradeoff.md` (decision memo — **decided 2026-07-16: engine-only
+testing runs the 9056 alongside the 9049**; dyno command + all engine-health reads live
+on the 9056); `docs/hb-hardening-clicklevel.md` (click-level builds closing the
+loss-of-9056 holes: 9049 staleness→SAFE clamp, PC-computed watchdog LEDs, gateway
+`operator_requests`); `docs/crio-file-access.md` (WinSCP/PuTTY file access to the cRIOs);
 `docs/cRIO9049 Warnings.xlsx` (warning/error reference: definitions + motoring/fired
 values) + `docs/cRIO9049 Warning Matrix.xlsx` (the filled 7/7 false-trip record sheet);
 `docs/session-handoff-2026-07-11.md` (handoff: autonomous deployment, SIL-0, robustness

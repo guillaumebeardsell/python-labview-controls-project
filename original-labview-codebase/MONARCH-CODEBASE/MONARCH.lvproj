@@ -65,6 +65,7 @@
 	<Property Name="varPersistentID:{CDB03D58-B2E1-4EEC-B773-F1DAD50B9CCC}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_WarningLevels</Property>
 	<Property Name="varPersistentID:{D5523767-78A0-4F1C-967D-5D4CFDB557B4}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_LoadWarningsFromINI</Property>
 	<Property Name="varPersistentID:{D87D645B-D464-40D1-A596-B572BB92D6D5}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/CASyncLost</Property>
+	<Property Name="varPersistentID:{DDAFE28C-8413-4309-A6A7-D724EEDE88AB}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_EngineSpeed_RPM</Property>
 	<Property Name="varPersistentID:{DF23D4F5-66D0-4B37-9C07-2F9BA25661A8}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_MeasAndCalc</Property>
 	<Property Name="varPersistentID:{DFB369BE-4F62-4E10-AF58-2A91B6394963}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Raster1_WarningSign</Property>
 	<Property Name="varPersistentID:{E131B9D2-D066-4FC8-9A87-82AE369C5258}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Raster4_WarningSign</Property>
@@ -74,8 +75,10 @@
 	<Property Name="varPersistentID:{EEE524D2-01A7-4672-9A03-A7832A2CC13B}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/PC_OperatorRequests</Property>
 	<Property Name="varPersistentID:{F16D8FED-01B2-450E-AE07-141716C8038C}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/ForceState_SM</Property>
 	<Property Name="varPersistentID:{F1B6E982-3FA2-4707-88C7-1BAC8BDF09FC}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9056_LoadWarningsFromINI</Property>
+	<Property Name="varPersistentID:{F4FC1A59-6B58-4069-8598-3B253FF64267}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/Expected IMEP</Property>
 	<Property Name="varPersistentID:{F62CC8DA-A96F-43E9-A4CC-7E3F6C56F35A}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/ManualState_SM</Property>
 	<Property Name="varPersistentID:{F70895B0-4EBE-4540-8D05-24DF636F4492}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/9049_SetWarningLimits</Property>
+	<Property Name="varPersistentID:{F9A42B37-57CB-4C02-B8A7-A854ACC137A8}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/TEMP_NumberOfActiveIGN_DI</Property>
 	<Property Name="varPersistentID:{FC35693E-0F2C-4D07-9A23-8F22787A0544}" Type="Ref">/NI-cRIO-9049-020A5DED/APC_SharedVars.lvlib/MTR</Property>
 	<Property Name="varPersistentID:{FF1A9D78-1805-46CE-8CF3-A07BB9BE6773}" Type="Ref">/My Computer/APC_PCglobalVars.lvlib/PC_Global_Errors</Property>
 	<Item Name="My Computer" Type="My Computer">
@@ -188,6 +191,11 @@
 				<Item Name="Write to XML File(string).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Write to XML File(string).vi"/>
 				<Item Name="Write to XML File(array).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Write to XML File(array).vi"/>
 				<Item Name="Write to XML File.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Write to XML File.vi"/>
+				<Item Name="Write Spreadsheet String.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Write Spreadsheet String.vi"/>
+				<Item Name="Write Delimited Spreadsheet (string).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Write Delimited Spreadsheet (string).vi"/>
+				<Item Name="Write Delimited Spreadsheet (I64).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Write Delimited Spreadsheet (I64).vi"/>
+				<Item Name="Write Delimited Spreadsheet (DBL).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Write Delimited Spreadsheet (DBL).vi"/>
+				<Item Name="Write Delimited Spreadsheet.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Write Delimited Spreadsheet.vi"/>
 			</Item>
 			<Item Name="lvanlys.dll" Type="Document" URL="/&lt;resource&gt;/lvanlys.dll"/>
 			<Item Name="APC_CAD_derivative.vi" Type="VI" URL="../support/APC_CAD_derivative.vi"/>
@@ -317,7 +325,7 @@
 				<Property Name="Bld_localDestDirType" Type="Str">relativeToCommon</Property>
 				<Property Name="Bld_modifyLibraryFile" Type="Bool">true</Property>
 				<Property Name="Bld_previewCacheID" Type="Str">{B32F5C51-F804-4F58-9802-7E9D50F92BE8}</Property>
-				<Property Name="Bld_version.build" Type="Int">17</Property>
+				<Property Name="Bld_version.build" Type="Int">18</Property>
 				<Property Name="Bld_version.major" Type="Int">1</Property>
 				<Property Name="Destination[0].destName" Type="Str">APC_Monarch.exe</Property>
 				<Property Name="Destination[0].path" Type="Path">../builds/NI_AB_PROJECTNAME/APC_Monarch/APC_Monarch.exe</Property>
@@ -363,7 +371,7 @@
 				<Property Name="Bld_localDestDirType" Type="Str">relativeToCommon</Property>
 				<Property Name="Bld_modifyLibraryFile" Type="Bool">true</Property>
 				<Property Name="Bld_previewCacheID" Type="Str">{798B45E1-2359-4403-A695-B3528C15DAF4}</Property>
-				<Property Name="Bld_version.build" Type="Int">3</Property>
+				<Property Name="Bld_version.build" Type="Int">4</Property>
 				<Property Name="Bld_version.major" Type="Int">1</Property>
 				<Property Name="Destination[0].destName" Type="Str">APC_PythonGateway.exe</Property>
 				<Property Name="Destination[0].path" Type="Path">../builds/NI_AB_PROJECTNAME/APC_PythonGateway/APC_PythonGateway.exe</Property>
@@ -2278,9 +2286,11 @@ AddOutputFilter chunkFilter
 		</Item>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
+				<Item Name="Close File+.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Close File+.vi"/>
 				<Item Name="compatCalcOffset.vi" Type="VI" URL="/&lt;vilib&gt;/_oldvers/_oldvers.llb/compatCalcOffset.vi"/>
 				<Item Name="compatFileDialog.vi" Type="VI" URL="/&lt;vilib&gt;/_oldvers/_oldvers.llb/compatFileDialog.vi"/>
 				<Item Name="compatOpenFileOperation.vi" Type="VI" URL="/&lt;vilib&gt;/_oldvers/_oldvers.llb/compatOpenFileOperation.vi"/>
+				<Item Name="compatReadText.vi" Type="VI" URL="/&lt;vilib&gt;/_oldvers/_oldvers.llb/compatReadText.vi"/>
 				<Item Name="DAQmx Advance Trigger (Digital Edge).vi" Type="VI" URL="/&lt;vilib&gt;/DAQmx/configure/trigger.llb/DAQmx Advance Trigger (Digital Edge).vi"/>
 				<Item Name="DAQmx Advance Trigger (None).vi" Type="VI" URL="/&lt;vilib&gt;/DAQmx/configure/trigger.llb/DAQmx Advance Trigger (None).vi"/>
 				<Item Name="DAQmx Connect Terminals.vi" Type="VI" URL="/&lt;vilib&gt;/DAQmx/configure/routing.llb/DAQmx Connect Terminals.vi"/>
@@ -2452,6 +2462,7 @@ AddOutputFilter chunkFilter
 				<Item Name="di_rt_control_revf5.vi" Type="VI" URL="/&lt;vilib&gt;/Powertrain Controls/Device Drivers/Direct Injector Driver/RevF5/Real-Time/di_rt_control_revf5.vi"/>
 				<Item Name="di_rt_iphase_conv_revf5.vi" Type="VI" URL="/&lt;vilib&gt;/Powertrain Controls/Device Drivers/Direct Injector Driver/RevF5/Real-Time/di_rt_iphase_conv_revf5.vi"/>
 				<Item Name="Error Cluster From Error Code.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Error Cluster From Error Code.vi"/>
+				<Item Name="Find First Error.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Find First Error.vi"/>
 				<Item Name="FindCloseTagByName.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/FindCloseTagByName.vi"/>
 				<Item Name="FindElement.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/FindElement.vi"/>
 				<Item Name="FindElementStartByName.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/FindElementStartByName.vi"/>
@@ -2465,12 +2476,19 @@ AddOutputFilter chunkFilter
 				<Item Name="NI_PID_pid.lvlib" Type="Library" URL="/&lt;vilib&gt;/addons/control/pid/NI_PID_pid.lvlib"/>
 				<Item Name="NI_PtbyPt.lvlib" Type="Library" URL="/&lt;vilib&gt;/ptbypt/NI_PtbyPt.lvlib"/>
 				<Item Name="Offset2CAT.vi" Type="VI" URL="/&lt;vilib&gt;/Powertrain Controls/Device Drivers/Tools/Real-Time/Offset2CAT.vi"/>
+				<Item Name="Open File+.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Open File+.vi"/>
 				<Item Name="Open_Create_Replace File.vi" Type="VI" URL="/&lt;vilib&gt;/_oldvers/_oldvers.llb/Open_Create_Replace File.vi"/>
 				<Item Name="ParseXMLFragments.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/ParseXMLFragments.vi"/>
 				<Item Name="PlsGen_Time_Convert_revf5.vi" Type="VI" URL="/&lt;vilib&gt;/Powertrain Controls/Device Drivers/Direct Injector Driver/RevF5/Real-Time/PlsGen_Time_Convert_revf5.vi"/>
+				<Item Name="Read Delimited Spreadsheet (DBL).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Read Delimited Spreadsheet (DBL).vi"/>
+				<Item Name="Read Delimited Spreadsheet (I64).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Read Delimited Spreadsheet (I64).vi"/>
+				<Item Name="Read Delimited Spreadsheet (string).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Read Delimited Spreadsheet (string).vi"/>
+				<Item Name="Read Delimited Spreadsheet.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Read Delimited Spreadsheet.vi"/>
+				<Item Name="Read File+ (string).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Read File+ (string).vi"/>
 				<Item Name="Read From XML File(array).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Read From XML File(array).vi"/>
 				<Item Name="Read From XML File(string).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Read From XML File(string).vi"/>
 				<Item Name="Read From XML File.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Read From XML File.vi"/>
+				<Item Name="Read Lines From File (with error IO).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Read Lines From File (with error IO).vi"/>
 				<Item Name="ticks2speed.vi" Type="VI" URL="/&lt;vilib&gt;/Powertrain Controls/Device Drivers/Tools/Real-Time/ticks2speed.vi"/>
 				<Item Name="time2ticks.vi" Type="VI" URL="/&lt;vilib&gt;/Powertrain Controls/Device Drivers/Tools/Real-Time/time2ticks.vi"/>
 				<Item Name="Write to XML File(array).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/xml.llb/Write to XML File(array).vi"/>
@@ -2530,7 +2548,7 @@ AddOutputFilter chunkFilter
 				<Property Name="Destination[1].path" Type="Path">/home/lvuser/natinst/bin/data</Property>
 				<Property Name="Destination[1].path.type" Type="Str">&lt;none&gt;</Property>
 				<Property Name="DestinationCount" Type="Int">2</Property>
-				<Property Name="Source[0].itemID" Type="Str">{96CCDCF3-4161-4792-A154-6BAB7A44CFFA}</Property>
+				<Property Name="Source[0].itemID" Type="Str">{18C91247-6BC8-4605-A9BD-5D25B4396DAB}</Property>
 				<Property Name="Source[0].type" Type="Str">Container</Property>
 				<Property Name="Source[1].destinationIndex" Type="Int">0</Property>
 				<Property Name="Source[1].itemID" Type="Ref">/NI-cRIO-9049-020A5DED/APC_9049_RT_main.vi</Property>
@@ -2565,6 +2583,62 @@ AddOutputFilter chunkFilter
 				<Property Name="TgtF_legalCopyright" Type="Str">Copyright © 2026 UC Berkeley</Property>
 				<Property Name="TgtF_productName" Type="Str">APC_9049_RT</Property>
 				<Property Name="TgtF_targetfileGUID" Type="Str">{2379A74C-6E95-40AA-AEA3-F2E5AF8AC235}</Property>
+				<Property Name="TgtF_targetfileName" Type="Str">startup.rtexe</Property>
+				<Property Name="TgtF_versionIndependent" Type="Bool">true</Property>
+			</Item>
+			<Item Name="APC_9049_RT SIM" Type="{69A947D5-514E-4E75-818E-69657C0547D8}">
+				<Property Name="App_copyErrors" Type="Bool">true</Property>
+				<Property Name="App_INI_aliasGUID" Type="Str">{2E3D7513-A969-4D70-8D05-AC07A6278D40}</Property>
+				<Property Name="App_INI_GUID" Type="Str">{3FDACD42-5B73-4928-813E-3BBA7B4A0C71}</Property>
+				<Property Name="App_serverConfig.httpPort" Type="Int">8002</Property>
+				<Property Name="App_serverType" Type="Int">0</Property>
+				<Property Name="Bld_autoIncrement" Type="Bool">true</Property>
+				<Property Name="Bld_buildCacheID" Type="Str">{E7995CDC-4EB7-4F25-9C93-D658776A53C3}</Property>
+				<Property Name="Bld_buildSpecDescription" Type="Str">*** SIM BUILD — SIL-1 bench only. NEVER leave deployed for fueled or
+real-encoder operation. ***
+
+Compiled defaults (DELIBERATE pre-fuel checklist violations, audit F5/F6):
+- EPTControl.SimEnable = TRUE  (virtual crank self-starts at every boot)
+- SIM pressure? = TRUE, Sim folder = /home/lvuser/sim/baseline_fired
+  (synthetic fired traces through the real CAS/diagnostics chain)
+- DIControl: ModuleEnable=TRUE, HVEnable=FALSE
+
+Swap-out gate: before ANY fueled / real-encoder / commissioning session,
+deploy the safe-defaults build .</Property>
+				<Property Name="Bld_buildSpecName" Type="Str">APC_9049_RT SIM</Property>
+				<Property Name="Bld_excludeInlineSubVIs" Type="Bool">true</Property>
+				<Property Name="Bld_excludeLibraryItems" Type="Bool">true</Property>
+				<Property Name="Bld_excludePolymorphicVIs" Type="Bool">true</Property>
+				<Property Name="Bld_localDestDir" Type="Path">../builds/NI_AB_PROJECTNAME/NI_AB_TARGETNAME/APC_9049_RT SIM</Property>
+				<Property Name="Bld_localDestDirType" Type="Str">relativeToCommon</Property>
+				<Property Name="Bld_modifyLibraryFile" Type="Bool">true</Property>
+				<Property Name="Bld_previewCacheID" Type="Str">{CE1B3E63-74DE-496E-90ED-8CB49DE6DFE1}</Property>
+				<Property Name="Bld_targetDestDir" Type="Path">/home/lvuser/natinst/bin</Property>
+				<Property Name="Bld_version.build" Type="Int">2</Property>
+				<Property Name="Bld_version.major" Type="Int">1</Property>
+				<Property Name="Destination[0].destName" Type="Str">startup.rtexe</Property>
+				<Property Name="Destination[0].path" Type="Path">/home/lvuser/natinst/bin/startup.rtexe</Property>
+				<Property Name="Destination[0].path.type" Type="Str">&lt;none&gt;</Property>
+				<Property Name="Destination[0].preserveHierarchy" Type="Bool">true</Property>
+				<Property Name="Destination[0].type" Type="Str">App</Property>
+				<Property Name="Destination[1].destName" Type="Str">Support Directory</Property>
+				<Property Name="Destination[1].path" Type="Path">/home/lvuser/natinst/bin/data</Property>
+				<Property Name="Destination[1].path.type" Type="Str">&lt;none&gt;</Property>
+				<Property Name="DestinationCount" Type="Int">2</Property>
+				<Property Name="Source[0].itemID" Type="Str">{18C91247-6BC8-4605-A9BD-5D25B4396DAB}</Property>
+				<Property Name="Source[0].type" Type="Str">Container</Property>
+				<Property Name="Source[1].destinationIndex" Type="Int">0</Property>
+				<Property Name="Source[1].itemID" Type="Ref">/NI-cRIO-9049-020A5DED/APC_9049_RT_main.vi</Property>
+				<Property Name="Source[1].sourceInclusion" Type="Str">TopLevel</Property>
+				<Property Name="Source[1].type" Type="Str">VI</Property>
+				<Property Name="SourceCount" Type="Int">2</Property>
+				<Property Name="TgtF_companyName" Type="Str">UC Berkeley</Property>
+				<Property Name="TgtF_enableDebugging" Type="Bool">true</Property>
+				<Property Name="TgtF_fileDescription" Type="Str">APC_9049_RT SIM</Property>
+				<Property Name="TgtF_internalName" Type="Str">APC_9049_RT SIM</Property>
+				<Property Name="TgtF_legalCopyright" Type="Str">Copyright © 2026 UC Berkeley</Property>
+				<Property Name="TgtF_productName" Type="Str">APC_9049_RT SIM</Property>
+				<Property Name="TgtF_targetfileGUID" Type="Str">{0D1AD953-675A-4F0A-AB7E-A6F71C72E176}</Property>
 				<Property Name="TgtF_targetfileName" Type="Str">startup.rtexe</Property>
 				<Property Name="TgtF_versionIndependent" Type="Bool">true</Property>
 			</Item>

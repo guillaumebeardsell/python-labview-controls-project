@@ -163,11 +163,21 @@ SLAVE handshake → 9049 CylPress latch clear.
 - **W4 — A cylinder ERROR clamps to MOTORING (3), not SAFE.** Deliberate-looking (motoring
   keeps the engine controlled while combustion stops) but a policy decision Python's A3 port
   must consciously adopt or change — the team should confirm intent.
-- **W5 — The clamp output is computed but not consumed** (pre-existing finding,
-  `docs/shadow-findings.md`): `STATE LIMITATION FROM WARNINGS` is not wired into the
-  StateMachine; only the B0 watchdog clamp (`PCnotResponding OR 9049notResponding →
-  Select(−1:3) → Min`) reaches the SM input today. Wiring WI's output into that same Min
-  is the standing prerequisite for A3 parity (phase-A doc).
+- ~~**W5 — The clamp output is computed but not consumed**~~ **REFUTED LIVE 2026-07-16
+  (SIL-1 bench):** with a latched severity-3 warning active, the gateway telemetry tap
+  `WarningLimits_SM` (the SM's `STATE LIMITATION FROM WARNINGS` input terminal) read
+  **1** — a value the watchdog Select(−1:3) cannot produce — and the state pinned at
+  exactly `min(requested, 1) = MOTORING` in **both** UI and PYTHON modes until CLEAR
+  WARNINGS restored `warn_lim=3` and the ladder worked again. **The warnings→state clamp
+  is wired and live in the running/deployed build** — the July-07 print either predates
+  the wiring or missed the join. (Original finding kept for history: the print showed
+  only the B0 watchdog clamp reaching the SM input.) Consequences: A3 parity work should
+  treat the clamp as as-built behavior to replicate, not to add; severity mapping
+  confirmed live (severity 3 → limit 1 = MOTORING); and floating/disconnected plant
+  channels CAN hold the state down — the engine-only bench must manage the 9056 plant
+  warning limits/masks (see `docs/engine-only-9056-tradeoff.md`). Source of the 07-16
+  severity-3 trip not identified before clearing (cylinder-error decode vs floating
+  raster channel) — photograph `UI_Errors` lamps before any future clear.
 - **W6 — No temporal rules.** Trip scoring is instantaneous max-latch: no debounce, no
   persistence windows, no hysteresis, no escalation-over-time. (The 4 tiers are *level*
   tiers, not time tiers.) The "author the temporal rules" A3 task in

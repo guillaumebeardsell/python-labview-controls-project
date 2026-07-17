@@ -13,6 +13,15 @@
 		<Property Name="type" Type="Str">Network</Property>
 		<Property Name="typeDesc" Type="Bin">)!#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!""01!!!#!!A!!!!!!#!!V!#A!(4H6N:8*J9Q!=1%!!!@````]!!!^"=H*B?3"P:C"%&lt;X6C&lt;'5!!1!"!!!!!!!!!!!!!!!!</Property>
 	</Item>
+	<Item Name="9049_EngineSpeed_RPM" Type="Variable">
+		<Property Name="featurePacks" Type="Str">Global</Property>
+		<Property Name="Global:EnableTimestamp" Type="Str">False</Property>
+		<Property Name="Network:UseBinding" Type="Str">False</Property>
+		<Property Name="Network:UseBuffering" Type="Str">False</Property>
+		<Property Name="numTypedefs" Type="UInt">0</Property>
+		<Property Name="type" Type="Str">Global</Property>
+		<Property Name="typeDesc" Type="Bin">)!#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!!J*1!!!#!!A!!!!!!"!!V!#A!'2'^V9GRF!!!"!!!!!!!!!!!!!!!!!!!!!!!!</Property>
+	</Item>
 	<Item Name="9049_Global_CA50" Type="Variable">
 		<Property Name="featurePacks" Type="Str">Global</Property>
 		<Property Name="Global:EnableTimestamp" Type="Str">False</Property>
@@ -23,12 +32,12 @@
 		<Property Name="typeDesc" Type="Bin">)!#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!!J*1!!!#!!A!!!!!!"!!V!#A!'2'^V9GRF!!!"!!!!!!!!!!!!!!!!!!!!!!!!</Property>
 	</Item>
 	<Item Name="9049_Global_CylPressError" Type="Variable">
-		<Property Name="featurePacks" Type="Str">Global</Property>
+		<Property Name="featurePacks" Type="Str">Network</Property>
 		<Property Name="Global:EnableTimestamp" Type="Str">False</Property>
 		<Property Name="Network:UseBinding" Type="Str">False</Property>
 		<Property Name="Network:UseBuffering" Type="Str">False</Property>
 		<Property Name="numTypedefs" Type="UInt">0</Property>
-		<Property Name="type" Type="Str">Global</Property>
+		<Property Name="type" Type="Str">Network</Property>
 		<Property Name="typeDesc" Type="Bin">)!#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!!B(1!!!#!!A!!!!!!"!!R!)1&gt;#&lt;W^M:7&amp;O!!%!!!!!!!!!!!!!!!</Property>
 	</Item>
 	<Item Name="9049_Global_SensedKnock" Type="Variable">
@@ -314,6 +323,14 @@
 		<Property Name="numTypedefs" Type="UInt">0</Property>
 		<Property Name="type" Type="Str">Network</Property>
 		<Property Name="typeDesc" Type="Bin">)!#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!!A(!!!!#!!A!!!!!!"!!N!"1!&amp;65FO&gt;$A!!1!!!!!!!!!!!!!!</Property>
+	</Item>
+	<Item Name="Expected IMEP" Type="Variable">
+		<Property Name="featurePacks" Type="Str">Network</Property>
+		<Property Name="Network:UseBinding" Type="Str">False</Property>
+		<Property Name="Network:UseBuffering" Type="Str">False</Property>
+		<Property Name="numTypedefs" Type="UInt">0</Property>
+		<Property Name="type" Type="Str">Network</Property>
+		<Property Name="typeDesc" Type="Bin">)!#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!!B(1!!!#!!A!!!!!!"!!5!#A!!!1!!!!!!!!!!!!!!!!!!!!!!!!</Property>
 	</Item>
 	<Item Name="ForceState_SM" Type="Variable">
 		<Property Name="featurePacks" Type="Str">Network</Property>
@@ -620,6 +637,14 @@
 		<Property Name="numTypedefs" Type="UInt">0</Property>
 		<Property Name="type" Type="Str">Network</Property>
 		<Property Name="typeDesc" Type="Bin">)!#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!!A(!!!!#!!A!!!!!!"!!N!!1!%37ZU/!!!!1!!!!!!!!!!!!!!</Property>
+	</Item>
+	<Item Name="TEMP_NumberOfActiveIGN_DI" Type="Variable">
+		<Property Name="featurePacks" Type="Str">Network</Property>
+		<Property Name="Network:UseBinding" Type="Str">False</Property>
+		<Property Name="Network:UseBuffering" Type="Str">False</Property>
+		<Property Name="numTypedefs" Type="UInt">0</Property>
+		<Property Name="type" Type="Str">Network</Property>
+		<Property Name="typeDesc" Type="Bin">)!#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!!A(!!!!#!!A!!!!!!"!!N!"1!&amp;65FO&gt;$A!!1!!!!!!!!!!!!!!</Property>
 	</Item>
 	<Item Name="WarningLimits_SM" Type="Variable">
 		<Property Name="featurePacks" Type="Str">Network</Property>
