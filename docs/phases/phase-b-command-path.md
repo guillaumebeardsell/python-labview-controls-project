@@ -117,10 +117,11 @@ the B0/B3 work).
    `Min` (Min accepts only 2 inputs — chain two Mins, or Build Array → Array
    Max & Min). That closes the same detection-without-response gap for the
    engine controller.
-6. Deploy and verify. Note (verified in `MONARCH.lvproj`): the project has
-   **no RT-EXE build specifications** — the cRIO code runs deployed-from-project
-   (Run on the RT main from the Project Explorer), so "redeploy" here means
-   re-run/re-deploy from the project, not rebuilding an executable. Bench check:
+6. Deploy and verify. Note *(updated 2026-07-19 — the original "no RT-EXE
+   build specs" observation is superseded)*: the project now builds startup
+   `.rtexe`s via the **`APC_9049_RT`/`APC_9049_RT SIM`/`APC_9056_RT`** specs
+   (autonomous deployment, `docs/deployed-bringup.md`), so "redeploy" =
+   rebuild the spec + set as startup. Bench check:
    stop toggling `PC_HB` (or kill Python once B2's commander is driving) ⇒
    telemetry shows `warnings_limit = −1` and `system_state → −1` within ~5 s.
 

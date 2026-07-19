@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase C — Python in Command on the Bench (detailed instructions) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../../index.html">index</a><span>docs/phases/phase-c-bench-command.md</span></div>
+<main><h1 id="phase-c-python-in-command-on-the-bench-detailed-instructions">Phase C — Python in Command on the Bench (detailed instructions)</h1>
+<p><strong>Objective:</strong> Python is the acting supervisor for bench operation — real
+authority over mode requests and setpoints against the real cRIOs — with the
+LabVIEW StateMachine limiter and all FLOOR mechanisms untouched beneath it.</p>
+<p><strong>Authority level:</strong> modes + setpoints via the B command path, always behind
+the LabVIEW limiter. No engine (hardware not commissioned); "bench" =
+controllers and plant I/O as available, actuators safe/disconnected as the
+team dictates.</p>
+<p><strong>Entry criteria (hard gate):</strong> Phase B exit passed (all drills 3/3, B0
+statement true, ICD v0.2 published). A2 shadow compare available.</p>
+<p><strong>LabVIEW changes in this phase:</strong> HMI polish only (section below) — <strong>no
+control-path, gateway-logic, or cRIO changes.</strong> All Phase-C functionality
+rides on what A2.1/B0/B3 already built; if a C task seems to need a LabVIEW
+logic edit, stop — it belongs in B and must re-pass the B4 drills.</p>
+<h2 id="c0-labview-changes-required-hmi-affordances-click-by-click">C0 — LabVIEW changes required (HMI affordances), click by click</h2>
+<p>All on the PC UI, cosmetic-to-thin:</p>
+<ol>
+<li><strong>Command-source visibility</strong> — built in B3.b (switch + <code>PYTHON
+   (effective)</code> LED on the System screen). C0 adds prominence and a
+   verification:
+   - Make the pair unmissable: enlarge the LED, set its ON color to something
+     loud (right-click → <em>Properties → Appearance → ON color</em>), and group it
+     with the switch in a labeled decoration frame ("COMMAND SOURCE").
+   - Verify the LED reads the <em>variable</em>, not the switch: with the UI running,
+     flip the switch and watch telemetry (<code>monarch_listen</code>) — the LED and the
+     <code>command_source</code> field must flip together. If the LED follows the switch
+     while telemetry doesn't, it's wired to a local instead of the
+     shared-variable read — rewire.</li>
+<li><strong>Supervisor-health tile</strong> on the System screen (reads + one published
+   flag, no logic):<blockquote>
+<p>⚠ <strong>Superseded 2026-07-16/18</strong> by <code>docs/hb-hardening-clicklevel.md</code> Task B
+(built + verified): a tile driven off the <em>relayed</em> 9056 verdict freezes
+green when the 9056 dies — exactly the failure Task B's <strong>PC-computed</strong>
+liveness closed. Use the Task B LEDs/banner instead of the recipe below;
+kept for history.</p>
+</blockquote>
+</li>
+<li>Publish the watchdog flag: <code>APC_SharedVars.lvlib</code> (9049 target) →
+      <em>New → Variable</em> → <strong><code>PCnotResponding_9056</code></strong>, Boolean,
+      Network-Published → <em>Deploy All</em>.</li>
+<li>In <code>APC_9056_TS_loop.vi</code>: the wire from the WatchDog's
+      <code>PCnotResponding</code> output already exists (it feeds the B0 <code>Select</code>) —
+      <strong>branch it</strong> (click the wire, drag a branch) → a
+      <code>PCnotResponding_9056</code> shared-variable <strong>write</strong> (<em>Access Mode →
+      Write</em>), outside any case. Redeploy the 9056 (rebuild the <code>APC_9056_RT</code>
+      startup spec — RT-EXE builds exist as of the autonomous deployment,
+      <code>docs/deployed-bringup.md</code>).</li>
+<li>On the System screen front panel: a <em>Round LED</em> labeled
+      <strong><code>PC WATCHDOG TRIPPED</code></strong>; diagram: <code>PCnotResponding_9056</code> <strong>read</strong> →
+      LED terminal, inside the main loop next to the other System-screen
+      reads.</li>
+<li>Optional additions (defer unless the team asks): <code>9049notResponding</code>
+      the same way; a last-command-age display needs a gateway-published
+      timestamp — skip it for now, the operator's real signal is the
+      <code>command_source</code> echo plus this lamp.</li>
+<li><strong>Verify e-stop ergonomics unchanged</strong> (a check, not an edit). With
+   source=PYTHON on the bench, one button at a time: press each of the three
+   panel e-stop buttons → telemetry <code>system_state → −1</code> within a tick;
+   release; operator clear (<code>CLEAR EMERGENCY STOP</code> path) → state steps back
+   up. They write the same variables as before — B3 touched only the
+   <code>PC_ControlSettings</code> write — so any deviation means the B3.c case caught
+   more than it should; stop and fix before C3.</li>
+<li>Nothing else. In particular do <strong>not</strong> add UI paths that write
+   <code>PC_ControlSettings</code> while source=PYTHON "for convenience" — that recreates
+   the dual-writer race B3 eliminated.</li>
+</ol>
+<hr />
+<h2 id="c1-operator-surface">C1 — Operator surface</h2>
+<p><em>Owner: Claude. Clarified 2026-07-07 (ICD §7.7): the LabVIEW HMI remains the
+operator's input surface in BOTH modes — mode changes, shutdown, speed etc.
+flow as <code>PC_OperatorRequests</code> and Python mirrors them
+(<code>operator_mirror.py</code>). The CLI below is therefore an </em><em>engineering/debug
+tool</em><em> (sequences, diagnostics, soak drills), not the operator's console.</em></p>
+<p><code>examples/monarch_operate.py</code> — a deliberately small REPL/CLI over
+<code>MonarchCommander</code>:
+- <code>status</code> (state, source, last ack, staleness, divergence alarm state),
+- <code>mode &lt;safe|standby|motoring|idling|firing&gt;</code> (sets <code>requested_mode</code>),
+- <code>set &lt;field.path&gt; &lt;value&gt;</code> (e.g. <code>set pid_control_references.tcoolant.ec_tt_001_ref 60</code>),
+- <code>force idling|motoring on|off</code>, <code>estop</code> (set only — clear is operator/HMI),
+- every command echoes the resulting ACK/NACK and the next telemetry effect.
+No autonomous behavior in this phase: the CLI is a human pushing intents
+through Python's plumbing. Sequences come in Phase D.</p>
+<p>Guardrails baked in: refuse to send while telemetry is stale; refuse
+<code>clear_emergency_stop</code>; log every intent + outcome to <code>operate.jsonl</code>.</p>
+<h2 id="c2-reverse-shadow-compare-divergence-alarm">C2 — Reverse shadow compare (divergence alarm)</h2>
+<p><em>Owner: Claude.</em></p>
+<p>Extend <code>tools/shadow_compare.py --live --alarm</code>: while Python commands, the A1
+port predicts <code>limited_settings</code>/<code>system_state</code> for each frame; any mismatch
+between prediction and LabVIEW's actual output raises an audible/console alarm
+and freezes context (frame + intent) to disk. This is the canary that the two
+brains still agree while one of them is driving.</p>
+<h2 id="c3-handover-procedure-write-down-then-follow-every-time">C3 — Handover procedure (write down, then follow every time)</h2>
+<ol start="0">
+<li><strong>Panel lineup check (mandatory).</strong> With the mirror on, flipping to
+   PYTHON asserts the panel's <strong>current</strong> values within a tick — whatever
+   <code>Requested mode</code>, feed modes, and references read on the HMI right now is
+   what Python will command. Walk the board and confirm every input is where
+   the plant should be <em>before</em> granting authority. (The panels are
+   permanent — the operator owns this check for the life of the system, the
+   same as any control-board lineup.)</li>
+<li>Python running, telemetry fresh, <code>status</code> clean; Python intent initialized
+   from telemetry (automatic).</li>
+<li>Operator flips <code>CommandSource</code> UI→PYTHON on the HMI.</li>
+<li>Confirm telemetry <code>command_source=PYTHON</code> and first Python frame produced
+   <strong>zero setpoint deltas</strong> (bumpless check — the CLI prints it).</li>
+<li>Work session.</li>
+<li>Handback: operator flips to UI; confirm UI writes resume; Python drops to
+   observe-only automatically (its writes NACK).</li>
+<li><strong>E-stop recovery rule (bench-verified 2026-07-08):</strong> an e-stop under
+   Python authority <strong>latches in Python's intent</strong> (mirror is set-only) and
+   cannot be cleared while source=PYTHON — by design. Recovery: flip to UI →
+   clear on the panel → state recovers → re-grant PYTHON deliberately. Every
+   e-stop therefore forces a human-authority review before Python resumes.
+Abort rule: anything unexpected → operator flips to UI (or e-stop). That path
+is drill-proven from B4-7/8.</li>
+</ol>
+<h2 id="c4-scripted-acceptance-session-the-exit-test">C4 — Scripted acceptance session (the exit test)</h2>
+<p>One sitting, scripted, recorded end to end:
+1. Handover per C3.
+2. Mode walk STAND_BY → MOTORING → IDLING → FIRING → back down (respecting
+   step-by-1; observe limiter behavior at each step).
+3. Setpoint changes on ≥3 MIDDLE loops (a thermal ref, a gas ref, dyno ref) —
+   verify effect in <code>limited_settings</code> and loop-mode telemetry.
+4. Force idling + force motoring engage/release; verify clamps.
+5. Provoke a synthetic warning → verify warnings clamp propagates and Python's
+   prediction agrees.
+6. E-stop from HMI mid-FIRING-request → SAFE; operator clear; recover.
+7. Kill Python mid-session (repeat drill B4-1 under authority) → safe hold →
+   restart → re-handover.
+8. Handback per C3.</p>
+<p>Pass = zero unsafe outcomes, zero unexplained divergence alarms, every ACK/
+NACK/effect as predicted.</p>
+<h2 id="c5-soak">C5 — Soak</h2>
+<p><em>Owner: joint (start it, leave it).</em></p>
+<p>≥8 h continuous: Python in command holding a benign intent set, chaos script
+injecting a random B4 drill every 20–40 min (skip e-stop), shadow alarm armed.
+Pass = no drift (memory/handles stable), no missed reconnects, no alarms, log
+review clean.</p>
+<hr />
+<h2 id="phase-exit-gate">Phase exit gate</h2>
+<ul>
+<li>C4 acceptance session passed and archived (recordings + operate.jsonl).</li>
+<li>C5 soak passed.</li>
+<li>Handover procedure (C3) documented and rehearsed by ≥2 operators.</li>
+</ul>
+<p><strong>Artifacts:</strong> <code>monarch_operate.py</code>, <code>--alarm</code> mode, C3 procedure text,
+acceptance + soak recordings.</p></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/phases/phase-c-bench-command.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

@@ -46,7 +46,7 @@ about MONARCH; `supervisory/monarch/` holds the project-specific payloads.
 | [docs/migration-plan.md](docs/migration-plan.md) | **Phased execution plan A–E + current project status (authoritative)** |
 | [docs/phases/](docs/phases/) | Detailed step-by-step instructions, one file per phase (A–E) |
 | [docs/migration-seam.md](docs/migration-seam.md) | FLOOR/MIDDLE/BRAIN boundary analysis + port backlog |
-| [docs/icd.md](docs/icd.md) | Wire protocol v0.1 + failure/reconnect semantics |
+| [docs/icd.md](docs/icd.md) | Wire protocol v0.2 (incl. §7 MONARCH command path) + failure/reconnect semantics |
 | [docs/monarch-control-settings.md](docs/monarch-control-settings.md) | The `ControlSettings` data contract (confirmed) |
 | [docs/monarch-telemetry.md](docs/monarch-telemetry.md) | Telemetry envelope (live) + gateway build recipe |
 | [docs/monarch-flatten-diff.md](docs/monarch-flatten-diff.md) | Contract-verification workflow (run on typedef changes) |
@@ -91,6 +91,7 @@ see reconnect and recovery.
 ## Status
 
 Current status lives in **[docs/migration-plan.md](docs/migration-plan.md)** (kept
-authoritative there, not here). Snapshot: transport + data contract validated against
-the real LabVIEW system; the read-only telemetry pipeline is **live** and recording;
-next is Phase A — the `APC_9056_StateMachine` port with a shadow-compare harness.
+authoritative there, not here). Snapshot (2026-07-19): Phases A & B complete and
+live-verified; both cRIOs run autonomously; SIL-0 complete; SIL-1 through Step 4d
+passed on the deployed SIM build (Python commands reach the FPGA ignition/injection
+channels; loss-of-any-chassis fails safe). Next: the 4e/4f scope session + drills.

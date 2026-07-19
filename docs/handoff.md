@@ -23,7 +23,8 @@ keep working* — with a cheaper/newer AI model, or by hand.
   `gen_warning_matrix.py` (the SIL-1 drill-suite generator).
 - **SIL-1 protection half (2026-07-14):** false-trip/latch matrix 7/7 on the
   real 9049 via synthetic pressure; F3a–F3d as-built defects found +
-  dispositioned. `docs/sil1-scope-of-work.md` (Steps 4–5 remain).
+  dispositioned. `docs/sil1-scope-of-work.md` (Steps 4a–4d since PASSED;
+  4e/4f scope session + drills 5a–5i remain).
 - Transport + ICD v0.1, live telemetry pipeline, `ControlSettings` contract
   (confirmed vs live flatten), reconnect resilience.
 - **Phase A code**: StateMachine port (validated LIVE — 100% agreement, all 5
@@ -49,7 +50,7 @@ keep working* — with a cheaper/newer AI model, or by hand.
    change is wrong.
 2. **Telemetry is the only truth**; ACK = validated, not done; rebuild from
    telemetry after reconnect; stale ⇒ stop commanding.
-3. **The suite stays green** (`pytest`, 191 tests, CI enforces). A red test is
+3. **The suite stays green** (`pytest`, 202 tests, CI enforces). A red test is
    a stop-the-line event, not an inconvenience.
 4. **Contract lockstep**: any `APC_ControlSettings.ctl` change ⇒ re-run
    `tools/compare_flatten.py` on a fresh flatten (workflow:
@@ -97,7 +98,7 @@ pattern and to run `pytest` before claiming done.
 
 1. `README.md` → `docs/migration-plan.md` (authoritative status) →
    `docs/migration-seam.md` (why the boundary is where it is).
-2. `pip install -e ".[dev]" && pytest` — 191 tests, sub-5 s.
+2. `pip install -e ".[dev]" && pytest` — 202 tests, sub-5 s.
 3. Offline demo of everything: terminal 1
    `python -m supervisory.monarch.simserver_monarch --source PYTHON --speedup 5`,
    terminal 2 `python examples/monarch_operate.py` → `status`, `mode motoring`,

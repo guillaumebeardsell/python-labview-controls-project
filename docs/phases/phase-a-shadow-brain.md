@@ -74,7 +74,7 @@ New module `supervisory/monarch/state_machine.py`:
 3. **Increase-by-1 rule:** `if target > current_state: target = current_state + 1`.
    (Decreases are immediate and unlimited — SAFE is always reachable in one step.)
 4. **Override:** `if force_state: target = manual_state` (bypasses everything —
-   confirm against the export whether it also bypasses the +1 rule; assumed yes).
+   **confirmed** by the A1.0 per-frame export: absolute override, +1 rule included).
 5. Return the clamped `SystemState`.
 
 **A1.3 — The limiter (MAX LEVEL OF CONTROL)**
@@ -118,8 +118,9 @@ column says 0. Encode the table as **data** (a dict), not branching code.
   step-by-1 + override semantics.
 - **Directed cases:** SAFE reachable in one step from FIRING; step-up chain
   STAND_BY→…→FIRING takes exactly 4 ticks; warnings clamp mid-run forces
-  step-down; e-stop wins over ForceState? (**confirm in export** — assumed
-  e-stop wins); latched-warning behavior is A3's job, not here.
+  step-down; e-stop vs ForceState: **CONFIRMED the other way — `ForceState`
+  overrides EMERGENCY STOP as-built** (`docs/shadow-findings.md`; flagged as a
+  hazard needing a guard, F1-class); latched-warning behavior is A3's job, not here.
 - **Limiter:** per-state spot checks of every row; vent polarity (SAFE ⇒ vents
   open = `false`); **combustion invariant:** any transition out of
   IDLING/FIRING ⇒ NG and O2 modes clamp to 0 in the same tick.

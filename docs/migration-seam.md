@@ -196,7 +196,8 @@ path.
      (WarningIntegration's 4-tier × 16-slot × 5-raster limits, per-state arming masks,
      max-latch + soft/master clear, cylinder W→1/E→3 scoring, severity→state map) is in
      **`docs/9056-warning-policy-asbuilt.md`**, incl. the W1–W7 gap list (per-cylinder
-     state-arming table likely inert, no temporal rules, clamp output still unwired).
+     state-arming table inert — W2 settled; no temporal rules; ~~clamp output unwired~~
+     W5 refuted live 2026-07-16 — the clamp IS consumed).
    - **Motoring vs fired warning-limit profiles (NEW — not in the as-built).** Today the
      9049 has a *single* limit set (`9049_WarningLevels` → one hardcoded `CylWarningLevels.xml`,
      no state input; the UI edits one slot). Motoring and firing need different thresholds and
@@ -225,9 +226,10 @@ path.
 - **Operating procedures / sequences** — the single biggest missing spec. The docs
   encode modes and a limit table but **no scripted PURGE / start / light-off / abort
   sequences**. These must be authored (they were never built).
-- ~~Loss-of-PC response~~ **answered (2026-07-06): none exists** — the WatchDog call in
-  `TS_loop` is unwired. Building the response is Phase B0 (see the safety-gap section).
-  Open sub-questions: the real `*watchdogThreshold` values, and who toggles `PC_HB` today.
+- ~~Loss-of-PC response~~ **answered AND built**: none existed as of 2026-07-06; the B0
+  clamp was then built and live-verified (armed in both modes; threshold 250 counts ≈ 5 s;
+  `PC_HB` toggled by the UI in UI mode / Python via the gateway in PYTHON mode — see the
+  safety-gap section above and `docs/command-path-asbuilt.md` §4–5).
 - **9056 loop rates** — undocumented except the membrane skid (200 ms).
 - **As-built vs docs** — the overview flags developer TODOs (stroke-volume calc, a
   project/diagram mismatch), so treat the docs as intent, not ground truth; confirm

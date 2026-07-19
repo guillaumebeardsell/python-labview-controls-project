@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase E — Commissioning Support &amp; Expansion (detailed instructions) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../../index.html">index</a><span>docs/phases/phase-e-commissioning.md</span></div>
+<main><h1 id="phase-e-commissioning-support-expansion-detailed-instructions">Phase E — Commissioning Support &amp; Expansion (detailed instructions)</h1>
+<p><strong>Objective:</strong> use the Python supervisory stack to drive commissioning itself,
+then grow the policy layers (temporal warning rules, setpoint scheduling) that
+were never built in LabVIEW.</p>
+<p><strong>Authority level:</strong> grows with commissioning — each plant capability is
+unlocked for Python command/sequencing only after its own bench drill, per the
+team's commissioning plan. The LabVIEW limiter and all FLOOR mechanisms remain
+permanently.</p>
+<p><strong>Entry criteria:</strong> Phase C exit (authority proven); D sequences bench-proven
+as hardware becomes available. This phase is deliberately less prescriptive —
+it tracks the commissioning campaign, which the team owns.</p>
+<p><strong>LabVIEW changes in this phase</strong> (all optional-but-recommended hardening;
+none block E1–E3, which are Python/data work):</p>
+<ol>
+<li><strong>Close the remaining detection-without-response gaps.</strong> As-built status
+   (2026-07-07): the B0 wiring already clamps on <strong><code>PCnotResponding</code> OR
+   <code>9049notResponding</code></strong> (both from the WatchDog VI) — so PC loss and 9049
+   loss are covered. Remaining candidate: WarningIntegration's
+   <strong><code>9056 FPGA not responding</code></strong> stall detector (indicator-only today).
+   Click level, in <code>APC_9056_TS_loop.vi</code>:</li>
+<li>Get the flag onto a wire: if the WarningIntegration subVI exposes it as
+      a connector-pane output, branch it; if it only drives a front-panel
+      indicator <em>inside</em> the subVI, first open <code>APC_9056_WarningIntegration.vi</code>
+      and wire that indicator's value to a spare connector-pane terminal
+      (right-click the pane → choose a free terminal → click terminal, click
+      indicator), save, then wire it at the call site.</li>
+<li>Add it to the existing B0 clamp: the <code>Select</code>(−1:3) + <code>Min</code> chain is
+      already there. Drop one more <code>Select</code> (TRUE → I8 <code>−1</code>, FALSE → I8 <code>3</code>),
+      wire the new flag to its selector. Past two clamp sources, replace the
+      chained <code>Min</code>s with <strong><code>Build Array</code> → <code>Array Max &amp; Min</code></strong> (Array
+      palette) and use the <strong>min</strong> output into the StateMachine's
+      <code>STATE LIMITATION FROM WARNINGS</code> input.</li>
+<li>Threshold: WarningIntegration's internal stall threshold is a constant
+      10 — at the ~50 Hz control loop that's 0.2 s, much hotter than the 5 s
+      house standard. Consider raising it toward <code>5000 / Iteration Time</code> for
+      consistency before arming the clamp.</li>
+<li>Re-run the affected B4 drills after wiring; capture one episode and
+      check <code>shadow_compare</code> still agrees 100%.</li>
+<li><strong>Warning-limit table hygiene</strong> — E2's temporal rules live in Python, but
+   the <em>instantaneous</em> per-channel limits stay in the LabVIEW XML/INI
+   (<code>WarningLevels.xml</code> on the 9056). When commissioning tunes thresholds,
+   update them there via the existing <code>_UI_Errors</code> screen (no diagram edits),
+   and re-capture a flatten if <code>APC_ControlSettings.ctl</code> ever changes
+   (<code>docs/monarch-flatten-diff.md</code>).</li>
+<li><strong>MTR/membrane commanding</strong> — the PC's Modbus-master code is built as its
+   <strong>own executable</strong> (<code>APCModbusMaster</code> build spec in <code>MONARCH.lvproj</code>,
+   separate from the <code>APC_Monarch</code> UI EXE) — so first trace <strong>which process
+   actually runs the Modbus loop</strong> in the control room (the standalone EXE vs
+   a UI-integrated loop). If/when setpoint scheduling (E3) should drive the
+   membrane, the minimal-change route stands: whichever process owns Modbus
+   keeps it; the values it writes come from <code>PC_ControlSettings</code> fields Python
+   already commands (<code>AIC201_CO2_ConcTarget</code>, membrane mode) — <strong>no new
+   LabVIEW plumbing</strong> if those fields are already consumed. Verify consumption
+   before assuming. Moving the Modbus master itself into Python is explicitly
+   <strong>not</strong> planned (it's FLOOR-adjacent I/O).</li>
+<li><strong>Retirement pass</strong> — as Python sequences take over operator workflows,
+   UI-side request-conditioning logic (mode-request buttons wired to
+   <code>Requested mode</code>, force buttons) stays functional as the manual fallback;
+   retire nothing until the team decides the manual path's final shape.</li>
+</ol>
+<hr />
+<h2 id="e1-commissioning-with-sequences">E1 — Commissioning with sequences</h2>
+<ul>
+<li>For each commissioning milestone (cold flow → gas handling → thermal →
+  motoring → first fire), pair the team's checklist with the corresponding
+  D-sequence: the sequence <em>is</em> the procedure record — its recording +
+  <code>operate.jsonl</code> become the commissioning evidence.</li>
+<li>Shadow alarm (C2) stays armed through every session; divergences and NACKs
+  reviewed same-day — during commissioning these are cheap discoveries of
+  LabVIEW-vs-spec surprises.</li>
+<li>After each milestone: re-run the A2 shadow suite over that day's recordings;
+  update sequence TBDs with measured values (real time constants, real
+  thresholds) and re-run the D2 property tests.</li>
+</ul>
+<h2 id="e2-temporal-warning-rules-authoring-not-porting">E2 — Temporal warning rules (authoring, not porting)</h2>
+<p>The original developer flagged these as needed-but-unbuilt. Build them in the
+Python warning-policy layer (extends <code>warning_policy.py</code> from A3):
+- Rule form: <code>WHEN &lt;channel/predicate&gt; FOR &lt;duration&gt; WHILE &lt;state set&gt; ⇒
+  &lt;action: cap state | force sequence | operator alert&gt;</code>.
+- Rules are <strong>data</strong> (a table the team reviews), evaluated in the tick loop;
+  each rule gets a unit test with synthetic time series (the pure-decision
+  engine makes time injectable).
+- Start list (from the report's examples + commissioning experience): oil
+  pressure low &gt; X s while ≥ MOTORING; coolant flow absent &gt; X s while thermal
+  loops active; heartbeat degradation patterns. The team supplies X's.
+- LabVIEW keeps its instantaneous hard trips unchanged — temporal rules are a
+  <em>supervisory</em> layer on top, never a replacement.</p>
+<h2 id="e3-setpoint-scheduling">E3 — Setpoint scheduling</h2>
+<ul>
+<li>Operating-point tables (state/speed/load → loop modes + setpoints) as
+  versioned data files (<code>schedules/*.toml</code> or similar), applied by a small
+  scheduler machine; every applied schedule row echoed to the log.</li>
+<li>Manual override always wins; scheduler re-asserts only on operating-point
+  change (no fighting the operator).</li>
+<li>Tests: table lookup, interpolation (if any), override precedence.</li>
+</ul>
+<h2 id="e4-consolidation-stewardship">E4 — Consolidation &amp; stewardship</h2>
+<ul>
+<li>Revisit what remains supervisory in LabVIEW (UI request conditioning, MTR
+  target commanding) — move or retire case-by-case; the FLOOR never moves.</li>
+<li>Model <code>9049_ControlSettings</code> in Python when direct 9049 observation/command
+  becomes useful (was deferred; needed at latest here).</li>
+<li>Repo hygiene each milestone: <code>pytest</code> green, <code>tools/compare_flatten.py</code>
+  re-run after any typedef change, docs' status sections updated
+  (<code>docs/migration-plan.md</code> stays the authority).</li>
+<li>Decide the end-state operator surface (keep LabVIEW HMI + Python CLI, or
+  build a Python UI) — explicitly out of scope until sequences are routine.</li>
+</ul>
+<hr />
+<h2 id="phase-exit-steady-state">Phase exit / steady state</h2>
+<p>There is no hard exit — E ends when commissioning does. Steady state:
+sequences drive routine operation, temporal rules + schedules live as reviewed
+data, LabVIEW holds the floor, and every supervisory change lands as a tested
+Python PR instead of an unversioned VI edit.</p></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/phases/phase-e-commissioning.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

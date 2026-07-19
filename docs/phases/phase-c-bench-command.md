@@ -34,6 +34,11 @@ All on the PC UI, cosmetic-to-thin:
      shared-variable read — rewire.
 2. **Supervisor-health tile** on the System screen (reads + one published
    flag, no logic):
+   > ⚠ **Superseded 2026-07-16/18** by `docs/hb-hardening-clicklevel.md` Task B
+   > (built + verified): a tile driven off the *relayed* 9056 verdict freezes
+   > green when the 9056 dies — exactly the failure Task B's **PC-computed**
+   > liveness closed. Use the Task B LEDs/banner instead of the recipe below;
+   > kept for history.
    1. Publish the watchdog flag: `APC_SharedVars.lvlib` (9049 target) →
       *New → Variable* → **`PCnotResponding_9056`**, Boolean,
       Network-Published → *Deploy All*.
@@ -41,8 +46,9 @@ All on the PC UI, cosmetic-to-thin:
       `PCnotResponding` output already exists (it feeds the B0 `Select`) —
       **branch it** (click the wire, drag a branch) → a
       `PCnotResponding_9056` shared-variable **write** (*Access Mode →
-      Write*), outside any case. Redeploy the 9056 (deploy-from-project — no
-      RT EXE in this project).
+      Write*), outside any case. Redeploy the 9056 (rebuild the `APC_9056_RT`
+      startup spec — RT-EXE builds exist as of the autonomous deployment,
+      `docs/deployed-bringup.md`).
    3. On the System screen front panel: a *Round LED* labeled
       **`PC WATCHDOG TRIPPED`**; diagram: `PCnotResponding_9056` **read** →
       LED terminal, inside the main loop next to the other System-screen

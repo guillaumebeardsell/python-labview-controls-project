@@ -27,8 +27,9 @@ claim. Companion to `docs/command-path-asbuilt.md` (same method, different subsy
                                    ▼
        Raster1..5_Warnings, Cylinder_Warnings (SVs, severity arrays 0..4)
        9049notResponding / 9056FPGAnotResponding (heartbeat stall flags)
-       STATE LIMITATION FROM WARNINGS (I8)   ← the A3 output; NOT wired into the
-                                               StateMachine as-built (docs/shadow-findings.md)
+       STATE LIMITATION FROM WARNINGS (I8)   ← the A3 output; WIRED into the StateMachine
+                                               (A2.1 pre-wire 2026-07-07; W5 refuted live
+                                               2026-07-16 — see gap list below)
 PC side: APC_ClearErrorButton.vi → APC_MASTER_ClearWarnings SV → WI handshake.
 ```
 
@@ -96,8 +97,8 @@ it's one of the small helpers; functionally it is just bit-unpack) → **MergeCy
   Array-Max clamp.
 - Combustion is still cut on a cylinder error by **two independent paths**: the 9049's own
   IGNDI supervisor disarms spark/DI off the latched `CylPressError` global (FLOOR), and the
-  9056 clamp (if wired, see gap W5) forces ≤ MOTORING where IGN/DI are deactivated per the
-  MAX-LEVEL-OF-CONTROL table.
+  9056 clamp (wired — W5 refuted live 2026-07-16) forces ≤ MOTORING where IGN/DI are
+  deactivated per the MAX-LEVEL-OF-CONTROL table.
 
 ## APC_9056_ErrorMask.vi — the per-state arming masks
 

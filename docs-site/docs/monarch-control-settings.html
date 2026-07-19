@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MONARCH ControlSettings — Data Contract v0 — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/monarch-control-settings.md</span></div>
+<main><h1 id="monarch-controlsettings-data-contract-v0">MONARCH ControlSettings — Data Contract v0</h1>
+<p>The <code>ControlSettings</code> cluster is the payload the supervisory layer works in:
+the UI sends <code>PC_ControlSettings</code>, and <code>APC_9056_StateMachine</code> emits a limited
+form as <code>Limited_ControlSettings</code>. This is the contract for the first real
+state-machine port.</p>
+<ul>
+<li><strong>Source of truth:</strong> LabVIEW typedefs <code>APC_ControlSettings.ctl</code> and (embedded)
+  <code>APC_PIDcontrolSettings.ctl</code>, both last modified 2025-12-18, exported under
+  <code>original-labview-codebase/</code>.</li>
+<li><strong>Python model:</strong> <code>supervisory/monarch/control_settings.py</code>.</li>
+<li><strong>Tests:</strong> <code>tests/test_control_settings.py</code> (round trip, nesting, enum encoding,
+  forward-compat).</li>
+</ul>
+<h2 id="conventions">Conventions</h2>
+<ul>
+<li><strong>JSON keys are clean snake_case</strong> defined by the Python model, not LabVIEW's
+  raw field labels. Every field carries its LabVIEW label in a code comment; the
+  gateway VI maps cluster elements to these keys (JSONtext makes this a data
+  step, not a diagram change). Keeping the keys language-neutral avoids baking
+  LabVIEW's spaces/units/brackets into the wire format.</li>
+<li><strong>Types:</strong> LabVIEW DBL and SGL both become JSON numbers → Python <code>float</code>
+  (width is irrelevant over JSON). Modes and the state enum are I8 → <code>int</code>.
+  Arrays → lists. The one nested cluster (<code>pid_control_references</code>) → a nested
+  object.</li>
+<li><strong>Unknown keys are ignored</strong> on parse (ICD §3, forward compatibility).</li>
+</ul>
+<h2 id="state-enum-systemstate">State enum (<code>SystemState</code>)</h2>
+<p>Shared by <code>CURRENT SYSTEM STATE</code>, <code>SYSTEM STATE</code>, and <code>Requested mode</code>
+(LabVIEW I8):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>−1</td>
+<td>SAFE</td>
+</tr>
+<tr>
+<td>0</td>
+<td>STAND_BY (default)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>MOTORING</td>
+</tr>
+<tr>
+<td>2</td>
+<td>IDLING</td>
+</tr>
+<tr>
+<td>3</td>
+<td>FIRING</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="per-actuator-control-mode">Per-actuator control mode</h2>
+<p><code>*_control_mode</code> fields are plain <code>int</code>, not a fixed enum. Base legend:
+<code>0 = safe</code>, <code>1 = open-loop</code> (or the alternate state for binary actuators),
+<code>2 = closed-loop</code>. The MAX-LEVEL-OF-CONTROL table caps some actuators higher
+(temps to 3, NG feed to 6 in FIRING), so the field must represent 0..6.</p>
+<h2 id="structure">Structure</h2>
+<p>Top-level <code>ControlSettings</code>: engine setpoints (spark/DI/PFI/IMEP/speed…),
+enables (IGN/DI, closed-loop PFI, per-cylinder activation), mode requests
+(<code>requested_mode</code>, force idling/motoring, ETP resync), <code>lambda_ref</code>, the nested
+<code>pid_control_references</code>, and the CA50/knock/emergency-stop fields.</p>
+<p>Nested <code>PidControlReferences</code>: feed/vent valve commands, per-actuator channels
+(NG, Ar, O2, Tcoolant, Texh, Toil, Dyno, Membrane) each with a <code>mode</code> plus named
+plant-tag reference values, the MTR Modbus float/u16 arrays, and MTR/PC
+heartbeats plus <code>EMERGENCY STOP &amp; VENT</code>.</p>
+<h2 id="confirmed-against-a-live-capture-2026-07-02">Confirmed against a live capture (2026-07-02)</h2>
+<p>A real LabVIEW <code>Flatten To JSON</code> capture
+(<code>original-labview-codebase/control_settings_flatten.txt</code>) was diffed against the
+model with <code>tools/compare_flatten.py</code> → <strong>RESULT: AGREE</strong>. All 64 leaf fields
+match on name, type, and structure. What the capture resolved:</p>
+<ol>
+<li><strong>Array lengths — pinned.</strong> <code>activate_cylinder</code> = 6, <code>mtr_modbus_floats</code> = 19,
+   <code>mtr_modbus_u16</code> = <strong>7</strong> (was modeled as 6; corrected).</li>
+<li><strong><code>Requested mode</code></strong> flattens as a <strong>number</strong> (−1..3), matching the model's
+   <code>int</code>/<code>SystemState</code>. No string-enum handling needed.</li>
+<li><strong>Reference grouping.</strong> LabVIEW nests <code>PID control references</code> as a sub-object
+   but keeps each actuator's <code>*_control_mode</code> and its <code>*-REF</code> values as <strong>flat
+   siblings</strong> (not per-channel sub-clusters). The model groups them into channel
+   objects; the diff tool matches by innermost label, and the mapping bridges the
+   two, so this is purely a gateway-side mapping detail.</li>
+<li><strong><code>PFI advance</code></strong> confirmed absent — the current cluster has only
+   <code>PFI duration [ms]</code>, as modeled.</li>
+</ol>
+<h3 id="labview-label-quirks-absorbed-by-the-mapping">LabVIEW label quirks absorbed by the mapping</h3>
+<p>The real field labels contain oddities that <code>LABEL_TO_PATH</code> now matches exactly,
+so the clean snake_case wire keys are unaffected:</p>
+<ul>
+<li>Embedded newlines: <code>"CL PFI\n lambda"</code>, <code>"CL PFI\nIMEP"</code>, <code>"Activate\ncylinder"</code>.</li>
+<li>Stray spaces: <code>"DI duration [ms] "</code> (trailing), <code>"Tcoolant control  mode"</code> (double).</li>
+<li><code>"l ref"</code> (LabVIEW renders <code>λ</code> as <code>l</code>).</li>
+<li>The nested e-stop field flattens as label <code>"EMERGENCY STOP"</code> (Boolean text
+  "EMERGENCY STOP &amp; VENT"), colliding with the top-level <code>"EMERGENCY STOP"</code>;
+  disambiguated by a parent-qualified mapping key.</li>
+</ul>
+<h3 id="boolean-polarity">Boolean polarity</h3>
+<p>The capture was taken with <code>Requested mode = SAFE</code> and all valve booleans
+<code>false</code>. Per the MAX-LEVEL-OF-CONTROL table the SAFE column is vents <em>open</em>,
+feeds <em>closed</em>, so <strong><code>false</code> = the safe position</strong> for both: vents <code>false = open</code>
+(consistent with the diagram's <code>1 = closed</code>), feed valves <code>false = closed</code>
+(hence <code>true = open</code>). This matches the model defaults (all <code>false</code>). Worth a
+second capture in an active state (e.g. FIRING, vents commanded closed) to
+remove any doubt before the limiting logic relies on it — polarity affects the
+limiter port (Phase A1 of <code>docs/migration-plan.md</code>), not the contract structure.</p></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/monarch-control-settings.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

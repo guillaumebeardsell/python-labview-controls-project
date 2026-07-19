@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deployed-Mode Bringup — 2026-07-09 Session Record &amp; Procedure — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/deployed-bringup.md</span></div>
+<main><h1 id="deployed-mode-bringup-2026-07-09-session-record-procedure">Deployed-Mode Bringup — 2026-07-09 Session Record &amp; Procedure</h1>
+<p>First time the MONARCH control system ran <strong>fully autonomous</strong>: both cRIOs
+booting their own startup applications with no LabVIEW attached, PC apps as
+built EXEs, Python observing via the gateway. End state verified live:
+<code>system_state = 0</code> (STAND_BY), <code>warnings_limit = 3</code> (no clamp), <code>PC_HB</code>
+toggling, e-stop clear — <strong>from the startup EXEs</strong>, matching interactive
+behavior.</p>
+<p>This doc records the working procedure, the three root causes that had to be
+fixed to get there (all latent deployment bugs that would otherwise have
+surfaced during commissioning), and the recurring rules.</p>
+<h2 id="the-rules-learned-the-hard-way">The rules (learned the hard way)</h2>
+<ol>
+<li><strong>Run PC apps as built EXEs, never from the project.</strong> Running any VI from
+   the project forces LabVIEW to connect to referenced targets, and
+   connecting to a cRIO <strong>aborts its running startup application</strong> (the
+   "Conflict Resolution … abort the existing application" dialog). Click OK
+   on that dialog only when you <em>intend</em> to stop the controller; on a live
+   plant this is an operational decision. Default answer: <strong>Cancel</strong>.</li>
+<li><strong>Exactly one shared-variable host.</strong> <code>APC_SharedVars</code> lives on the
+   <strong>9049</strong> (<code>10.1.10.171</code>) and nowhere else. A duplicate instance on any
+   other machine (we found one on the control-room PC) splits clients across
+   engines: some see live values, others see "(No Known Value)", and the
+   9056↔9049 watchdogs false-trip. Check in DSM after changes; undeploy
+   strays.</li>
+<li><strong>Never build from out-of-sync VIs.</strong> If LabVIEW shows <em>"VI edited in
+   another application instance"</em>, the same VI differs between the PC and RT
+   contexts. A build made in that state deploys <strong>stale logic</strong> (our 9056
+   EXE shipped a stale <code>9049SharedVarPolling</code> and couldn't see the 9049).
+   <strong>File → Save All</strong> (accept "synchronize with other contexts") until the
+   error list is clean, <em>then</em> build.</li>
+<li><strong>Reboot order: 9049 first, then 9056, then PC apps.</strong> The 9049 hosts the
+   variables everyone else binds to.</li>
+<li><strong>Deploying the 9056 always pokes the 9049</strong> (its dependencies include the
+   9049-hosted library), so a 9056 "Run as startup" will offer to abort the
+   9049's app — accept, then <strong>restart the 9049 last</strong>.</li>
+</ol>
+<h2 id="build-deploy-procedure-both-crios-from-scratch">Build &amp; deploy procedure (both cRIOs, from scratch)</h2>
+<ol start="0">
+<li>Pre-checks: actuator/valve power OFF (SAFE state actively drives outputs);
+   welded-switch pass on panel defaults (see <code>docs/9049-openloop-audit.md</code>
+   §8: Override=OFF, SimEnable=OFF, UsePcylDatabase=OFF, <strong><code>SIM pressure?</code>=OFF</strong>
+   (CAS sim branch), Enque?=ON, <strong><code>Load INI on startup</code>=TRUE</strong> (F3b — and the
+   deployed <code>CylWarningLevels.xml</code> must be the motoring profile, <strong>not the
+   drill XML</strong>)).</li>
+<li><strong>File → Save All</strong>; confirm the Error List has no "edited in another
+   application instance" items.</li>
+<li>Under <code>NI-cRIO-9049…</code> → Build Specifications → <code>APC_9049_RT</code>
+   (Real-Time Application, startup VI = <code>APC_9049_RT_main.vi</code>,
+   target dir <code>/home/lvuser/natinst/bin</code>, filename <code>startup.rtexe</code>):
+   <strong>Build → Run as startup</strong> (deploys + sets boot app + reboots).
+   Credentials: the controllers' local admin account (in the team password
+   store; same on both).</li>
+<li>Under <code>CRIO9056 NTS</code> → <code>APC_9056_RT</code> likewise: <strong>Build → Run as startup</strong>
+   → <strong>OK</strong> on the 9049 conflict → reboot 9056.</li>
+<li><strong>Restart the 9049</strong> (NI MAX → right-click → Restart) so its app returns.
+   Wait ~2 min per chassis.</li>
+<li>PC side, as EXEs from <code>C:\LabVIEW PROJECT\builds\MONARCH\</code>:
+   <code>APC_Monarch.exe</code> (UI; toggles <code>PC_HB</code>) and <code>APC_PythonGateway.exe</code>
+   (telemetry/command gateway, port 5020). Do <strong>not</strong> run these VIs from the
+   project (rule 1). Only one gateway client at a time (single-session
+   listener).</li>
+<li>Do not right-click-Deploy <code>APC_SharedVars.lvlib</code> manually — it ships
+   inside the 9049 app and self-deploys at boot. Manual deploys are how stray
+   copies appear (rule 2).</li>
+</ol>
+<h2 id="verification-checklist">Verification checklist</h2>
+<ul>
+<li>DSM: <code>9049_HeartBeat</code> toggling (~2 Hz), <code>9056_HeartBeat</code> toggling;
+  <code>APC_SharedVars</code> hosted <strong>only</strong> on the 9049. (The 9049 may appear twice —
+  once by hostname, once by IP <code>10.1.10.171</code> — same machine, same engine;
+  cosmetic.)</li>
+<li>UI: <code>9056_PCnotResponding</code> OFF once the UI EXE runs;
+  <code>9056_9049notResponding</code> OFF.</li>
+<li>Telemetry (gateway or <code>examples/monarch_listen.py</code>): <code>warnings_limit = 3</code>,
+  <code>system_state</code> numeric and tracking the request; with UI closed the state
+  must clamp to SAFE in ~5 s (loss-of-PC watchdog) and step-recover on
+  restart.</li>
+<li>The 9049 state <em>echo</em> (<code>9049_Global_SYSTEMSTATE</code>) numeric, not NaN
+  (NaN = the 9049 cannot read the 9056 broadcast — split engine or 9049 app
+  down).</li>
+<li>Cold-start drill: power-cycle both chassis → everything returns by itself
+  (9049 first) → SAFE → STAND_BY once the UI runs.</li>
+</ul>
+<h2 id="root-cause-4-found-later-the-same-day-fpdco-load-crash">Root cause #4 (found later the same day): FPDCO load crash</h2>
+<p>The 9049 startup app <strong>crashed intermittently at load</strong> — some boots fine,
+some dead before the first heartbeat (which earlier looked like "dies after a
+while" / random staleness). The controller's own log gave the answer in one
+line:</p>
+<pre><code>DAbort 0xC8211D41: Problem loading "APC_9049_CAS_loop.vi"
+... FPDCO data is not initialized
+</code></pre>
+<p>Cause: the RT build's default <strong>"Remove front panel"</strong> stripped panel data
+that <code>APC_9049_CAS_loop.vi</code> needs at load time (panel-heavy loop VI with
+locals/refs to its controls). Fix: build spec → <strong>Source File Settings</strong> →
+select each RT loop VI (<code>CAS_loop</code>, <code>SAVE_loop</code>, <code>TS10ms_loop</code>) → untick
+<em>Use default save settings</em> → untick <strong>Remove front panel</strong> (leave <em>Remove
+block diagram</em> checked) → Clear Compiled Object Cache → Save All → rebuild →
+redeploy. Because the crash was intermittent, the acceptance test is
+<strong>three consecutive clean reboots</strong> with the heartbeat returning each time.</p>
+<p><strong>The diagnostic move that ended the guessing — pull the RT log over SSH:</strong>
+enable Secure Shell Server in MAX (System Settings), then
+<code>ssh admin@10.1.10.171</code> → <code>ls -lt /var/local/natinst/log/</code> →
+<code>cat</code> the newest <code>errlog.txt</code> / <code>lvrt_*_cur.txt</code> / <code>lvlog*.txt</code>. A healthy
+boot shows <code>InitExecSystem</code> + <code>starting LV_ESys…</code> thread lines; a load crash
+shows a <code>DAbort</code> with a bread-crumb of the VI being loaded. Use this FIRST
+whenever a cRIO app "isn't coming up" — one real error message beats hours of
+black-box inference. (For the full SSH/SFTP file-access recipe — WinSCP for
+files, PuTTY/<code>pscp</code> for a shell — see <code>docs/crio-file-access.md</code>.)</p>
+<h2 id="symptom-cause-quick-table">Symptom → cause quick table</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9049 app dead after <em>some</em> boots, fine after others</td>
+<td>FPDCO load crash — see root cause #4 (front panels stripped from RT loop VIs)</td>
+</tr>
+<tr>
+<td><code>system_state</code> NaN (echo)</td>
+<td>9049 can't read 9056 broadcast: 9049 app down, or split variable engines, or <code>9056_MeasAndCalc</code> not published (open item)</td>
+</tr>
+<tr>
+<td><code>9049notResponding</code> ON while DSM shows the heartbeat toggling</td>
+<td>The 9056 reads a <em>different</em> engine instance than DSM (duplicate library), or its build predates the sync fix</td>
+</tr>
+<tr>
+<td><code>PCnotResponding</code> ON</td>
+<td>No UI EXE / Python toggling <code>PC_HB</code> (by design → SAFE)</td>
+</tr>
+<tr>
+<td>State stuck −1 with <code>warnings_limit = −1</code></td>
+<td>One of the watchdog flags above, or a black-level warning (check the Errors screen / <code>Raster*_WarningLevels</code>)</td>
+</tr>
+<tr>
+<td>Variables "(No Known Value)" in DSM</td>
+<td>You're looking at an orphan/duplicate instance (check the host node)</td>
+</tr>
+<tr>
+<td>Conflict dialog on any run/deploy</td>
+<td>Rule 1 / rule 5 — decide deliberately, restart the 9049 afterwards</td>
+</tr>
+<tr>
+<td>Command inputs ignored while UI runs</td>
+<td><code>command_source</code> = PYTHON with no commander running: UI writes go to <code>PC_OperatorRequests</code>, nothing applies them. Flip source to UI (B3.b switch on <code>UI_Main</code>) or run the Python commander</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="as-built-deltas-this-session-2026-07-09">As-built deltas this session (2026-07-09)</h2>
+<ul>
+<li><code>APC_9056_WatchDog.vi</code>: 9049 threshold raised <strong>50 → 250</strong> (~5 s at the
+  ~20 ms loop) — margin for the 9049 heartbeat's ~2 Hz toggle (it is paced by
+  the FPGA 500 ms heartbeat frame, not the 10 ms loop). Same value as the PC
+  threshold; well inside the safe-hold budget (the FPGA watchdog remains the
+  hard, millisecond-scale spark/DI kill).</li>
+<li>New build specs: <code>APC_9049_RT</code>, <code>APC_9056_RT</code> (RT startup apps),
+  <code>APC_PythonGateway</code> (PC EXE). <code>APC_Monarch</code> (existing) builds the UI.</li>
+<li>Stray <code>APC_SharedVars</code> instance undeployed from the control-room PC
+  (DSM → Network Items → DESKTOP → Undeploy); verified it does not return
+  when the EXEs run.</li>
+<li>cRIO admin credentials confirmed and recorded in the team password store.</li>
+</ul>
+<h2 id="status-next">Status / next</h2>
+<p>Autonomous deployment <strong>works end to end</strong> (verified live 2026-07-09,
+including the FPDCO fix: STAND_BY reached from startup EXEs). Open items:</p>
+<ol>
+<li><strong>Three-reboot acceptance test</strong> of the 9049 (the FPDCO crash was
+   intermittent — one clean boot proves nothing).</li>
+</ol>
+<h2 id="root-cause-5-daqmx-startup-race-found-fixed-2026-07-10">Root cause #5 — DAQmx startup race (FOUND &amp; FIXED, 2026-07-10)</h2>
+<p>The 9056 deployed EXE came up with <strong>all-zero <code>9056_MeasAndCalc</code></strong> (only the
+timestamp non-zero) and <strong><code>9049_Global_SYSTEMSTATE</code> = NaN</strong>. Symptom, from a
+debug-probe of the running EXE: <strong><code>-200088</code> "Task specified is invalid or does
+not exist" at <code>DAQmx Timing (Sample Clock).vi</code>.</strong> The whole investigation was a
+lesson in false leads — ruled out, in order: DSM "blank" array (DSM can't
+render array/"Advanced" SVs — blank ≠ empty; Quality=Good means written); FPGA
+(disabling the FPGA loop didn't help — heartbeat went stale, DAQ still failed);
+<code>emulate 9205/9208/9214</code> controls (default FALSE); front-panel stripping (kept
+all panels, still failed); "generic config" (a <strong>subVI-front-panel artifact</strong> —
+<code>SensorCalibrations</code>' <em>own</em> panel shows stale defaults, but <code>RT_main</code>'s
+indicators, fed by its actual output, showed the <strong>real</strong> config <code>WF-PT-001_bar</code>
+etc. in the EXE); stale/duplicate copies (build referenced the correct file).</p>
+<p><strong>The decisive experiment (the user's):</strong> in the EXE, <code>9056_MeasAndCalc</code> was
+zeros — but <strong>stopping and restarting <code>APC_9056_RT_main</code> made it fill with real
+values</strong>. Stop/restart-fixes-it is the unmistakable signature of a <strong>boot-time
+device-readiness race</strong>: the startup <code>.rtexe</code> launches <em>before NI-DAQmx has
+finished enumerating the C-series modules</em>, so the first <code>SensorCalibrations</code>
+task-create/timing fails with −200088; a manual restart re-runs it after DAQmx
+is ready. Interactive always worked for the same reason (the controller was
+already booted). A fixed 60 s <code>Wait</code> did <strong>not</strong> fix it (it's device <em>state</em>,
+not just elapsed time — the restart also releases the failed task).</p>
+<p><strong>Fix (in <code>APC_9056_RT_main</code>):</strong> a short initial <code>Wait</code> (5 s), then wrap the
+<code>SensorCalibrations</code> call in a <strong>retry While loop</strong> — condition <code>error.status
+AND (i &lt; 50)</code> (Continue-if-True), a 1 s <code>Wait</code> per iteration, outputs as
+Last-Value tunnels into <code>TS_loop</code>. <strong>No Clear Task / Reset Device needed</strong> — a
+<em>failed</em> DAQmx create doesn't reserve the device, so simply re-calling
+<code>SensorCalibrations</code> succeeds once DAQmx is ready. (An early attempt with a
+<code>DAQmx Clear Task</code> on the task array was a bug: it also cleared the good task
+that flows to <code>TS_loop</code>, so it kept failing — removing it fixed it.) The
+deployed EXE now self-heals on a cold boot.</p>
+<p><strong>Verify:</strong> cold power-cycle the 9056 (hands off) 3×; each time it must come up
+with real <code>9056_MeasAndCalc</code> and a numeric state, no manual restart.</p>
+<h2 id="symptom-cause-quick-table-superseded-detail-retained-for-5">Symptom → cause quick table (superseded detail retained for #5)</h2>
+<ol start="2">
+<li><strong><code>9056_MeasAndCalc</code> all zeros / state NaN in the deployed EXE</strong> →
+   <strong>DAQmx startup race</strong> — see root cause #5. Fix: retry loop around
+   <code>SensorCalibrations</code>. (All the "generic config / stale copy / FPGA"
+   leads were false — the config loads fine; DSM just can't show arrays and
+   subVI panels show stale defaults.)</li>
+<li>Hardening drills: cold power-cycle of both chassis; kill-UI → SAFE →
+   recover on the deployed build.</li>
+</ol>
+<p>Then the deployed system is the platform for the SIL work in
+<code>docs/9049-openloop-audit.md</code> §7 (EPT <code>SimEnable</code> virtual crankshaft,
+synthetic CAS traces).</p></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/deployed-bringup.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

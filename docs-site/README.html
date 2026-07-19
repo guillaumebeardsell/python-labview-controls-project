@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python Supervisory Layer for the LabVIEW Controls Stack — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="index.html">index</a><span>README.md</span></div>
+<main><h1 id="python-supervisory-layer-for-the-labview-controls-stack">Python Supervisory Layer for the LabVIEW Controls Stack</h1>
+<p>The Python supervisory layer for <strong>MONARCH</strong> (a Noble Thermodynamics Argon
+Power Cycle research engine controlled by LabVIEW on two NI cRIOs + a Windows
+PC). Supervisory state machines and decision logic migrate here; <strong>LabVIEW
+permanently owns hardware access, hard safety interlocks, command validation,
+and safe fallback</strong>. Every command Python sends is a request the LabVIEW
+gateway may reject, and the system is designed to be safe when the Python
+process is absent, crashed, or wrong.</p>
+<pre><code>┌────────────────────┐   TCP, localhost    ┌────────────────────┐        ┌──────────────┐
+│  Python supervisor │ ◄─── telemetry ──── │  LabVIEW gateway   │ ◄────► │ cRIO RT/FPGA │
+│  (this repo)       │ ──── commands ────► │  (Win, LV2020SP1)  │        │ (I/O, loops, │
+│                    │ ──── heartbeat ───► │                    │        │  interlocks) │
+└────────────────────┘ ◄──── acks ──────── └────────────────────┘        └──────────────┘
+</code></pre>
+<h2 id="layout">Layout</h2>
+<p>Two layers, deliberately decoupled — <code>supervisory/</code> is generic and knows nothing
+about MONARCH; <code>supervisory/monarch/</code> holds the project-specific payloads.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>supervisory/messages.py</code></td>
+<td>Pydantic models for the ICD message types</td>
+</tr>
+<tr>
+<td><code>supervisory/link.py</code></td>
+<td><code>PlantLink</code> protocol + <code>TcpPlantLink</code> (auto-reconnect; pluggable <code>parser=</code>)</td>
+</tr>
+<tr>
+<td><code>supervisory/engine.py</code></td>
+<td><code>Supervisor</code> tick loop, <code>PlantView</code>, <code>StateMachine</code> base class</td>
+</tr>
+<tr>
+<td><code>supervisory/sim.py</code> / <code>simserver.py</code></td>
+<td>Socket-free fake gateway for unit tests / the same behind real TCP</td>
+</tr>
+<tr>
+<td><code>supervisory/recorder.py</code></td>
+<td>JSONL traffic recorder for offline replay</td>
+</tr>
+<tr>
+<td><code>supervisory/monarch/control_settings.py</code></td>
+<td>The <code>ControlSettings</code> cluster + <code>SystemState</code> enum (confirmed vs live capture)</td>
+</tr>
+<tr>
+<td><code>supervisory/monarch/labview_mapping.py</code></td>
+<td>LabVIEW flatten-label ↔ model bridge; both-way converters; contract diff</td>
+</tr>
+<tr>
+<td><code>supervisory/monarch/telemetry.py</code></td>
+<td><code>MonarchTelemetry</code> envelope + <code>monarch_parser</code></td>
+</tr>
+<tr>
+<td><code>supervisory/monarch/simserver_monarch.py</code></td>
+<td>Fake MONARCH gateway streaming real-shaped telemetry</td>
+</tr>
+<tr>
+<td><code>examples/hello_link.py</code></td>
+<td>Connectivity smoke test (PASS/FAIL)</td>
+</tr>
+<tr>
+<td><code>examples/monarch_listen.py</code></td>
+<td>Read-only MONARCH observer → records <code>monarch.jsonl</code></td>
+</tr>
+<tr>
+<td><code>examples/demo.py</code></td>
+<td>End-to-end demo state machine (<code>HeatSoak</code>) — the porting pattern</td>
+</tr>
+<tr>
+<td><code>tools/compare_flatten.py</code></td>
+<td>Diff a LabVIEW <code>Flatten To JSON</code> capture against the contract</td>
+</tr>
+<tr>
+<td><code>tests/</code></td>
+<td>pytest suite (no hardware, no LabVIEW, no sockets except one smoke test)</td>
+</tr>
+<tr>
+<td><code>original-labview-codebase/</code></td>
+<td>Exports of the MONARCH LabVIEW project (reference only)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="docs">Docs</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Doc</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="docs/migration-plan.html">docs/migration-plan.md</a></td>
+<td><strong>Phased execution plan A–E + current project status (authoritative)</strong></td>
+</tr>
+<tr>
+<td><a href="docs/phases/">docs/phases/</a></td>
+<td>Detailed step-by-step instructions, one file per phase (A–E)</td>
+</tr>
+<tr>
+<td><a href="docs/migration-seam.html">docs/migration-seam.md</a></td>
+<td>FLOOR/MIDDLE/BRAIN boundary analysis + port backlog</td>
+</tr>
+<tr>
+<td><a href="docs/icd.html">docs/icd.md</a></td>
+<td>Wire protocol v0.2 (incl. §7 MONARCH command path) + failure/reconnect semantics</td>
+</tr>
+<tr>
+<td><a href="docs/monarch-control-settings.html">docs/monarch-control-settings.md</a></td>
+<td>The <code>ControlSettings</code> data contract (confirmed)</td>
+</tr>
+<tr>
+<td><a href="docs/monarch-telemetry.html">docs/monarch-telemetry.md</a></td>
+<td>Telemetry envelope (live) + gateway build recipe</td>
+</tr>
+<tr>
+<td><a href="docs/monarch-flatten-diff.html">docs/monarch-flatten-diff.md</a></td>
+<td>Contract-verification workflow (run on typedef changes)</td>
+</tr>
+<tr>
+<td><a href="docs/hello-vi.html">docs/hello-vi.md</a>, <a href="docs/labview-notes.html">docs/labview-notes.md</a></td>
+<td>LabVIEW gateway build guides (the completed connectivity experiment)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="quickstart">Quickstart</h2>
+<pre><code class="language-bash">pip install -e &quot;.[dev]&quot;                      # package (editable) + pytest
+pytest                                       # full suite, sub-second
+
+# generic end-to-end demo, two terminals:
+python -m supervisory.simserver --speedup 10
+python examples/demo.py
+
+# MONARCH telemetry offline (no LabVIEW), two terminals:
+python -m supervisory.monarch.simserver_monarch --speedup 5
+python examples/monarch_listen.py            # records monarch.jsonl
+</code></pre>
+<p>On the control-room PC, <code>examples/monarch_listen.py</code> alone connects to the real
+gateway. Kill either simserver mid-run to see staleness handling; restart it to
+see reconnect and recovery.</p>
+<h2 id="design-rules">Design rules</h2>
+<ol>
+<li><strong>State machines are pure decisions.</strong> Each tick a machine receives a
+   <code>PlantView</code> (latest telemetry, staleness, acks) and returns
+   <code>CommandRequest</code>s. No sockets, clocks, or globals inside machines — that
+   is what makes them unit-testable and replayable against recorded traffic.</li>
+<li><strong>Telemetry is the only truth.</strong> An ACK means a command passed LabVIEW's
+   validation, nothing more; effects are confirmed by watching telemetry.
+   After a reconnect, Python rebuilds its world from telemetry, never from
+   memory.</li>
+<li><strong>Stale means stop.</strong> No telemetry for 3 s ⇒ the engine stops sending
+   commands and machines transition to their own hold states. Symmetrically,
+   LabVIEW safe-holds 5 s after Python's heartbeat stops.</li>
+<li><strong>The link is swappable.</strong> The engine only knows <code>PlantLink</code>; tests use
+   <code>SimPlantLink</code> (no sockets), production uses <code>TcpPlantLink</code>. At 1 Hz the
+   implementation is plain threads + a queue — no asyncio needed.</li>
+</ol>
+<h2 id="status">Status</h2>
+<p>Current status lives in <strong><a href="docs/migration-plan.html">docs/migration-plan.md</a></strong> (kept
+authoritative there, not here). Snapshot (2026-07-19): Phases A &amp; B complete and
+live-verified; both cRIOs run autonomously; SIL-0 complete; SIL-1 through Step 4d
+passed on the deployed SIM build (Python commands reach the FPGA ignition/injection
+channels; loss-of-any-chassis fails safe). Next: the 4e/4f scope session + drills.</p></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>README.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

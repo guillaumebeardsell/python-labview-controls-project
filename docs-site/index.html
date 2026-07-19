@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation index — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="index.html">index</a><span>index</span></div>
+<main><h1>MONARCH — project documentation</h1><p>Python ⇄ LabVIEW supervisory migration for the Noble Thermodynamics Argon Power Cycle engine. These pages are generated from the repo's markdown (<code>python tools/build_docs_html.py</code>) — the markdown is the source of truth.</p><div class="grp"><h2>Start here</h2><p>Orientation, status, and how to continue the project.</p><a class="doc" href="README.html"><b>Python Supervisory Layer for the LabVIEW Controls Stack</b><span>The Python supervisory layer for MONARCH (a Noble Thermodynamics Argon</span></a><a class="doc" href="docs/migration-plan.html"><b>MONARCH Supervisory Migration — Phased Plan</b><span>Turns the seam analysis (docs/migration-seam.md) into an executable sequence. Each</span></a><a class="doc" href="docs/handoff.html"><b>Handoff — continuing this project without the original assistant</b><span>Where things are: docs/migration-plan.md (authoritative status, updated</span></a><a class="doc" href="docs/session-handoff-2026-07-11.html"><b>Session Handoff — 2026-07-11 (deployment + SIL-0)</b><span>Written so a future session (human or model) can pick up cold. This session</span></a><a class="doc" href="CLAUDE.html"><b>CLAUDE.md</b><span>This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.</span></a></div><div class="grp"><h2>As-built references</h2><p>How the LabVIEW system actually works — verified against exports and live bench evidence.</p><a class="doc" href="original-labview-codebase/MONARCH-CODEBASE/README.html"><b>MONARCH LabVIEW Codebase — VI Reference</b><span>A per-VI map of the MONARCH LabVIEW control system, written so a future session (human or</span></a><a class="doc" href="docs/command-path-asbuilt.html"><b>Command path — as-built &amp; verified (PC ⇄ cRIO)</b><span>What this is: the verified as-built of the PC→cRIO command path and its</span></a><a class="doc" href="docs/9056-warning-policy-asbuilt.html"><b>9056 Warning Policy — As-Built (from the 2026-07-14 VI prints)</b><span>The ground truth for Phase A3 (port the warning→state policy). Everything below is read</span></a><a class="doc" href="docs/migration-seam.html"><b>MONARCH LabVIEW → Python — Migration Seam &amp; Port Backlog</b><span>Where to draw the boundary between what stays in LabVIEW/cRIO/FPGA and what moves to</span></a><a class="doc" href="docs/9049-openloop-audit.html"><b>APC9049RTmain — Open-Loop Commissioning Audit &amp; SIL Plan</b><span>Does the cRIO-9049 application (RT + FPGA, APC9049RTmain.vi and every</span></a></div><div class="grp"><h2>Contracts &amp; protocol</h2><p>The Python ⇄ LabVIEW wire contract and its verification workflow.</p><a class="doc" href="docs/icd.html"><b>Interface Control Document — Python Supervisor ⇄ LabVIEW Gateway</b><span>Version 0.2 — §§1–6 unchanged from v0.1 (2026-07-02); §7 (MONARCH command</span></a><a class="doc" href="docs/monarch-control-settings.html"><b>MONARCH ControlSettings — Data Contract v0</b><span>The ControlSettings cluster is the payload the supervisory layer works in:</span></a><a class="doc" href="docs/monarch-telemetry.html"><b>MONARCH Telemetry — the read-only pipeline</b><span>Status: LIVE (2026-07-06). The gateway (APCPCPythonGateway.vi in the</span></a><a class="doc" href="docs/monarch-flatten-diff.html"><b>Confirming the ControlSettings contract with a Flatten-To-JSON diff</b><span>Goal: verify the Python ControlSettings model (docs/monarch-control-settings.md)</span></a></div><div class="grp"><h2>SIL &amp; commissioning procedures</h2><p>Click-level bench procedures, decisions, and hardening builds.</p><a class="doc" href="docs/sil0-scope-of-work.html"><b>SIL-0 — Scope of Work (click-level)</b><span>What SIL-0 is: validate the 9049 combustion analytics (APCHRL → IMEP / Pmax /</span></a><a class="doc" href="docs/sil1-scope-of-work.html"><b>SIL-1 — Scope of Work (click-level)</b><span>What SIL-1 is: run the real 9049 (APC9049RTmain.vi) on a bench with a</span></a><a class="doc" href="docs/hb-hardening-clicklevel.html"><b>Heartbeat hardening — click-level build instructions</b><span>Created 2026-07-17. Closes the holes found by the 2026-07-16 kill-9056 test</span></a><a class="doc" href="docs/engine-only-9056-tradeoff.html"><b>Engine-only operation: with or without the cRIO-9056?</b><span>Decision memo, 2026-07-16. Context: open-loop engine commissioning — engine breathing</span></a><a class="doc" href="docs/deployed-bringup.html"><b>Deployed-Mode Bringup — 2026-07-09 Session Record &amp; Procedure</b><span>First time the MONARCH control system ran fully autonomous: both cRIOs</span></a><a class="doc" href="docs/crio-file-access.html"><b>Accessing the cRIO filesystem (WinSCP / PuTTY)</b><span>The cRIOs run NI Linux Real-Time. Their filesystems are reachable over SSH</span></a></div><div class="grp"><h2>Phase instructions</h2><p>One file per migration phase (A–E).</p><a class="doc" href="docs/phases/phase-a-shadow-brain.html"><b>Phase A — Shadow Brain (detailed instructions)</b><span>Objective: Python computes every supervisory decision the 9056 makes today —</span></a><a class="doc" href="docs/phases/phase-b-command-path.html"><b>Phase B — Command Path + Watchdog Proof (detailed instructions)</b><span>Status update (2026-07-08 evening): B3 LabVIEW work essentially BUILT.</span></a><a class="doc" href="docs/phases/phase-c-bench-command.html"><b>Phase C — Python in Command on the Bench (detailed instructions)</b><span>Objective: Python is the acting supervisor for bench operation — real</span></a><a class="doc" href="docs/phases/phase-d-sequencing.html"><b>Phase D — Sequencing Engine (detailed instructions)</b><span>Objective: build the layer that has never existed — automated operating</span></a><a class="doc" href="docs/phases/phase-e-commissioning.html"><b>Phase E — Commissioning Support &amp; Expansion (detailed instructions)</b><span>Objective: use the Python supervisory stack to drive commissioning itself,</span></a></div><div class="grp"><h2>Evidence &amp; history</h2><p>Findings, drill logs, tooling, and the early LabVIEW guides.</p><a class="doc" href="docs/shadow-findings.html"><b>Shadow-Compare Findings Log</b><span>Dispositions for divergences reported by tools/shadowcompare.py (Phase A2).</span></a><a class="doc" href="docs/drill-logs/2026-07-08-b4-machine.html"><b>B4 machine-run drills — 2026-07-08 (evening)</b><span>Runner: tools/rundrills.py --rounds 3 from the control-room devcontainer</span></a><a class="doc" href="tools/README.html"><b>tools/ — operator &amp; verification utilities</b><span>Standalone scripts (stdlib + this package; .xlsx outputs additionally need</span></a><a class="doc" href="docs/hello-vi.html"><b>Hello VI — LabVIEW ⇄ Python Connectivity Experiment</b><span>Status: COMPLETED (2026-07-05, RESULT: PASS). Two-way communication proven</span></a><a class="doc" href="docs/labview-notes.html"><b>LabVIEW Gateway Implementation Notes (LabVIEW 2020 SP1, Windows)</b><span>Generic design notes written before the gateway existed. The concrete builds</span></a></div></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>tools/build_docs_html.py</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

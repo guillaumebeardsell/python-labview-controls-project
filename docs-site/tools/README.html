@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tools/ — operator &amp; verification utilities — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>tools/README.md</span></div>
+<main><h1 id="tools-operator-verification-utilities">tools/ — operator &amp; verification utilities</h1>
+<p>Standalone scripts (stdlib + this package; <code>.xlsx</code> outputs additionally need
+<code>openpyxl</code>, included in <code>pip install -e ".[dev]"</code>). Each has a <code>--help</code> and a
+module docstring with usage. Grouped by what you're doing.</p>
+<h2 id="sil-0-validate-the-9049-combustion-analytics-off-hardware">SIL-0 — validate the 9049 combustion analytics off-hardware</h2>
+<p>A pipeline: <strong>generate</strong> synthetic pressure traces → run them through the
+LabVIEW desktop harness (<code>APC_SIL0_HRL_Desktop.vi</code>, on My Computer) → <strong>score</strong>
+the output → <strong>tune</strong> the warning limits. No engine, no cRIO.</p>
+<pre><code>gen_cas_traces.py ──► cycle_NNNN_phased.csv ──►  APC_SIL0_HRL_Desktop.vi  ──► labview_metrics.csv
+        │                    + truth.json                                          │
+        │                         └──────────────►  compare_hrl.py  ◄──────────────┤  (HRL math == truth?)
+        └────────────────────────────────────────►  tune_thresholds.py  ◄──────────┘  (recommend 9049 limits)
+</code></pre>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gen_cas_traces.py</code></td>
+<td>Generate synthetic CAS cylinder-pressure cycles with the real MONARCH geometry (<code>--bore/--stroke/--conrod/--cr/--pin-offset</code>), modes motored/fired/mixed, injectable misfire/knock. Emits raw <code>cycle_NNNN.csv</code> (9×7200), phased <code>cycle_NNNN_phased.csv</code> (6×7200, feed <code>APC_HRL</code> directly), and <code>truth.json</code>.</td>
+</tr>
+<tr>
+<td><code>compare_hrl.py</code></td>
+<td>Score the harness <code>labview_metrics.csv</code> vs <code>truth.json</code> (per-metric worst-Δ, pass/fail, exit 1 on tolerance breach). Confirms the ported HRL/IMEP/CA50 math.</td>
+</tr>
+<tr>
+<td><code>tune_thresholds.py</code></td>
+<td>Recommend the <code>9049_WarningLevels</code> limits (all 7 metrics × Warning/Error + the std window) from a motored/fired metrics CSV, with the motoring disarm list. Header-aware: auto-tunes knock (<code>MAPOmax</code>) and uses the real <code>IMEPstd</code> <strong>when the harness CSV includes those columns</strong>; else DISARMs/hand-sets them. <code>--pmax-hard-limit</code> clamps to the engine ceiling.</td>
+</tr>
+</tbody>
+</table></div>
+<p>See <code>docs/9049-openloop-audit.md</code> §7 (SIL plan, harness recipe) for the full
+workflow and the confirmed field↔flag↔metric map.</p>
+<h2 id="sil-1-the-on-target-warning-false-trip-matrix">SIL-1 — the on-target warning false-trip matrix</h2>
+<p>One command builds the whole drill; the traces play through the CAS_loop
+sim-pressure branch (<code>docs/sil1-scope-of-work.md</code> Step 6) while <code>SimEnable</code>
+runs the virtual crankshaft.</p>
+<pre><code>gen_warning_matrix.py ──► trace-sets/warning_matrix/&lt;7 sets&gt;/   ──copy──► cRIO /home/lvuser/sim/
+                      ├─► CylWarningLevels.drill.xml (ALL armed) ──swap──► cRIO …/bin/CylWarningLevels.xml
+                      ├─► manifest.md/json (COMPUTED expected trips per set)
+                      └─► --xlsx &quot;docs/cRIO9049 Warning Matrix.xlsx&quot; (bench record sheet)
+</code></pre>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gen_warning_matrix.py</code></td>
+<td>Emit the 7-set false-trip suite (clean motored/fired controls + overpressure, late-combustion, knock, misfire, cyclic-variability via <code>--q-jitter</code>), the all-armed drill XML (fired-profile values derived from the clean-fired truth), and the manifest whose expected Warning/Error calls are <strong>computed from truth.json against the drill thresholds</strong> (knock asserted from the injection spec). Restore the motoring XML after the drill.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="command-path-exercise-verify-the-pythonlabview-link">Command path — exercise &amp; verify the Python⇄LabVIEW link</h2>
+<p>Needs a gateway (real <code>APC_PC_PythonGateway.vi</code>, or a fake:
+<code>python -m supervisory.monarch.simserver_monarch</code>).</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>send_command.py</code></td>
+<td>Send one raw command to the gateway and print the ACK/NACK — the B3.d/B4 by-hand command probe.</td>
+</tr>
+<tr>
+<td><code>run_drills.py</code></td>
+<td>B4 bench-drill runner — the machine-runnable subset of the drill table (crash/freeze/flood/source-flip…). Writes a drill log.</td>
+</tr>
+<tr>
+<td><code>shadow_compare.py</code></td>
+<td>Replay/watch MONARCH telemetry and diff LabVIEW's live decisions against the ported <code>StateMachine</code> (shadow-mode agreement).</td>
+</tr>
+<tr>
+<td><code>capture_line.py</code></td>
+<td>Capture one raw telemetry line from the gateway and diagnose it (framing/parse smoke test).</td>
+</tr>
+</tbody>
+</table></div>
+<p>Command-path as-built + evidence: <code>docs/command-path-asbuilt.md</code>; protocol: <code>docs/icd.md</code>.</p>
+<h2 id="data-contract-keep-the-model-and-labview-typedef-in-lockstep">Data contract — keep the model and LabVIEW typedef in lockstep</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>compare_flatten.py</code></td>
+<td>Diff a LabVIEW <code>Flatten To JSON</code> capture of <code>APC_ControlSettings</code> against the Python contract; guards typedef drift.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Workflow: <code>docs/monarch-flatten-diff.md</code>; contract: <code>docs/monarch-control-settings.md</code>.</p>
+<h2 id="documentation-site">Documentation site</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build_docs_html.py</code></td>
+<td>Generate the styled HTML documentation site (<code>docs-site/</code>) from every repo markdown file — index + 30 pages, monarch design system, light/dark, mermaid. The markdown stays the source of truth; re-run after editing any <code>.md</code>. Needs <code>pip install markdown</code>.</td>
+</tr>
+</tbody>
+</table></div></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>tools/README.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

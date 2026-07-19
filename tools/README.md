@@ -64,3 +64,9 @@ Command-path as-built + evidence: `docs/command-path-asbuilt.md`; protocol: `doc
 | `compare_flatten.py` | Diff a LabVIEW `Flatten To JSON` capture of `APC_ControlSettings` against the Python contract; guards typedef drift. |
 
 Workflow: `docs/monarch-flatten-diff.md`; contract: `docs/monarch-control-settings.md`.
+
+## Documentation site
+
+| Tool | Does |
+|---|---|
+| `build_docs_html.py` | Generate the styled HTML documentation site (`docs-site/`) from every repo markdown file — index + 30 pages, monarch design system, light/dark, mermaid. The markdown stays the source of truth; re-run after editing any `.md`. Needs `pip install markdown`. |

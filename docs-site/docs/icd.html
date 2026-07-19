@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interface Control Document — Python Supervisor ⇄ LabVIEW Gateway — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/icd.md</span></div>
+<main><h1 id="interface-control-document-python-supervisor-labview-gateway">Interface Control Document — Python Supervisor ⇄ LabVIEW Gateway</h1>
+<p><strong>Version 0.2</strong> — §§1–6 unchanged from v0.1 (2026-07-02); §7 (MONARCH command
+path) <strong>frozen 2026-07-07</strong> after joint review.</p>
+<h2 id="1-scope-and-roles">1. Scope and roles</h2>
+<p>This document defines the link between the <strong>Python supervisor</strong> (state machines and
+supervisory decision logic) and the <strong>LabVIEW gateway</strong> (the main LabVIEW 2020 SP1
+application on the Windows host). It does not cover the existing LabVIEW ⇄ cRIO links
+(Network Streams / shared variables / FPGA interface), which remain unchanged.</p>
+<p>Python never talks to the cRIOs directly. All commands flow through the LabVIEW
+gateway, which validates them against interlocks before acting or forwarding.</p>
+<pre><code>┌────────────────────┐   TCP, localhost    ┌────────────────────┐        ┌──────────────┐
+│  Python supervisor │ ◄─── telemetry ──── │  LabVIEW gateway   │ ◄────► │ cRIO RT/FPGA │
+│  (state machines,  │ ──── commands ────► │  (validation,      │        │ (I/O, loops, │
+│   decision logic)  │ ──── heartbeat ───► │   safe fallback)   │        │  interlocks) │
+└────────────────────┘ ◄──── acks ──────── └────────────────────┘        └──────────────┘
+</code></pre>
+<p><strong>Safety invariant:</strong> the system must remain safe when the Python process is absent,
+crashed, or misbehaving. LabVIEW treats every Python command as a <em>request</em> and is the
+sole authority on whether it executes.</p>
+<h2 id="2-transport">2. Transport</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Protocol</td>
+<td>TCP</td>
+</tr>
+<tr>
+<td>Server</td>
+<td>LabVIEW gateway, listening on <code>127.0.0.1:5020</code> (configurable)</td>
+</tr>
+<tr>
+<td>Client</td>
+<td>Python supervisor; reconnects automatically with backoff</td>
+</tr>
+<tr>
+<td>Concurrent clients</td>
+<td>1 (LabVIEW may refuse or drop additional connections)</td>
+</tr>
+<tr>
+<td>Encoding</td>
+<td>UTF-8 JSON, one object per message. <strong>Numbers must be finite</strong> — no <code>NaN</code>/<code>Infinity</code> literals: LabVIEW's Flatten can <em>emit</em> <code>NaN</code> (unwritten values) but its Unflatten <em>rejects</em> it (bench-verified 2026-07-08: an echoed NaN got every command NACKed <code>parse</code>). Python sanitizes non-finite floats to 0.0 at the send edge and warns; receivers should tolerate incoming NaN defensively.</td>
+</tr>
+<tr>
+<td>Framing</td>
+<td>Each message is terminated by LF (<code>\n</code>). A CR before the LF is permitted and ignored. Python transmits CRLF (<code>\r\n</code>) so the LabVIEW side can use TCP Read in CRLF mode. <strong>Python→LabVIEW senders MUST terminate with <code>\r\n</code></strong> (a bare <code>\n</code> never completes a CRLF-mode read) <strong>and MUST emit compact JSON</strong> — no space after <code>:</code> — the gateway's command gate matches the literal <code>"type":"command"</code> (bench-verified 2026-07-08; pydantic serialization is compact by default, <code>json.dumps</code> defaults are NOT).</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-message-envelope">3. Message envelope</h2>
+<p>Every message is a single JSON object with a <code>type</code> field selecting one of the message
+types below. Receivers <strong>ignore unknown fields</strong> (forward compatibility) and <strong>log and
+discard messages with unknown <code>type</code></strong> rather than treating them as a fault.</p>
+<h2 id="4-message-types">4. Message types</h2>
+<h3 id="41-telemetry-labview-python-1-hz">4.1 <code>telemetry</code> — LabVIEW → Python, 1 Hz</h3>
+<p>The complete plant snapshot as LabVIEW sees it. This is Python's single source of truth;
+Python must never infer plant state from its own command history. Telemetry also serves
+as LabVIEW's heartbeat.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"telemetry"</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>seq</code></td>
+<td>int</td>
+<td>Strictly increasing within a connection</td>
+</tr>
+<tr>
+<td><code>ts</code></td>
+<td>float</td>
+<td>LabVIEW wall-clock time, seconds since Unix epoch</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td>string</td>
+<td>LabVIEW's own mode/state name (e.g. <code>"IDLE"</code>, <code>"RUNNING"</code>, <code>"SAFE_HOLD"</code>)</td>
+</tr>
+<tr>
+<td><code>channels</code></td>
+<td>object: string → number</td>
+<td>Analog values by tag name</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>object: string → bool</td>
+<td>Interlock and status booleans by tag name</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-json">{&quot;type&quot;: &quot;telemetry&quot;, &quot;seq&quot;: 42, &quot;ts&quot;: 1783041300.5, &quot;mode&quot;: &quot;RUNNING&quot;,
+ &quot;channels&quot;: {&quot;temp_c&quot;: 61.2, &quot;setpoint_c&quot;: 80.0},
+ &quot;flags&quot;: {&quot;interlock_ok&quot;: true, &quot;door_closed&quot;: true}}
+</code></pre>
+<h3 id="42-command-python-labview">4.2 <code>command</code> — Python → LabVIEW</h3>
+<p>A request. LabVIEW validates it against interlocks and current mode, then ACKs or NACKs.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"command"</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>int</td>
+<td>Strictly increasing; unique within a connection</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>Command name (per-system command list, defined separately)</td>
+</tr>
+<tr>
+<td><code>params</code></td>
+<td>object</td>
+<td>Command parameters; values are number, bool, or string</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-json">{&quot;type&quot;: &quot;command&quot;, &quot;id&quot;: 7, &quot;name&quot;: &quot;set_setpoint&quot;, &quot;params&quot;: {&quot;value&quot;: 80.0}}
+</code></pre>
+<h3 id="43-command_ack-labview-python">4.3 <code>command_ack</code> — LabVIEW → Python</h3>
+<p>Validation result for one command, sent within <strong>500 ms</strong> of receipt.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"command_ack"</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>int</td>
+<td>The <code>id</code> of the command being answered</td>
+</tr>
+<tr>
+<td><code>accepted</code></td>
+<td>bool</td>
+<td><code>true</code> = accepted for execution; <code>false</code> = rejected</td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td>string</td>
+<td>Human-readable reason when rejected; empty when accepted</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>An ACK is not confirmation of effect.</strong> It means the command passed validation.
+Python confirms the effect by observing subsequent telemetry.</p>
+<h3 id="44-heartbeat-python-labview-1-hz">4.4 <code>heartbeat</code> — Python → LabVIEW, 1 Hz</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"heartbeat"</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>seq</code></td>
+<td>int</td>
+<td>Strictly increasing within a connection</td>
+</tr>
+<tr>
+<td><code>ts</code></td>
+<td>float</td>
+<td>Python wall-clock time, seconds since Unix epoch</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-timing-watchdogs-and-failure-behavior">5. Timing, watchdogs, and failure behavior</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Detector</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No Python heartbeat for <strong>5 s</strong></td>
+<td>LabVIEW</td>
+<td>Enter safe hold (LabVIEW's existing safe fallback). Report <code>mode: "SAFE_HOLD"</code> in telemetry.</td>
+</tr>
+<tr>
+<td>TCP connection drops</td>
+<td>LabVIEW</td>
+<td>Same as heartbeat loss: safe hold. Resume listening for a new connection.</td>
+</tr>
+<tr>
+<td>No telemetry for <strong>3 s</strong></td>
+<td>Python</td>
+<td>Mark plant view <em>stale</em>: stop sending commands, abandon pending acks, expose staleness to state machines so they can transition to their own hold states.</td>
+</tr>
+<tr>
+<td>TCP connection drops</td>
+<td>Python</td>
+<td>Same as telemetry loss, plus reconnect with backoff (1 s → 5 s).</td>
+</tr>
+<tr>
+<td>Malformed message received</td>
+<td>Either side</td>
+<td>Log and discard the message. Do not drop the connection. Repeated garbage (&gt; 10 consecutive) may drop the connection.</td>
+</tr>
+<tr>
+<td>Ack received for unknown command id</td>
+<td>Python</td>
+<td>Log and discard (can occur across a staleness episode).</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="reconnect-semantics">Reconnect semantics</h3>
+<p>A new TCP connection is a <strong>fresh session</strong> on both sides:</p>
+<ul>
+<li>Counters (telemetry <code>seq</code>, command <code>id</code>, heartbeat <code>seq</code>) are not required to
+  restart; neither side may assume counter continuity across connections.</li>
+<li>Python discards all pre-disconnect expectations and rebuilds its plant view from the
+  first telemetry message. It must handle connecting to a plant that is mid-process.</li>
+<li>LabVIEW discards any queued state associated with the previous session.</li>
+<li>LabVIEW remains in safe hold (or whatever state its own logic dictates) until its own
+  logic — not the mere presence of a new connection — determines otherwise.</li>
+</ul>
+<h2 id="6-out-of-scope-future">6. Out of scope / future</h2>
+<ul>
+<li>The MONARCH command path is specified in <strong>§7</strong> (frozen 2026-07-07).</li>
+<li>The per-system command list (names, parameters, validation rules) is maintained in a
+  separate document as systems are ported.</li>
+</ul>
+<hr />
+<h1 id="v02-monarch-command-path-7">v0.2 — MONARCH command path (§7)</h1>
+<blockquote>
+<p><strong>Status: FROZEN (joint review 2026-07-07).</strong> The Python side and the sim
+gateway implement this (<code>supervisory/monarch/commander.py</code>,
+<code>supervisory/monarch/simserver_monarch.py</code>, <code>tests/test_monarch_commander.py</code>);
+the LabVIEW gateway write path (B3) builds against this section as written.
+Changing §7 now requires moving both sides in lockstep.</p>
+</blockquote>
+<h2 id="71-the-command">7.1 The command</h2>
+<p>One atomic command carries the complete desired <code>PC_ControlSettings</code>:</p>
+<pre><code class="language-json">{&quot;type&quot;:&quot;command&quot;,&quot;id&quot;:7,&quot;name&quot;:&quot;set_control_settings&quot;,
+ &quot;params&quot;:{&quot;settings&quot;:{ …raw LabVIEW-label Flatten-To-JSON of PC_ControlSettings… }}}
+</code></pre>
+<p><code>params.settings</code> uses the <strong>real LabVIEW field labels</strong> (the exact shape the
+telemetry <code>settings</code> field uses), produced by <code>control_settings_to_labview()</code> — so
+the gateway can <code>Unflatten From JSON</code> straight into the typedef with <strong>no key
+mapping</strong>, mirroring the telemetry direction.</p>
+<h2 id="72-stream-semantics">7.2 Stream semantics</h2>
+<ul>
+<li><strong>Whole-cluster, idempotent, 1 Hz.</strong> While in command, Python sends its complete
+  intent every tick — not deltas, not on-change. A lost frame heals on the next tick,
+  and the stream itself is the liveness signal.</li>
+<li><strong><code>pc_hb</code> toggling:</strong> Python flips <code>PID control references.PC_HB</code> on every send, so
+  the existing <code>APC_9056_WatchDog</code> stall counter directly supervises the Python
+  stream. <code>MTR HB</code> passes through unchanged from the last telemetry.</li>
+<li><strong>Bumpless by construction:</strong> the intent is seeded from the last telemetry frame
+  (and re-seeded after any staleness gap or while not in command), so Python's first
+  commanded frame equals the plant's current settings.</li>
+<li><strong>Staleness:</strong> no telemetry for 3 s ⇒ Python stops sending (existing §5 rule) and
+  discards its intent; on recovery it re-seeds from telemetry.</li>
+<li><code>clear_emergency_stop</code> is <strong>always forced FALSE</strong> by the Python sender (see 7.4).</li>
+</ul>
+<h2 id="73-validation-and-acknack">7.3 Validation and ACK/NACK</h2>
+<p>An ACK means <em>validated and written to <code>PC_ControlSettings</code></em> — never "took effect".
+Effects are confirmed by watching <code>system_state</code> / <code>limited_settings</code> in telemetry.
+Validation order and NACK reasons (machine-readable):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Order</th>
+<th>Check</th>
+<th>NACK <code>reason</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>command name known</td>
+<td><code>unknown command '&lt;name&gt;'</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>rate ≤ 5 commands / rolling second</td>
+<td><code>rate</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>source-select is PYTHON</td>
+<td><code>source is UI</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>settings</code> unflattens into the typedef</td>
+<td><code>parse</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>range checks (initially: <code>Speed ref</code> within 0–3000)</td>
+<td><code>range: &lt;field&gt;</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>CLEAR EMERGENCY STOP</code> is FALSE</td>
+<td><code>operator only</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Unknown labels inside <code>settings</code> are ignored (forward-compat, matching telemetry).</p>
+<h2 id="74-single-writer-source-select-e-stop-precedence">7.4 Single writer, source-select, e-stop precedence</h2>
+<ul>
+<li>Exactly <strong>one writer</strong> of <code>PC_ControlSettings</code> at a time. A gateway-side
+  <code>CommandSource</code> selector (<code>UI</code> | <code>PYTHON</code>), <strong>default UI</strong>, owned by the operator
+  on the HMI — not settable via this protocol. Every telemetry frame echoes it as
+  <code>"command_source"</code>.</li>
+<li>While source = UI, Python emits nothing (it tracks telemetry for bumpless
+  handover); any command that does arrive is NACKed <code>source is UI</code>. The UI in turn
+  must not write while source = PYTHON.</li>
+<li><strong>E-stop precedence:</strong> e-stop TRUE from <em>any</em> source (UI panels or a Python
+  command) latches. <strong>Python can assert e-stop but can never clear it</strong> — a command
+  with <code>CLEAR EMERGENCY STOP</code> = TRUE is NACKed <code>operator only</code>.</li>
+</ul>
+<h2 id="75-loss-of-supervisor-response-ties-to-phase-b0">7.5 Loss-of-supervisor response (ties to Phase B0)</h2>
+<p>The 9056 <code>WatchDog</code> stall-counts <code>PC_HB</code>; when Python freezes/dies, <code>PC_HB</code> stops
+changing and <code>PCnotResponding</code> trips. The B0 LabVIEW work wires that flag into the
+StateMachine's state limitation as a <strong>−1 (SAFE) clamp</strong>. (This paragraph describes
+the superseded <em>interim</em> design "gated on source = PYTHON" — the as-built clamp is
+<strong>armed in BOTH modes</strong>, per the Decisions block below and
+<code>docs/command-path-asbuilt.md</code> §5.) The sim gateway implements this behavior.</p>
+<p>Note the toggle is a <strong>relay across the whole PC-side chain</strong>: Python flips the
+field in its command → TCP → the gateway VI writes the <code>PC_ControlSettings</code>
+shared variable → the 9056 reads it. A shared variable retains its last value,
+so if <em>any</em> link dies or hangs — Python, the TCP session, the gateway VI, the
+PC↔cRIO network, or the PC itself — the 9056 sees a frozen <code>PC_HB</code> and trips.
+One flag therefore supervises the entire command path, not just the Python
+process. (The same applies to <code>MTR_HB</code>, which the PC's Modbus code relays into
+the cluster: that channel watches the membrane PLC <em>and</em> its PC-side relay.)</p>
+<p><strong>Decisions (resolved at joint review, 2026-07-07):</strong></p>
+<ul>
+<li><strong>Watchdog threshold: 5 s.</strong> <code>PCnotResponding</code> trips within 5 s of <code>PC_HB</code>
+  freezing (threshold = ceil(5 s / TS-loop period) iterations).</li>
+<li><strong><code>PC_HB</code> toggling: option (a)</strong> — the <strong>UI toggles <code>PC_HB</code></strong> while
+  source = UI (from its main loop at ~1 Hz, <strong>not</strong> on-change — an on-change-only
+  write would freeze the flag between operator interactions and false-trip);
+  Python toggles it while source = PYTHON. Consequence: the SAFE clamp is armed
+  in <strong>both</strong> modes, no source gating. <em>As-built 2026-07-11 (B3.c):</em> <code>UI_Main</code>
+  writes operator inputs to <code>PC_OperatorRequests</code> always and promotes them to
+  <code>PC_ControlSettings</code> <strong>only</strong> while source = UI (gated on
+  <code>CommandSource_IsPython</code>), so the UI now sources <code>PC_HB</code> in UI mode as intended
+  (confirmed from the <code>UI_Main</code> export). <strong>Clamp gating confirmed 2026-07-11:</strong>
+  the 9056 clamp is <strong>armed in both modes</strong> — <code>APC_9056_TS_loop</code> OR's
+  <code>9056/9049/PCnotResponding</code> into a <code>Select(−1 SAFE : 3 FIRING)</code> feeding the SM
+  warnings-limit with <strong>no <code>CommandSource</code> gate</strong> (the end-state, not the interim
+  PYTHON-only gating). Full as-built + evidence: <strong><code>docs/command-path-asbuilt.md</code></strong>.
+  <em>Still owed:</em> one hardware <strong>UI-mode <code>PC_HB</code>-freeze drill</strong> (logged drills cover
+  only the PYTHON-mode freeze).</li>
+<li><strong>Follow-on (specified, response TBD during commissioning): <code>UI_HeartBeat</code></strong> —
+  a standalone network shared variable (house pattern, like <code>9049_HeartBeat</code>),
+  toggled by the UI's main loop regardless of source, watched as a fifth
+  WatchDog channel. It covers the one case <code>PC_HB</code> cannot: the UI (the
+  operator's monitoring surface and software e-stop) dying while <strong>Python</strong>
+  holds authority. Response phase-in: alert + Python-side reaction (abort
+  running sequences, cap state via a temporal rule) first; LabVIEW-side clamp
+  value decided by the team (conservative default while the plant is unproven:
+  SAFE). Deliberately NOT a second field in <code>PC_ControlSettings</code> — no typedef
+  change, independent threshold/response.</li>
+</ul>
+<h2 id="76-failure-matrix-behavior-verification">7.6 Failure matrix (behavior ⇄ verification)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Defined behavior</th>
+<th>Verified by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python crash / freeze</td>
+<td><code>PC_HB</code> stalls → <code>PCnotResponding</code> → SAFE clamp; recovery steps up by 1</td>
+<td>sim test; bench drill B4-1/2</td>
+</tr>
+<tr>
+<td>TCP drop</td>
+<td>session ends, gateway re-listens; same watchdog backstop</td>
+<td><code>test_tcp_link.py</code>; drill B4-3</td>
+</tr>
+<tr>
+<td>Malformed JSON / garbage</td>
+<td>NACK <code>parse</code> (or line discarded); state unchanged; session survives</td>
+<td>sim test; drill B4-4</td>
+</tr>
+<tr>
+<td>Out-of-range value</td>
+<td>NACK <code>range: &lt;field&gt;</code>; nothing written</td>
+<td>sim test; drill B4-5</td>
+</tr>
+<tr>
+<td>Command flood</td>
+<td>NACK <code>rate</code> beyond 5/s; telemetry cadence unaffected</td>
+<td>sim test; drill B4-6</td>
+</tr>
+<tr>
+<td>Source flip mid-stream</td>
+<td>bumpless both ways; <code>command_source</code> flips in telemetry</td>
+<td>sim test; drill B4-7</td>
+</tr>
+<tr>
+<td>E-stop vs Python</td>
+<td>latches from any source; Python clear NACKed <code>operator only</code></td>
+<td>sim tests; drill B4-8</td>
+</tr>
+<tr>
+<td>Stale telemetry (Python side)</td>
+<td>Python stops commanding ≤ 3 s; re-seeds on recovery</td>
+<td>sim test; drill B4-9</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="77-operator-requests-the-ui-stays-the-input-surface-added-2026-07-07">7.7 Operator requests — the UI stays the input surface (added 2026-07-07)</h2>
+<p>Clarified at review: while Python holds authority, the LabVIEW UI remains the
+operator's surface <strong>for inputs too</strong> (mode changes, shutdown, speed, …), not
+just monitoring. Those inputs flow to Python <strong>as requests</strong>; Python decides
+and emits the actual command. The single-writer rule is preserved by a
+separate request channel:</p>
+<ul>
+<li><strong><code>PC_OperatorRequests</code></strong> — a new network shared variable, <strong>same
+  <code>APC_ControlSettings.ctl</code> typedef</strong> (so the UI's controls are unchanged).</li>
+<li><strong>The B3.c gate is a redirect, not a suppression:</strong> source = UI ⇒ the UI
+  writes <code>PC_ControlSettings</code> directly, exactly as today (the fallback path
+  never depends on Python or the gateway); source = PYTHON ⇒ the same values
+  write to <code>PC_OperatorRequests</code> instead.</li>
+<li>The gateway forwards it in telemetry as <strong><code>operator_requests</code></strong> (raw
+  flatten; optional field, additive like all envelope extensions).</li>
+<li>Python mirrors requests into its intent (<code>OperatorRequestMirror</code>, policy):</li>
+<li><strong>Safety inputs mirror always and instantly</strong> — <code>EMERGENCY STOP</code>
+    (set-only: True mirrors, False never clears the latch), <code>Force idling</code>,
+    <code>Force motoring</code>.</li>
+<li><strong>No sequence active:</strong> full transparency — the entire request cluster
+    mirrors (minus <code>PC_HB</code>/<code>MTR HB</code>, which the commander owns, and
+    <code>CLEAR EMERGENCY STOP</code>, which never flows through Python).</li>
+<li><strong>Sequence active:</strong> the sequence owns the intent; only the safety inputs
+    mirror. Operators redirect by aborting the sequence first.</li>
+<li>E-stop and its CLEAR keep their existing operator-direct channels
+  (<code>APC_MASTER_EmergencyStop</code> etc.) unchanged — the mirror is belt on top.</li>
+<li><strong>E-stop recovery under Python authority (as-built, bench-verified
+  2026-07-08):</strong> the panel e-stop mirrors set-only, so once tripped it
+  <strong>latches in Python's intent</strong> and no clear path exists while
+  source=PYTHON (the mirror strips CLEAR; the gateway NACKs it
+  <code>operator only</code>). Recovery is <em>deliberately</em> a demotion: <strong>flip
+  CommandSource to UI → clear on the panel (direct write) → state
+  recovers → re-grant PYTHON when ready</strong> (the commander re-seeds
+  bumplessly). An e-stop under Python authority thus always forces a
+  human review before Python resumes — this is the intended authority
+  model, and a required step in the C3 handover procedure.</li>
+</ul>
+<p>Consequence: with no sequence running, Python-in-command is behaviorally
+identical to UI-in-command from the operator's seat; automation adds value on
+top without changing how the plant is driven by hand. This also strengthens
+the case for the UI heartbeats in §7.5 — the UI is an active input surface in
+PYTHON mode, so its liveness matters.</p>
+<p>Permanence (clarified 2026-07-09): the HMI panels (<code>APC_PC_UI_Main</code>,
+<code>_System</code>, <code>_Errors</code>) are <strong>permanent</strong> — the operator's console for the life
+of the system. As Python absorbs decisions, individual <em>decision</em> inputs may
+be retired from the panels (the phase-E retirement pass, team-gated); the
+request-channel + mirror architecture is the steady state, not a transition.</p>
+<p>Field-ownership evolution (<strong>claims</strong>, added 2026-07-09): when Python starts
+<em>computing</em> values (scheduled references, PID-derived setpoints), the full
+mirror would stomp them with the panel's stale value every tick. The mirror
+therefore supports per-field <strong>claims</strong>: a Python machine that owns a field
+calls <code>mirror.claim("&lt;dotted path&gt;")</code> and that field stops mirroring (its
+computed value survives); <code>release()</code> returns it to the panel. Safety inputs
+(e-stop, force overrides) can never be claimed. Each claim should be paired,
+in team time, with retiring/disabling the matching panel control — claims
+are the software half of ownership transfer, panel retirement the HMI half.
+Operational corollary: since the mirror asserts the panel's current values
+the moment authority is granted, the operator performs a <strong>panel lineup
+check before every handover</strong> (C3 step 0). The full mirror is the only
+operational mode; safety-only is an engineering-bench configuration.
+- Protocol versioning/negotiation: deferred. The unknown-field and unknown-type rules
+  in §3 provide forward compatibility in the meantime.
+- Event/alarm push messages (LabVIEW → Python outside the 1 Hz telemetry): deferred
+  until a ported system needs sub-second event latency.</p></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/icd.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MONARCH Supervisory Migration — Phased Plan — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/migration-plan.md</span></div>
+<main><h1 id="monarch-supervisory-migration-phased-plan">MONARCH Supervisory Migration — Phased Plan</h1>
+<p>Turns the seam analysis (<code>docs/migration-seam.md</code>) into an executable sequence. Each
+phase has a fixed <strong>authority level</strong>, concrete Python and LabVIEW deliverables, and
+<strong>verifiable exit criteria</strong>. Phases overlap where dependencies allow; nothing advances
+Python's authority until the phase gating it is closed.</p>
+<p><strong>This document is the authoritative home of project status</strong> — other docs describe
+their own piece and point here. Step-by-step instructions for each phase live in
+<code>docs/phases/</code> (one file per phase, linked from each section below).</p>
+<h2 id="current-status-2026-07-19">Current status (2026-07-19)</h2>
+<p><strong>Phases A &amp; B COMPLETE and live-verified. Both cRIOs run AUTONOMOUS on hardware.
+SIL-0 COMPLETE. SIL-1 nearly complete: protection half DONE (7/7 false-trip matrix)
+AND the actuation half through Step 4d — the full Python command path drives the
+FPGA ignition/injection channels (12/12) on the deployed build, from both writers.
+Loss-of-any-chassis now fails safe (heartbeat hardening Tasks A+B built + verified).
+Remaining: the 4e/4f scope session, Step-5 drills, Task C.</strong>
+The frontier is still LabVIEW/hardware, not Python.</p>
+<ul>
+<li><strong>SIL-1 Step 4 (2026-07-16→18, bench)</strong> — 4a–4d <strong>PASSED</strong>: state ladder over the
+  real command path (+1 per step up, instant down; CLI now refuses &gt;+1 jumps),
+  <strong>panel E-STOP verified in PYTHON mode</strong>, DI-module health (F9 CLOSED — the
+  <code>Fault1=126</code> was a stale saved panel; live 0/0), gate LEDs, and
+  <code>NumberOfActiveIGN_DI = 12</code> (⇒ Key present) — <strong>on the deployed self-starting SIM
+  build</strong> (<code>APC_9049_RT SIM</code>: SimEnable + SIM pressure? compiled TRUE — never-fuel
+  custody marker on the build spec) and <strong>from BOTH writers</strong> (PYTHON and UI).
+  Remaining: 4d.3 truth test (count=2), 4e scope + SA/SOI sweep, 4f HMI sweep, then
+  drills 5a–5i (<code>docs/sil1-scope-of-work.md</code>).</li>
+<li><strong>Heartbeat hardening (2026-07-16→18)</strong> — the kill-9056 test found the gap
+  (<code>docs/command-path-asbuilt.md</code> §6a: NOTHING responds; 9049 gate stayed open on
+  stale state ≥2, LEDs froze green). <strong>Task A (9049 staleness→SAFE relay clamp) and
+  Task B (PC-computed watchdog LEDs + Min-of-verified-sources state display, both
+  operator-designed) BUILT + VERIFIED</strong> by re-crashing both cRIOs. Task C (gateway
+  <code>operator_requests</code> → makes the Python safety mirror real) pending. Click-level:
+  <code>docs/hb-hardening-clicklevel.md</code>. Threshold tuning open (measure-then-multiply;
+  Task A can likely go 5 s → 1 s on the fast MeasAndCalc timestamp).</li>
+<li><strong>W5 REFUTED / RECONCILED</strong> — the warnings→state clamp IS consumed in the running
+  build (live 2026-07-16: latched severity-3 warning pinned the state at MOTORING in
+  both modes; <code>warn_lim=1</code>). Consistent with the <strong>A2.1 pre-wire made 2026-07-07</strong>
+  (see the prior-status block below: "WarningIntegration→StateMachine warnings wire
+  made") — the warning-policy doc's W5 came from pre-rewire prints. Operational
+  consequence: floating plant channels CAN clamp the state — manage 9056 limits/masks
+  each engine-only session; diagnostic order: <code>status</code>→<code>warn_lim</code> first.</li>
+<li><strong>DECIDED (2026-07-16): engine-only testing runs BOTH cRIOs</strong> — dyno command
+  (<code>DYNO-REF</code>) and all engine-health reads live on the 9056
+  (<code>docs/engine-only-9056-tradeoff.md</code>).</li>
+<li><strong>SIL-1 protection half (2026-07-14)</strong> — Steps 0–3 + Step 6 matrix 7/7; Trig0
+  follows the sim (Step 2 closed); F3a–F3d found + dispositioned (thresholds never
+  loaded since build = F3b headline; one-sided misfire checks = F3d; any <code>Pcyl_Diag</code>
+  change ⇒ matrix re-run). Record sheet <code>docs/cRIO9049 Warning Matrix.xlsx</code>.</li>
+<li>
+<p><strong>Python/CLI hardening</strong> — <code>monarch_operate.py</code>: state-ladder guard + typed <code>set</code>
+  validation (a bad value can no longer poison the 1 Hz intent into a NACK loop).
+  Suite <strong>202 green</strong>.</p>
+</li>
+<li>
+<p><strong>Phase A</strong> — done; live shadow-compare 100% across all 5 states + inputs.</p>
+</li>
+<li><strong>Phase B</strong> — <strong>exit gate passed 2026-07-09.</strong> Command path built end-to-end
+  (gateway does the full validation ladder); loss-of-PC watchdog live-verified.
+  <em>Caveats surfaced 2026-07-11:</em> B4-7/8/9 drills were operator-run but not
+  logged (only B4-1..6 in <code>docs/drill-logs/</code>); real gaps remain before
+  firing-relevant authority — no <code>UI_HeartBeat</code>, thin gateway setpoint
+  validation, unauth TCP, no content-staleness guard. See
+  <code>docs/session-handoff-2026-07-11.md</code> §robustness.</li>
+<li><strong>Autonomous deployment (NEW, this session)</strong> — both cRIOs boot startup
+  <code>.rtexe</code>s, PC apps as EXEs, Python observes/commands; cold-boot verified.
+  Five deployment bugs fixed. Full runbook: <code>docs/deployed-bringup.md</code>.</li>
+<li><strong>SIL-0 — COMPLETE (2026-07-11)</strong> — 9049 HRL/IMEP/CA50 math validated vs known
+  truth (425 comparisons all within tol) via <code>APC_SIL0_HRL_Desktop.vi</code> +
+  <code>tools/compare_hrl.py</code>, incl. MAPO/IMEPstd columns. <code>docs/9049-openloop-audit.md</code>
+  §7; click-level SOW: <code>docs/sil0-scope-of-work.md</code>. Threshold profiles derived
+  (<code>tools/tune_thresholds.py</code> → <code>parameter-files/CylWarningLevels.xml</code> motoring +
+  <code>tools/gen_warning_matrix.py</code> → all-armed drill XML); the latch tests ran in
+  SIL-1 (Step 6, complete — see above).</li>
+<li><strong>Phase C</strong> — Python built; C3/C4/C5 unverified (needs bench + 2nd operator).</li>
+<li><strong>Phase D</strong> — framework + sim built; blocked on the <strong>D0 procedure sheets (team)</strong>.</li>
+<li><strong>Next:</strong> SIL-1 4e/4f scope session (spark/DI edges at the pins + SA/SOI sweep
+  from both writers) → drills 5a–5i (watchdog, sync-loss, state-gate walk,
+  CylPressError veto, F4 echo capture, e-stop, recording, loss-of-PC UI leg,
+  loss-of-9056 formal) → HB Task C. Team inputs owed: engine mechanical
+  peak-pressure rating (drill Pmax limits are statistics-derived, uncapped),
+  procedure sheets, bench + 2nd operator.</li>
+<li>Suite <strong>202 green</strong> (was 108 at the 2026-07-07 block below).</li>
+</ul>
+<details><summary>Prior status (2026-07-07) — Phase A validation detail</summary>
+
+**Phase A logic validation COMPLETE (2026-07-07).** With the full A2.1 pre-wire
+live (WarningIntegration→StateMachine warnings wire made; `warnings_limit`/
+`manual_state`/`force_state`/`limited_settings` in the envelope; `system_state`
+re-tapped to the 9056 StateMachine's fresh output), live shadow compare now
+agrees across the **entire input space and all five states**: ForceState/
+ManualState override sweep (incl. SAFE), requested-mode walk 0→3 to FIRING (after
+clearing the latched warning), e-stop press→SAFE, and the warning clamp. Latest
+210-frame walk: **SYSTEM STATE 208/209 (99.5%), Limited_ControlSettings 209/209
+(100%)** — the sole state miss is a one-frame gateway snapshot-coherency artifact
+on the e-stop press (input vs output cluster flattened a sample apart; LabVIEW
+internally consistent), NOT a port defect. Full evidence + dispositions in
+`docs/shadow-findings.md`. Suite 108 green. **Recommended before Phase B:** the
+coherent single-snapshot gateway publish (`current_state` + SM-consumed inputs)
+to eliminate the residual skew before command timing matters.
+
+B-progress (2026-07-07): **B1 decisions frozen** (watchdog threshold 5 s = 250
+loop-counts at ~20 ms; PC_HB toggler = option (a), UI also toggles) — the only
+soft B1 item left is the `CommandSource` HMI switch. **B0 loss-of-PC response is
+built, wired, and live-verified** (`PCnotResponding`/`9049notResponding` → Select
+(−1:3) → Min into the SM warnings input; a real PC drop drove SYSTEM STATE→SAFE,
+shadow compare 100%; see `docs/migration-seam.md`); threshold **set to 250 counts
+(5 s) and the loss-of-PC drill re-verified at it** (pc_hb freeze → SAFE in ~5 s,
+100%/100%; `docs/shadow-findings.md`). Next real build: **B3 gateway write path**.
+
+</details>
+
+<details><summary>Prior status (2026-07-06)</summary>
+
+Foundations — done and verified on the real system:
+
+- [x] Transport + ICD v0.1 validated end-to-end against real LabVIEW 2020 SP1
+      (hello-VI experiment, PASS), including disconnect/reconnect resilience.
+- [x] `ControlSettings` contract transcribed and confirmed against a live LabVIEW
+      `Flatten To JSON` capture (diff → AGREE, all 64 leaves; `tools/compare_flatten.py`
+      guards future typedef drift).
+- [x] **Read-only telemetry pipeline LIVE**: `APC_PC_PythonGateway.vi` (in the MONARCH
+      project) streams the live `PC_ControlSettings` + `CURRENT SYSTEM STATE` (published
+      via a new network shared variable) at 1 Hz; Python decodes with 0 unmapped fields
+      and records to `monarch.jsonl` (`docs/monarch-telemetry.md`).
+- [x] Shadow-mode envelope fields Python-ready (optional; decode+record on arrival).
+- [x] Seam analysis + this plan (`docs/migration-seam.md`); loss-of-PC **detection**
+      confirmed in `APC_9056_WatchDog.vi`, and — from the `TS_loop` export
+      (2026-07-06) — the **response confirmed absent**: the WatchDog call is unwired,
+      so `PCnotResponding` gates nothing. Building the response is B0 (now concretely
+      specified in the phase-B file).
+
+Position (updated 2026-07-09): **PHASE B COMPLETE — exit gate passed.** All
+nine B4 drills passed 3×+ against the live gateway (1–6 machine-run, 7–9
+operator-run; log in `docs/drill-logs/`); the loss-of-PC watchdog held under
+every kill/freeze/stall; ICD v0.2 frozen and bench-corrected; the command
+path, source-select, operator-request mirror, and e-stop
+recovery-by-demotion are all live-verified. **Python may hold bench command
+authority (Phase C is open).** C0's HMI affordances are largely in place
+(the B3.b switch + effective-LED, as-built on the `UI_Main` panel); next:
+C3 handover rehearsal by a second operator, C4 scripted acceptance session,
+C5 soak — plus the D0 procedure sheets in parallel.
+
+Position (updated 2026-07-07): **the Python side of every phase is built.**
+Phase A: A1/A2/A3 built; **live validation complete — 100% agreement, all 5
+states, all inputs** (`docs/shadow-findings.md`). Phase B: B1 drafted (ICD v0.2
+§7, review pending), B2 built + drill-tested; B0/B3 are LabVIEW work, fully
+specified. Phase C Python: operator CLI + reverse shadow alarm built (bench use
+gated on B exit). Phase D: sequencing framework + sim plant model + draft
+venting/purge/thermal-warmup sequences built and fault-injection tested
+(content gated on D0 sheets). Phase E engines: temporal rules + scheduler built
+(values TBD(team)). `Settings9049` modeled (flatten confirmation pending); CI
+runs the suite (191 tests) on 3.10/3.12. **What remains is LabVIEW work, joint
+decisions, and team-supplied content — see `docs/handoff.md`.** **All export blockers cleared 2026-07-06**: StateMachine per-frame export
+(A1.0 answered — clamp values, sort-based MIN, absolute ManualState override
+confirmed), `TS_loop` (B0 answered — WatchDog unwired, response must be built) and
+`WarningIntegration` (A3 input) both in `original-labview-codebase/`. Remaining
+team inputs: the operating-procedure spec (D0), plus B0's threshold/PC_HB-toggling
+decisions at B1 review.
+
+</details>
+
+<p>Ground rules that hold in every phase:</p>
+<ul>
+<li><strong>LabVIEW/cRIO/FPGA keeps the FLOOR</strong> (I/O, interlocks, validation, safe fallback).
+  The 9056 StateMachine limiter stays in place permanently as the independent clamp,
+  even after Python holds decision authority above it — defense in depth, not a
+  transitional crutch.</li>
+<li><strong>Python-offline == safe hold</strong> must be demonstrable at every authority increase, not
+  assumed.</li>
+<li>All Python logic lands as <strong>pure decisions</strong> (<code>StateMachine.step(view) → requests</code>)
+  with exhaustive unit tests; sockets/clocks stay in the framework.</li>
+<li>No <em>engine</em> runs exist. As of 2026-07-11 both cRIOs <strong>do</strong> run deployed on real
+  hardware (autonomous startup apps, cold-boot verified) and the 9049 analytics are
+  SIL-validated against synthetic truth — but nothing has been motored or fired.
+  Supervisory logic is verified on the bench against synthetic inputs + the sim.</li>
+</ul>
+<hr />
+<h2 id="phase-a-shadow-brain-authority-none-read-only">Phase A — Shadow brain (authority: none; read-only)</h2>
+<p><em>Detailed instructions: <a href="phases/phase-a-shadow-brain.html">phases/phase-a-shadow-brain.md</a></em></p>
+<p>Goal: Python computes every supervisory decision the 9056 makes today, verified
+against spec and bench captures — without sending anything.</p>
+<p><strong>A1. Port <code>APC_9056_StateMachine</code></strong> <em>(DONE — validated live, all 5 states)</em>
+- Python <code>MonarchStateMachine</code>: MIN-aggregation over {requested mode, warnings limit,
+  e-stop → −1, force-motoring → ≤1, force-idling → ≤2}, increase-by-1 rule,
+  <code>ForceState</code>/<code>ManualState</code> override, and the MAX-LEVEL-OF-CONTROL limiter producing
+  <code>limited_settings</code>.
+- Unit tests over the full transition matrix (every state × every input combination),
+  plus the vent/feed polarity cases and the combustion invariant (leaving
+  IDLING/FIRING ⇒ NG and O2 feed modes clamp to 0).
+- <em>Input needed:</em> zoomed export of the per-limitation case frames in the current
+  (2026) VI to pin exact clamp values; the empty "specific conditions" case is
+  confirmed empty.</p>
+<p><strong>A2. Shadow-compare harness</strong> <em>(DONE — envelope pre-wired + re-tapped; live 100%)</em>
+- Pre-wire the shadow-mode envelope fields in the gateway (<code>warnings_limit</code>,
+  <code>manual_state</code>, <code>force_state</code>, <code>limited_settings</code> — Python side already decodes;
+  see <code>docs/monarch-telemetry.md</code> §Shadow-mode extras).
+- <code>tools/shadow_compare.py</code>: replay <code>monarch.jsonl</code> (or watch live), recompute
+  state + limits from inputs, diff against LabVIEW's outputs, report divergences.
+- Bench input sweeps from the UI (requested mode, forces, e-stop, warning injection)
+  to generate coverage.</p>
+<p><strong>A3. Port the warning → state policy</strong> <em>(DONE — WarningIntegration ported + wired live)</em>
+- Model <code>APC_9056_WarningIntegration</code> (+ the severity map: yellow=info self-clearing,
+  orange→IDLING cap, red→MOTORING cap, black→SAFE+vent; latching until operator clear)
+  producing <code>STATE LIMITATION FROM WARNINGS</code> in Python.
+- <em>Input needed:</em> exports of <code>APC_9056_TS_loop.vi</code> and <code>APC_9056_WarningIntegration.vi</code>
+  (also closes the <code>PCnotResponding</code> question — see B0).</p>
+<p><strong>Exit criteria:</strong> unit suite covers the full matrix; shadow compare shows 0
+unexplained divergences across bench sweeps; any real divergence is dispositioned
+(LabVIEW bug vs. port bug — with the LabVIEW side unvalidated, disagreement is a
+finding, not automatically a Python defect).</p>
+<p><strong>MET (2026-07-07).</strong> Live shadow compare agreed across all five states via both
+the requested-mode and force-override paths, plus e-stop and the warning clamp
+(latest walk: state 208/209, limiter 209/209). Every residual is dispositioned in
+<code>docs/shadow-findings.md</code> as a telemetry-timing artifact, not a port defect. <strong>One
+known limit:</strong> the 1-per-tick step-up <em>rate limiter</em> is not observable at the 1 Hz
+sample of the ~50 Hz loop (both converge between samples) — carried to Phase B
+(iterate <code>decide()</code> to a fixed point, or sample faster). Logic validation complete.</p>
+<hr />
+<h2 id="phase-b-command-path-watchdog-proof-authority-none-until-b-exit-this-phase-builds-the-authority-plumbing">Phase B — Command path + watchdog proof (authority: none until B-exit; this phase <em>builds</em> the authority plumbing)</h2>
+<p><em>Detailed instructions: <a href="phases/phase-b-command-path.html">phases/phase-b-command-path.md</a></em></p>
+<p>Goal: a hardened Python→LabVIEW command channel whose failure modes are all proven
+safe on the bench. This is the gate for everything after it.</p>
+<p><strong>B0. Close the loss-of-PC question</strong> <em>(first — it shapes B3)</em>
+- Trace <code>APC_9056_TS_loop.vi</code>: what consumes <code>PCnotResponding</code>?
+  - If it already forces SAFE / caps the state: document thresholds; the command path
+    simply must satisfy it.
+  - If it's indicator-only: <strong>add the response in LabVIEW</strong> (feed <code>PCnotResponding</code>
+    into the state limitation, clamping to SAFE) before any Python authority.</p>
+<p><strong>B1. ICD v0.2 — command semantics</strong>
+- One command, atomic: <code>set_control_settings</code> carrying a <strong>complete desired
+  <code>PC_ControlSettings</code></strong>, serialized with <code>control_settings_to_labview()</code> (real
+  LabVIEW labels), so the gateway can <code>Unflatten From JSON</code> straight into the typedef
+  — no key mapping on the LabVIEW side, mirroring the telemetry direction.
+- Whole-cluster writes (mirrors how the UI writes today; no partial-update races).
+  Python always sends its full intent at 1 Hz while in command.
+- <strong><code>pc_hb</code> toggling:</strong> Python flips <code>pid_control_references.pc_hb</code> on every send, so
+  the <em>existing</em> <code>APC_9056_WatchDog</code> stall-counter directly supervises Python. MTR HB
+  passes through unchanged from the last telemetry.
+- ACK = gateway-side validation only (parse, ranges, rate); <em>effect</em> confirmation is
+  observing <code>limited_settings</code>/<code>system_state</code> in telemetry. NACK carries a reason.
+- <strong>Single-writer rule:</strong> exactly one writer of <code>PC_ControlSettings</code> at a time. A
+  gateway-side source-select (<code>UI</code> | <code>PYTHON</code>, default <code>UI</code>) with the active source
+  shown on the HMI and echoed in telemetry. Switching sources requires the values to
+  be handed over bumplessly (Python initializes its intent from last telemetry).
+- Failure matrix to design against (each with defined behavior): Python crash
+  mid-command; TCP drop; stale/frozen commands (pc_hb stops); malformed JSON; command
+  flood; source-select flip mid-sequence; conflicting e-stop (e-stop from <em>any</em> source
+  always wins, latches, and cannot be cleared by Python).</p>
+<p><strong>B2. Python side</strong>
+- <code>Supervisor</code> command emission (already designed: <code>CommandRequest</code> → ack tracking),
+  a <code>MonarchCommander</code> that renders <code>ControlSettings</code> intents, staleness hold-off
+  (no telemetry ⇒ stop commanding), and reconnect-rebuild-from-telemetry.
+- Extend <code>simserver_monarch</code> to accept <code>set_control_settings</code>, run the <em>ported</em> limiter
+  against it, and reflect the result in telemetry — full closed loop with no LabVIEW.</p>
+<p><strong>B3. LabVIEW gateway write path</strong>
+- Gateway VI: parse command → validate → write shared variable (when source=PYTHON) →
+  ACK/NACK. Read-only telemetry loop unchanged. Keep the gateway out of the control
+  path: it writes the same <code>PC_ControlSettings</code> the UI writes; the StateMachine still
+  limits everything downstream.</p>
+<p><strong>B4. Bench failure drills (the exit gate)</strong>
+- Kill Python mid-command ⇒ <code>PCnotResponding</code> trips within threshold ⇒ verified safe
+  response (B0 behavior), system recovers when Python returns.
+- Pull the network / freeze the process (pc_hb constant) / send garbage / flood ⇒ same
+  safe outcome, every time, demonstrated live on the bench.</p>
+<p><strong>Exit criteria:</strong> all failure drills pass repeatably; round-trip command→ACK→
+telemetry-effect verified; source-select handover is bumpless; e-stop precedence
+proven. Only after this may any phase grant Python authority.</p>
+<hr />
+<h2 id="phase-c-python-in-command-on-the-bench-authority-setpoints-mode-requests-behind-the-labview-limiter">Phase C — Python in command on the bench (authority: setpoints + mode requests, behind the LabVIEW limiter)</h2>
+<p><em>Detailed instructions: <a href="phases/phase-c-bench-command.html">phases/phase-c-bench-command.md</a></em></p>
+<p>Goal: Python is the acting supervisor for bench operation — no engine, hardware not
+ready — exercising real authority against the real cRIOs.</p>
+<ul>
+<li>Python drives <code>requested_mode</code>, control-loop modes (safe/manual/closed-loop), and
+  setpoints for the 9056 MIDDLE loops via the B command path; LabVIEW StateMachine
+  keeps limiting; FLOOR untouched.</li>
+<li>Operator interaction: keep the LabVIEW HMI for monitoring + e-stop + source-select;
+  Python exposes a minimal operator surface (CLI first) for intents. (A fuller
+  operator UI is deliberately out of scope until sequences exist.)</li>
+<li>Shadow compare (A2) keeps running in reverse: LabVIEW's limiter output vs Python's
+  predicted limit — divergence alarms.</li>
+<li>Soak: hours-long bench runs with fault injection; verify no drift, no leaks, clean
+  reconnects.</li>
+</ul>
+<p><strong>Exit criteria:</strong> a scripted bench session (mode walks, setpoint changes, forced
+warnings, e-stop, kill-and-recover) executes entirely under Python command with zero
+unsafe outcomes and zero unexplained limiter divergences.</p>
+<hr />
+<h2 id="phase-d-sequencing-engine-greenfield-authority-sequences-issue-the-same-commands-c-already-proved">Phase D — Sequencing engine (greenfield; authority: sequences issue the same commands C already proved)</h2>
+<p><em>Detailed instructions: <a href="phases/phase-d-sequencing.html">phases/phase-d-sequencing.md</a>
+(includes the procedure-spec template for D0)</em></p>
+<p>Goal: the layer that doesn't exist in LabVIEW — automated procedures — built
+test-first in Python.</p>
+<ul>
+<li><strong>D0. Operating-procedure spec</strong> <em>(team input — the critical path)</em>: cold-start /
+  purge / motoring→light-off / normal shutdown / vent + recovery / misfire recovery /
+  WF quality check, as steps with guards, holds, timeouts, and abort conditions. Even
+  informal notes suffice; I'll formalize them.</li>
+<li><strong>D1. Sequence framework</strong>: declarative steps (<code>command</code>, <code>wait_for(condition,
+  timeout)</code>, <code>hold</code>, <code>branch</code>, <code>abort_to(state)</code>), every sequence interruptible, every
+  abort path lands in SAFE or STAND_BY, invariants checked at every step (combustion
+  stop ⇒ NG+O2 cut). Pure-decision core, so sequences unit-test like everything else.</li>
+<li><strong>D2. Plant simulator upgrade</strong>: extend the MONARCH sim with enough plant response
+  (pressures, temps, warning injection) for sequences to run closed-loop offline;
+  property-based tests (random fault injection mid-sequence ⇒ always safe).</li>
+<li><strong>D3. Bench execution</strong> of the non-combustion sequences (venting, purge, WF checks,
+  thermal warm-up) as hardware becomes available — these are also the sequences
+  commissioning needs first.</li>
+</ul>
+<p><strong>Exit criteria:</strong> each authored sequence has spec-traceable tests, survives random
+fault injection in sim, and the non-combustion subset runs on the bench.</p>
+<hr />
+<h2 id="phase-e-commissioning-support-expansion-authority-as-commissioned-step-by-step">Phase E — Commissioning support &amp; expansion (authority: as commissioned, step by step)</h2>
+<p><em>Detailed instructions: <a href="phases/phase-e-commissioning.html">phases/phase-e-commissioning.md</a></em></p>
+<ul>
+<li>Use D sequences to drive commissioning itself (cold flow → motoring → first fire),
+  each new plant capability unlocked only after its bench drill.</li>
+<li>Author the <strong>temporal warning rules</strong> the original developer left unbuilt
+  ("X low for Y s while in state Z ⇒ action") in the Python policy layer.</li>
+<li><strong>Setpoint scheduling</strong> (operating-point tables → loop setpoints) as data, not code.</li>
+<li>Revisit what remains in the LabVIEW BRAIN (UI conditioning, MTR commanding) for
+  later consolidation; the FLOOR never moves.</li>
+</ul>
+<hr />
+<h2 id="dependency-graph-parallelism">Dependency graph &amp; parallelism</h2>
+<pre><code>A1 StateMachine port ──► A2 shadow harness ──► (C divergence alarm)
+A3 warning policy ────┘
+B0 TS_loop trace ──► B1 ICD v0.2 ──► B2 Python cmd ──► B4 drills ──► C bench command ──► E
+                                └──► B3 gateway write ┘                    ▲
+D0 procedure spec ──► D1 framework ──► D2 sim ──► D3 bench sequences ──────┘
+</code></pre>
+<p>Parallel now: A1/A2/A3 (needs exports), B1/B2 (needs nothing), D0 (needs the team),
+D1/D2 (can start on framework + sim before D0 lands, using placeholder sequences).</p>
+<h2 id="inputs-owed-by-the-team-blocking-markers">Inputs owed by the team (blocking markers)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Blocks</th>
+<th>Who</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>~~Zoomed export: StateMachine per-limitation case frames~~</td>
+<td>A1 exactness</td>
+<td>✅ done 2026-07-06 (per-frame re-export; A1.0 answered)</td>
+</tr>
+<tr>
+<td>~~Exports: <code>APC_9056_TS_loop.vi</code>, <code>APC_9056_WarningIntegration.vi</code>~~</td>
+<td>A3, B0</td>
+<td>✅ done 2026-07-06 (B0 answered: response absent, must be built)</td>
+</tr>
+<tr>
+<td>B0 decisions: watchdog thresholds + who toggles <code>PC_HB</code> per source</td>
+<td>B0/B3</td>
+<td>joint, at B1 review</td>
+</tr>
+<tr>
+<td>Operating procedures (informal ok)</td>
+<td>D0→D1 content</td>
+<td>you + team</td>
+</tr>
+<tr>
+<td>Decision: source-select UX (where the UI/PYTHON switch lives)</td>
+<td>B3 detail</td>
+<td>joint, during B1 review</td>
+</tr>
+</tbody>
+</table></div></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/migration-plan.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

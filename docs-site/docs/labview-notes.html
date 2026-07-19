@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LabVIEW Gateway Implementation Notes (LabVIEW 2020 SP1, Windows) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/labview-notes.md</span></div>
+<main><h1 id="labview-gateway-implementation-notes-labview-2020-sp1-windows">LabVIEW Gateway Implementation Notes (LabVIEW 2020 SP1, Windows)</h1>
+<blockquote>
+<p>Generic design notes written before the gateway existed. The concrete builds
+that came out of them: <code>docs/hello-vi.md</code> (connectivity test, completed) and
+<code>docs/monarch-telemetry.md</code> (the live telemetry gateway). Kept for the TCP/
+JSON/session-loop guidance and the bring-up checklist.</p>
+</blockquote>
+<p>What to build on the LabVIEW side to implement the gateway half of
+<a href="icd.html">the ICD</a>. The Python fake gateway (<code>python -m supervisory.simserver</code>,
+source in <code>supervisory/simserver.py</code>) is the executable reference for this
+behavior — when in doubt, match it.</p>
+<h2 id="placement">Placement</h2>
+<p>Build the gateway as its own module (QMH or your house pattern) with its own
+loop, separate from the existing control logic. It talks to the rest of the
+application through whatever queues/FGVs/user events the existing supervisory
+code already uses — the gateway replaces the <em>decision-maker</em>, not the
+plumbing under it. Nothing about the cRIO links (Network Streams, shared
+variables, FPGA interface) changes.</p>
+<h2 id="tcp-server">TCP server</h2>
+<ul>
+<li><code>TCP Create Listener</code> on port 5020 (make it a config item), <code>TCP Wait on
+  Listener</code> for the single Python client. If a second client connects while
+  one is active, close the new connection immediately.</li>
+<li>Read with <code>TCP Read</code> in <strong>CRLF mode</strong> — the Python client terminates every
+  message with <code>\r\n</code>. Use a short timeout (~100 ms) so the same loop can
+  interleave reads with the 1 Hz telemetry sends and the watchdog check.</li>
+<li>Write telemetry/acks as one JSON line terminated with <code>\r\n</code> (Python
+  tolerates bare <code>\n</code> too).</li>
+<li>Treat TCP errors (56 timeout excepted) as disconnection: enter safe hold,
+  close the connection, go back to waiting on the listener.</li>
+</ul>
+<h2 id="json">JSON</h2>
+<ul>
+<li>Recommended: <strong>JSONtext</strong> (free on VIPM). It tolerates unknown/extra fields
+  and supports lookup by path, which matches the ICD's forward-compatibility
+  rules. The built-in <code>Flatten To JSON</code> / <code>Unflatten From JSON</code> primitives
+  work for fixed clusters but are strict about shape.</li>
+<li>The <code>channels</code> and <code>flags</code> objects are name→value maps. With JSONtext,
+  build them from arrays of name/value pairs so adding a tag is a data
+  change, not a diagram change.</li>
+</ul>
+<h2 id="session-loop-sketch">Session loop sketch</h2>
+<p>Per connection:</p>
+<ol>
+<li>Reset the telemetry <code>seq</code> counter and the heartbeat-age timer.</li>
+<li>Loop:
+   - <code>TCP Read</code> (CRLF mode, 100 ms timeout). On a line: parse; route
+     <code>command</code> to validation, <code>heartbeat</code> to the watchdog timer reset. Log
+     and discard anything malformed or unknown — do not drop the connection
+     for it.
+   - Every 1 s: gather the current snapshot (mode, channels, interlock
+     flags), increment <code>seq</code>, send <code>telemetry</code>.
+   - Watchdog: if ms-since-last-heartbeat &gt; 5000, trigger the existing safe
+     fallback and report <code>mode: "SAFE_HOLD"</code> in telemetry. Same on
+     disconnect.</li>
+</ol>
+<h2 id="command-handling">Command handling</h2>
+<ul>
+<li>Validation is the existing LabVIEW logic's job; the gateway only parses and
+  routes. Every command gets a <code>command_ack</code> within 500 ms — send the ack
+  from the validation result, <em>not</em> from command completion (completion shows
+  up in telemetry).</li>
+<li>Never block the session loop on a slow command: hand the command to the
+  executing module by queue and ack as soon as validation decides.</li>
+<li>Reject anything that arrives while in safe hold (except whatever explicit
+  reset/recovery commands you define).</li>
+</ul>
+<h2 id="bring-up-checklist">Bring-up checklist</h2>
+<ul>
+<li>[ ] Confirm the cRIO RT targets already watchdog their link to the Windows
+      host (Windows now hosts Python too, so a Windows failure takes both —
+      the cRIOs must fail safe on their own).</li>
+<li>[ ] Gateway telemetry visible with <code>python - &lt;&lt;'EOF'</code> client or the real
+      supervisor pointed at the LabVIEW port.</li>
+<li>[ ] Heartbeat watchdog: kill the Python process, confirm safe hold within
+      5 s and <code>mode: "SAFE_HOLD"</code> in telemetry.</li>
+<li>[ ] Reconnect: restart Python, confirm a fresh session (seq restarts are
+      fine — Python does not assume continuity) and that safe hold is NOT
+      cleared by the mere reconnection.</li>
+<li>[ ] NACK path: send a command that violates an interlock, confirm
+      <code>accepted: false</code> with a useful <code>reason</code>.</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/labview-notes.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

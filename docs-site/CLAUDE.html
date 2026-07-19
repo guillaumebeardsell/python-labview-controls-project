@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLAUDE.md — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="index.html">index</a><span>CLAUDE.md</span></div>
+<main><h1 id="claudemd">CLAUDE.md</h1>
+<p>This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.</p>
+<h2 id="what-this-is">What this is</h2>
+<p>The Python <strong>supervisory layer</strong> for the <strong>MONARCH</strong> control system — a Noble Thermodynamics
+Argon Power Cycle research engine whose full stack currently runs in LabVIEW across two NI
+CompactRIO controllers (cRIO-9049 FPGA+RT, cRIO-9056 RT) and a Windows PC. This repo owns the
+migration of the <em>upper</em> stack (state machines, sequencing, supervisory decisions) into Python;
+it talks to a LabVIEW "gateway" VI over localhost TCP.</p>
+<h2 id="the-safety-invariant-read-this-first">The safety invariant (read this first)</h2>
+<p><strong>LabVIEW/cRIO/FPGA permanently owns hardware I/O, hard safety interlocks, command validation,
+and safe fallback. Python is supervisory only and must never be in the safety-critical path.</strong>
+The system must stay safe when the Python process is absent, crashed, or wrong — i.e.
+<strong>Python-offline == LabVIEW safe hold.</strong> Separate <em>authority</em> from <em>safety</em>: Python may hold
+decision authority (choose modes/sequences/setpoints), but every command it sends is a <em>request</em>
+LabVIEW independently validates, and LabVIEW enforces the hard limits + safe fallback regardless.
+Design every feature so a dead/hung/misbehaving Python side can only ever cause a rejected
+request or a safe hold — never an unsafe actuation.</p>
+<p>MONARCH context: the system has been <strong>built but never commissioned or run on hardware</strong>, and its
+original developer has left. Don't propose capturing a real engine run; drive states/inputs
+synthetically. Because the LabVIEW logic is unvalidated and unowned, its value as a shadow-mode
+"ground truth" is limited — favor unit-testing the ported logic against the spec.</p>
+<p>The safe-hold invariant is <strong>already enforced in hardware</strong>: the 9049 FPGA watchdog kills spark/DI
+if the RT loop stops toggling it (&gt;4 Hz), so a supervisor dropout is a safe hold — <em>provided Python
+stays above that RT loop and never pets the watchdog</em>. The once-open loss-of-PC gap is <strong>closed and
+live-verified</strong> (Phase B: <code>PC_HB</code> stall → 9056 clamp → SAFE, armed in both modes), and loss-of-9056
+now also fails safe (2026-07-17/18: 9049-side staleness→SAFE relay clamp + PC-computed liveness
+display — <code>docs/hb-hardening-clicklevel.md</code>). Remaining before firing-relevant Python authority:
+<code>UI_HeartBeat</code> (a dead operator console is invisible in PYTHON mode) and the gateway
+<code>operator_requests</code> field (the panel-force safety mirror), per <code>docs/command-path-asbuilt.md</code> §6. See <code>docs/migration-seam.md</code> for the full
+FLOOR/MIDDLE/BRAIN boundary and the port backlog; the scope is broader than the state machine
+(sequencing/recipes — which don't exist in LabVIEW yet — plus warning policy and setpoint scheduling).</p>
+<h2 id="commands">Commands</h2>
+<pre><code class="language-bash">pip install -e &quot;.[dev]&quot;                 # package (editable) + pytest; needs internet once
+pytest                                   # full suite (testpaths=tests, pythonpath=. via pyproject)
+pytest tests/test_control_settings.py -q            # one file
+pytest tests/test_labview_mapping.py::test_faithful_capture_agrees   # one test
+
+# Fake gateways for offline testing (no LabVIEW/hardware), plus their clients:
+python -m supervisory.simserver                     # generic toy gateway  (127.0.0.1:5020)
+python examples/hello_link.py                       #   connectivity smoke test / PASS-FAIL
+python -m supervisory.monarch.simserver_monarch --speedup 5   # MONARCH telemetry gateway
+python examples/monarch_listen.py                   #   read-only observer -&gt; records monarch.jsonl
+
+python tools/compare_flatten.py &lt;labview_flatten.json&gt;   # diff a LabVIEW cluster flatten vs the contract
+python tools/shadow_compare.py monarch.jsonl              # replay decisions vs the ported StateMachine
+python examples/monarch_operate.py                        # operator CLI (needs source=PYTHON on the gateway)
+python tools/gen_warning_matrix.py                        # SIL-1 false-trip drill suite (7 sets + drill XML + manifest)
+python tools/build_docs_html.py                           # regenerate docs-site/ (styled HTML) from the markdown docs
+</code></pre>
+<p>Environment: developed on a Windows control-room PC (Python 3.10, <code>.venv</code>). <code>requires-python</code> is
+<code>&gt;=3.10</code>; the suite is verified on 3.10.</p>
+<h2 id="architecture">Architecture</h2>
+<p>Two layers, deliberately decoupled:</p>
+<ul>
+<li><strong><code>supervisory/</code></strong> — the generic, project-agnostic framework:</li>
+<li><code>messages.py</code> — pydantic models for the wire protocol (<code>Telemetry</code>, <code>Command</code>, <code>CommandAck</code>,
+    <code>Heartbeat</code>); <code>parse()</code>/<code>dump()</code>. Unknown fields are ignored (forward-compat).</li>
+<li><code>link.py</code> — <code>PlantLink</code> protocol + <code>TcpPlantLink</code> (background thread, LF-framed JSON,
+    auto-reconnect with backoff). Takes a <code>parser=</code> so a MONARCH observer can decode richer
+    payloads on the same transport.</li>
+<li><code>engine.py</code> — <code>Supervisor</code> tick loop + <code>StateMachine</code> base class. <strong>The core design rule:</strong>
+    state machines are <em>pure decisions</em> — each tick they get a <code>PlantView</code> (latest telemetry,
+    staleness, acks) and return <code>CommandRequest</code>s; no sockets/clocks/globals inside them. The
+    <code>Supervisor</code> owns all side effects. This is what makes logic unit-testable and replayable.</li>
+<li><code>sim.py</code> / <code>simserver.py</code> — a socket-free <code>SimPlantLink</code> and a real-TCP fake gateway, so the
+    engine runs with no LabVIEW. <code>recorder.py</code> — JSONL traffic recorder.</li>
+<li><strong><code>supervisory/monarch/</code></strong> — MONARCH-specific payloads (the generic layer knows nothing about
+  these):</li>
+<li><code>control_settings.py</code> — the <code>ControlSettings</code> cluster + <code>SystemState</code> enum (−1 SAFE, 0
+    STAND_BY, 1 MOTORING, 2 IDLING, 3 FIRING), transcribed from the LabVIEW typedefs and
+    <strong>confirmed field-for-field against a live capture</strong>.</li>
+<li><code>labview_mapping.py</code> — <code>LABEL_TO_PATH</code> bridges LabVIEW's raw <code>Flatten To JSON</code> field labels
+    (which have embedded newlines, stray spaces, etc.) to the model's clean snake_case paths;
+    <code>control_settings_from_labview()</code> / <code>_to_labview()</code> convert both ways; <code>compare_flatten()</code>
+    powers the diff tool.</li>
+<li><code>telemetry.py</code> — <code>MonarchTelemetry</code> envelope + <code>monarch_parser</code>. The gateway sends the
+    ControlSettings <strong>raw flatten</strong> and Python maps it (so the LabVIEW side does no key-renaming).</li>
+<li><code>simserver_monarch.py</code> — fake MONARCH gateway streaming real-shaped telemetry.</li>
+</ul>
+<p><strong>Contract convention:</strong> wire JSON keys are clean snake_case defined by the Python models (each
+field comments its LabVIEW source label). LabVIEW DBL/SGL → <code>float</code>, I8 enums → <code>int</code>. Whenever
+the <code>APC_ControlSettings.ctl</code> typedef changes, re-run the flatten diff (<code>docs/monarch-flatten-diff.md</code>)
+to keep the model and gateway in lockstep.</p>
+<h2 id="the-labview-side-not-in-this-repo">The LabVIEW side (not in this repo)</h2>
+<p>The LabVIEW project lives at <code>C:\LabVIEW PROJECT\MONARCH\</code> on the Windows PC. The gateway VI
+(<code>APC_PC_PythonGateway.vi</code>, a copy of the connectivity-test <code>hello-vi.vi</code>) runs as its own
+<strong>read-only</strong> loop, <code>Flatten To JSON</code>s the live <code>PC_ControlSettings</code> cluster, and sends a
+telemetry envelope at 1 Hz. <code>original-labview-codebase/MONARCH-CODEBASE/</code> is a curated copy of
+the LabVIEW source tree (binary <code>.vi</code>s) — <strong>read its <code>README.md</code> first</strong>: it documents every VI
+(role, call graph, shared-variable I/O, loop rates, as-built gotchas). The sibling folders hold
+PNG/PDF/HTML <strong>exports</strong> of the key MONARCH VIs (the HTML files carry terminal labels as
+grep-able text; most "DAQmx Custom Scales" VI descriptions are boilerplate — ignore them). The first port target is
+<code>APC_9056_StateMachine.vi</code> (the 2026 version — <code>_v2</code> is an older 2024 draft, not newer).</p>
+<h2 id="docs">Docs</h2>
+<p><code>docs/icd.md</code> (wire protocol + failure/reconnect semantics), <code>docs/monarch-control-settings.md</code>
+(the data contract), <code>docs/monarch-flatten-diff.md</code> (contract-verification workflow),
+<code>docs/monarch-telemetry.md</code> (telemetry envelope + the gateway build recipe, incl. the
+shadow-mode fields), <code>docs/hello-vi.md</code> + <code>docs/labview-notes.md</code> (LabVIEW gateway build guides);
+<code>docs/migration-seam.md</code> (the FLOOR/MIDDLE/BRAIN boundary + prioritized port backlog);
+<code>docs/migration-plan.md</code> (the phased execution plan A–E: shadow brain → command path +
+watchdog proof → bench command → sequencing → commissioning; authority gates + exit criteria;
+<strong>authoritative status home</strong>); <code>docs/phases/</code> (step-by-step instructions, one file per phase);
+<code>docs/handoff.md</code> (how to continue this project — what's done, what only humans supply,
+task guidance for smaller models, and the invariants that must never be weakened);
+<code>docs/9049-openloop-audit.md</code> (the cRIO-9049 RT/FPGA audit for open-loop commissioning +
+the layered SIL plan + the F3a–F3d as-built defect dispositions — EPT built-in crank
+simulator, synthetic pressure traces via <code>tools/gen_cas_traces.py</code>, pre-fuel checklist);
+<code>docs/sil0-scope-of-work.md</code> + <code>docs/sil1-scope-of-work.md</code> (<strong>click-level SIL procedures</strong>;
+SIL-0 complete 07-11; SIL-1: Steps 0–3 + 7/7 matrix complete 07-14, Steps 4a–4d passed
+07-16/18 on the deployed SIM build from both writers — live next work: 4e/4f scope
+session + drills 5a–5i); <code>docs/deployed-bringup.md</code>
+(deployed-mode build/deploy procedure + the rules learned at first autonomous bringup,
+2026-07-09 — PC apps as EXEs only, single shared-variable host, no builds from out-of-sync
+VIs); <code>docs/command-path-asbuilt.md</code> (the <strong>verified</strong> PC⇄cRIO command path — source-select,
+<code>PC_HB</code> ownership, WatchDog, the loss-of-PC SAFE clamp armed in both modes — with per-VI
+diagram-page evidence; the "how does the command path actually work as-built" reference);
+<code>docs/9056-warning-policy-asbuilt.md</code> (the as-built 9056 warning→state-clamp chain — 4-tier
+raster limits, per-state arming masks, latch/clear semantics, cylinder error scoring, the
+W1–W7 gap list, and the 9056 FPGA RT-stall safe-hold — the Phase-A3 ground truth);
+<code>docs/engine-only-9056-tradeoff.md</code> (decision memo — <strong>decided 2026-07-16: engine-only
+testing runs the 9056 alongside the 9049</strong>; dyno command + all engine-health reads live
+on the 9056); <code>docs/hb-hardening-clicklevel.md</code> (click-level builds closing the
+loss-of-9056 holes: 9049 staleness→SAFE clamp, PC-computed watchdog LEDs, gateway
+<code>operator_requests</code>); <code>docs/crio-file-access.md</code> (WinSCP/PuTTY file access to the cRIOs);
+<code>docs/cRIO9049 Warnings.xlsx</code> (warning/error reference: definitions + motoring/fired
+values) + <code>docs/cRIO9049 Warning Matrix.xlsx</code> (the filled 7/7 false-trip record sheet);
+<code>docs/session-handoff-2026-07-11.md</code> (handoff: autonomous deployment, SIL-0, robustness
+gaps, tools — with 07-14/15/16 update blocks; <strong>status itself lives in
+<code>docs/migration-plan.md</code></strong>).</p>
+<h2 id="conventions">Conventions</h2>
+<ul>
+<li>End commit messages with the <code>Co-Authored-By: Claude ...</code> trailer; work on a branch off <code>main</code>
+  and only commit/push when asked.</li>
+<li>Telemetry is the single source of truth: an <code>ack</code> means a command passed validation, not that it
+  took effect — effects are confirmed by observing subsequent telemetry. After a reconnect, rebuild
+  state from telemetry, never from memory.</li>
+<li>Staleness: no telemetry for 3 s ⇒ stop sending commands and hold; LabVIEW safe-holds 5 s after
+  Python's heartbeat stops.</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>CLAUDE.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

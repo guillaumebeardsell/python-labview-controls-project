@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hello VI — LabVIEW ⇄ Python Connectivity Experiment — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/hello-vi.md</span></div>
+<main><h1 id="hello-vi-labview-python-connectivity-experiment">Hello VI — LabVIEW ⇄ Python Connectivity Experiment</h1>
+<blockquote>
+<p><strong>Status: COMPLETED (2026-07-05, RESULT: PASS).</strong> Two-way communication proven
+against real LabVIEW 2020 SP1, including reconnect resilience. The production
+gateway (<code>APC_PC_PythonGateway.vi</code>, in the MONARCH project) grew out of this
+VI — see <code>docs/monarch-telemetry.md</code>. Kept as the build walkthrough and
+Windows setup reference.</p>
+</blockquote>
+<p>Goal: prove two-way communication between LabVIEW 2020 SP1 and the Python
+stack while both run, before porting any logic. The LabVIEW side is a
+throwaway VI built from TCP and string primitives only — <strong>no JSONtext, no
+clusters, no parsing</strong>. Pair it with <code>examples/hello_link.py</code>.</p>
+<p>Success looks like:</p>
+<ul>
+<li>Python prints <code>telemetry seq=1 mode=HELLO ...</code> lines at ~1 Hz with an
+  incrementing counter.</li>
+<li>LabVIEW's front panel shows heartbeat lines arriving at 1 Hz and a ping
+  command every 5 s.</li>
+<li>Python prints an <code>ack id=1 accepted=True reason='hello from LabVIEW'</code> for
+  every ping.</li>
+<li>Ctrl-C on the Python side prints <code>RESULT: PASS</code>.</li>
+</ul>
+<h2 id="1-build-the-vi">1. Build the VI</h2>
+<p><strong>Front panel:</strong> a string indicator <code>Last received</code> , a numeric indicator
+<code>Lines received</code>, a numeric indicator <code>Telemetry seq</code>, and a boolean LED
+<code>Client connected</code>.</p>
+<p><strong>Block diagram:</strong></p>
+<p>Add a <code>Stop</code> button with mechanical action <strong>Switch When Pressed</strong> — not
+latched: both loops read it, and a latch resets on the first read so the
+second loop would never see it.</p>
+<ol>
+<li><code>TCP Create Listener</code>, port <strong>5020</strong>, outside all loops.</li>
+<li><strong>Outer while loop</strong> — one iteration per client session. Exit condition:
+   <code>Stop</code> (via a <strong>local variable</strong>) OR a listener error other than 56.
+   - <code>TCP Wait On Listener</code> with timeout <strong>500 ms</strong> — not −1, or the loop
+     blocks inside the primitive and the Stop button is never polled while
+     waiting for a client. Error 56 (timeout) means "no client yet": clear
+     it and loop. When it returns a connection ID, set <code>Client connected</code>
+     true.
+   - <strong>Inner while loop</strong> — the session:
+     Exit condition: <code>Stop</code> (button terminal) OR a read error other than 56.<ul>
+<li><code>TCP Read</code>, mode <strong>CRLF</strong>, max bytes 4096, timeout <strong>100 ms</strong>.</li>
+<li>Error 56 (timeout) is normal: clear it, treat as "no line".</li>
+<li>Any other error (66 = peer closed): exit the inner loop.</li>
+<li>If a line arrived: write it to <code>Last received</code>, increment
+   <code>Lines received</code>.</li>
+<li><strong>Reply to commands</strong> (a <code>command_ack</code>) and <strong>send telemetry at
+   1 Hz</strong> — both are <code>TCP Write</code>s on this same connection. Node-by-node
+   wiring is in <strong>§1a</strong> below; both live inside this inner loop.</li>
+<li>After the inner loop exits: <code>TCP Close Connection</code> on the <strong>connection
+ ID</strong>, set <code>Client connected</code> false, loop back to <code>TCP Wait On Listener</code>
+ — so Python can disconnect and reconnect freely.</li>
+</ul>
+</li>
+<li>After the outer loop exits: <code>TCP Close</code> the <strong>listener</strong>.</li>
+</ol>
+<p>The inner loop needs no wait primitive — the 100 ms read timeout paces it.</p>
+<p><strong>Refnum rule (this is what causes most Error 1 dialogs).</strong> <code>TCP Wait On
+Listener</code> has two stacked teal outputs: <strong>listener ID out</strong> (top) and
+<strong>connection ID</strong> (bottom). Every per-session TCP node — <code>TCP Read</code>, both
+send-side <code>TCP Write</code>s, and the inner <code>TCP Close Connection</code> — takes the
+<strong>connection ID</strong>, branched from one wire. The <strong>listener</strong> refnum (from
+<code>TCP Create Listener</code>, or WOL's top output) goes to exactly two places:
+WOL's <em>listener in</em>, and the final <code>TCP Close</code> <strong>outside</strong> the outer loop.
+Feed the inner close the listener by mistake and you destroy the listener at
+the end of each session, so the next <code>Wait On Listener</code> fails with Error 1.</p>
+<p><strong>Reconnect rule — clear error 56 <em>specifically</em>, never "all errors".</strong> The
+inner loop must exit when the client disconnects, which shows up as <code>TCP Read</code>
+<strong>error 66</strong> (connection closed by peer). If you clear the read error with a
+blanket <em>Clear Errors</em> / <em>General Error Handler</em>, you wipe <strong>66</strong> along with the
+timeout <strong>56</strong>, so the loop never notices the client left, never returns to
+<code>Wait On Listener</code>, and never accepts the next connection. The restarted Python
+script then connects at the OS level (its "connected" message prints) but sits
+unserved in the listener backlog — <strong>no telemetry, no acks</strong>. Correct handling:
+- Read <code>TCP Read</code>'s error <strong>code</strong> (Unbundle By Name) <em>before</em> clearing anything.
+- Inner-loop exit condition = <code>Stop</code> <strong>OR</strong> <code>(error.status AND code ≠ 56)</code> — so
+  56 keeps looping, 66 (or anything else) exits.
+- Clear the error <strong>only when <code>code = 56</code></strong> (a small Case structure), so 66
+  survives to trigger the exit.
+- On exit: <code>TCP Close Connection</code>, then <strong>clear the error</strong> before looping back
+  to <code>Wait On Listener</code> (so a leftover 66 doesn't poison the next accept).</p>
+<h2 id="1a-building-the-send-side-node-by-node">1a. Building the send side, node by node</h2>
+<p>Both pieces go in the <strong>inner (session) loop</strong> and both <code>TCP Write</code> to the
+<strong>connection ID</strong> (branch the same teal wire that feeds <code>TCP Read</code>). Thread
+the error wire <code>TCP Read → ack → telemetry → loop edge</code> so the writes run
+<em>after</em> the read, in order, and short-circuit if the read already errored.</p>
+<h3 id="command-reply-produces-ack-id1-in-python">Command reply (produces <code>ack id=1 ...</code> in Python)</h3>
+<p>Build this first — it's the quick win, and a <code>telnet</code> session can trigger it.</p>
+<ol>
+<li><strong><code>Match Pattern</code></strong> (String palette). Wire the <strong>received line</strong> (the
+   <code>TCP Read</code> <em>data out</em>, same wire that feeds <code>Last received</code>) into its
+   <em>string</em> input.</li>
+<li>Into <em>regular expression</em>, wire a <strong>string constant</strong> containing exactly
+   <code>"type":"command"</code> (normal display — the double-quotes are literal
+   characters, nothing to escape).</li>
+<li><code>Match Pattern</code>'s <em>offset past match</em> output (bottom, I32) → <strong><code>≥ 0</code></strong>
+   (<code>Greater Or Equal To 0?</code>). That boolean is "a command line arrived."
+   (Equivalent: <em>match substring</em> → <code>Empty String/Path?</code> → <code>Not</code>.)</li>
+<li><strong>Drop a Case structure</strong> (Programming → Structures → Case Structure) and
+   wire the boolean from step 3 to its <strong>selector terminal</strong> (the green <code>?</code>
+   on the left border). The structure flips to a True/False selector.</li>
+</ol>
+<p><strong>True case — send the ack:</strong>
+   1. Drop a <strong>String Constant</strong> (Programming → String → String Constant)
+      <em>inside</em> the True case. Before typing, <strong>right-click it → '\' Codes
+      Display</strong> so the <code>\r\n</code> you type becomes a real CR+LF rather than four
+      literal characters. Then type exactly:</p>
+<pre><code>  ```
+  {"type":"command_ack","id":1,"accepted":true,"reason":"hello from LabVIEW"}\r\n
+  ```
+
+  (The JSON itself has no backslashes, so only the trailing `\r\n` is
+  affected by the display mode.)
+</code></pre>
+<ol start="2">
+<li>Drop <strong><code>TCP Write</code></strong> (Data Communication → Protocols → TCP → TCP Write)
+      inside the True case. Its terminals, top to bottom on the left:
+      <em>connection ID in</em>, <em>data in</em>, <em>timeout ms</em> (leave unwired → default
+      25 s), <em>error in</em>.</li>
+<li>Wire the <strong>string constant → <em>data in</em></strong>.</li>
+<li>Wire the <strong>connection ID → <em>connection ID in</em></strong>: branch the same teal
+      wire that feeds <code>TCP Read</code> and bring it across the case border (this
+      makes an <strong>input tunnel</strong> — input tunnels may be used in one case
+      only, so you do <em>not</em> have to wire it in the False case).</li>
+<li>Wire the <strong>error</strong> through: error-in input tunnel → <code>TCP Write</code> <em>error
+      in</em>; <code>TCP Write</code> <em>error out</em> → the case's <strong>error output tunnel</strong>.</li>
+</ol>
+<p><strong>False case — send nothing:</strong>
+   1. Wire the <strong>error input tunnel straight across to the error output
+      tunnel</strong> (click one, drag to the other). This is required: a Case
+      structure demands every <strong>output</strong> tunnel be wired in <strong>every</strong> case,
+      or its border shows a hollow square and the diagram is broken. (If you
+      prefer, right-click the output tunnel → <em>Linked Input Tunnel</em> → pick
+      the error input to auto-pass it, or <em>Use Default If Unwired</em> — but for
+      an error wire, wire it explicitly.)
+   2. No <code>TCP Write</code>, no connection-ID tunnel needed here.</p>
+<p>Only the <strong>error wire</strong> threads through this Case (in both branches); the
+   connection ID stays a plain branch that dips into the True case only. That
+   keeps the write ordered after the read (via the error chain) without
+   forcing a connection-ID tunnel through both cases.</p>
+<ol start="5">
+<li><strong>Gate it on "a line actually arrived."</strong> On a 100 ms read timeout,
+   <code>TCP Read</code> returns an <strong>empty string</strong>, and you don't want to run
+   <code>Match Pattern</code> / touch <code>Last received</code> on empties. The tidy structure is
+   a single <strong>outer "line arrived?" Case</strong> wrapping <em>all</em> per-line work:
+   - Selector: <code>TCP Read</code> <em>data out</em> → <code>Empty String/Path?</code> → <code>Not</code> (True =
+     a line arrived).
+   - Put <strong>inside its True case</strong>: update <code>Last received</code>, bump
+     <code>Lines received</code>, and the entire <code>Match Pattern</code> + ack Case from steps
+     1–4.
+   - Its <strong>False case</strong> (timeout): pass the shift registers / counter and
+     the error wire straight through, do nothing else.</li>
+</ol>
+<p>If you already built the line counter with a <strong>Select</strong> node rather than a
+   Case, either add this wrapping Case now (cleaner), or leave the ack logic
+   ungated — it's harmless, because an empty string never matches
+   <code>"type":"command"</code>, so the ack Case simply takes its False branch on every
+   timeout. The telemetry sender in the next section is independent of this
+   gate: it fires on its own 1 s timer whether or not a line arrived.</p>
+<h3 id="1-hz-telemetry-produces-telemetry-seq-in-python">1 Hz telemetry (produces <code>telemetry seq=...</code> in Python)</h3>
+<p>Unlike the ack, this is <strong>not</strong> gated on a received line — it runs on its own
+1 Hz timer. <strong>Place it in the inner-loop body, <em>outside</em> the "line arrived?"
+Case</strong> from the previous section, so it fires every second whether or not a
+line came in.</p>
+<p>The mechanism: the inner loop spins at ~10 Hz (paced by the 100 ms read
+timeout), so you can't send once per iteration. Instead you remember the
+clock reading of the last send in a shift register and only send when ≥1000 ms
+have elapsed. A second shift register carries the telemetry sequence number.</p>
+<p><strong>Step A — add the two shift registers.</strong> Right-click the <strong>inner</strong> loop
+border → <em>Add Shift Register</em>, twice. You'll get a down-arrow terminal on the
+left edge and an up-arrow on the right edge for each.</p>
+<ul>
+<li><strong><code>lastTick</code></strong> — holds the clock reading (ms) at the last send. Initialize
+  its left terminal (wire from <em>outside</em> the loop): drop a <code>Tick Count (ms)</code>
+  (Programming → Timing) <em>before</em> the loop and wire it in, <strong>or</strong> just wire a
+  <code>0</code> constant. With <code>0</code>, the first frame goes out on iteration 1 (fine).
+  <code>Tick Count (ms)</code> is <strong>U32</strong>; let the shift register take that type — don't
+  force it to I32.</li>
+<li><strong><code>seq</code></strong> — the telemetry counter. Initialize its left terminal with a
+  numeric constant <code>0</code> (right-click the constant → <em>Representation → I32</em> so
+  it matches <code>%d</code>).</li>
+</ul>
+<p><strong>Step B — the 1 Hz gate.</strong> In the loop body each iteration:</p>
+<ol>
+<li>Drop a second <code>Tick Count (ms)</code> → call its output <strong><code>now</code></strong>.</li>
+<li><strong><code>Subtract</code></strong>: <code>now − lastTick</code> → <strong><code>elapsed</code></strong>.</li>
+<li><strong><code>Greater Or Equal?</code></strong>: <code>elapsed ≥ 1000</code> (wire a <code>1000</code> constant to the
+   <code>y</code> input) → a boolean, "time to send."</li>
+</ol>
+<p><em>(U32 subtraction wraps correctly, so the ~49-day <code>Tick Count</code> rollover is
+   a non-issue here — no special handling needed.)</em></p>
+<p><strong>Step C — the send Case.</strong> Drop a <strong>Case structure</strong> and wire the boolean to
+its selector.</p>
+<p><strong>True case (time to send):</strong></p>
+<ol>
+<li><strong><code>Increment</code></strong> on <code>seq</code> → <strong><code>newSeq</code></strong> (this is the value you'll send and
+   store).</li>
+<li>
+<p><strong><code>Format Into String</code></strong> (Programming → String):
+   - Drop a <strong>String Constant</strong> for the format string and wire it to the top
+     <em>format string</em> input:</p>
+<p><code>{"type":"telemetry","seq":%d,"ts":0,"mode":"HELLO","channels":{"counter":%d},"flags":{"labview_ok":true}}\r\n</code></p>
+<p>Put this constant in <strong><code>'\' Codes Display</code></strong> so the trailing <code>\r\n</code> is a
+ real CR+LF. (<code>Format Into String</code> passes everything literally except the
+ <code>%</code> specifiers, so an embedded CR+LF just flows through — this saves a
+ separate <code>Concatenate Strings</code>. If you'd rather keep the <code>\r\n</code> out of
+ the format string, leave it off here and <code>Concatenate Strings</code> a <code>\r\n</code>
+ constant onto the output instead.)
+   - The two <code>%d</code>s mean <strong>two arguments</strong>: drag the node's bottom edge down to
+ expose two argument inputs (or right-click → <em>Add Parameter</em>), and wire
+ <strong><code>newSeq</code> to both</strong>. Both <code>channels.counter</code> and <code>seq</code> will show the
+ same number — that's intentional for the hello test.
+3. <strong><code>TCP Write</code></strong> (same as the ack): <em>data in</em> = the <code>Format Into String</code>
+   output; <em>connection ID in</em> = the connection (branch the <code>TCP Read</code> wire);
+   thread the <strong>error</strong> in→out.
+4. Route the updated values to the case's <strong>output tunnels</strong>: <code>newSeq</code> → the
+   <code>seq</code> output tunnel, and also branch it to the <strong><code>Telemetry seq</code>
+   indicator</strong>; <code>now</code> → the <code>lastTick</code> output tunnel.</p>
+</li>
+</ol>
+<p><strong>False case (not yet):</strong></p>
+<ol>
+<li>Pass <strong><code>seq</code> straight through</strong> to its output tunnel (input <code>seq</code> →
+   output), and <strong><code>lastTick</code> straight through</strong> to its output tunnel (input
+   <code>lastTick</code> → output). This is mandatory — the shift registers must get a
+   value every iteration, and every Case output tunnel must be wired in every
+   case.</li>
+<li>Pass the <strong>error</strong> input tunnel to the error output tunnel. No <code>TCP Write</code>.</li>
+</ol>
+<p><strong>Step D — close the shift registers.</strong> Wire the Case's <code>seq</code> output tunnel to
+the <strong><code>seq</code> right shift-register terminal</strong>, and the <code>lastTick</code> output tunnel
+to the <strong><code>lastTick</code> right terminal</strong>. Now each register carries forward
+correctly whether or not a frame was sent.</p>
+<p><strong>Notes.</strong></p>
+<ul>
+<li>Keep <code>seq</code> as <strong>I32</strong> end to end — an orange/DBL wire into <code>%d</code> compiles but
+  throws a coercion warning.</li>
+<li><code>ts</code> is hard-coded <code>0</code> on purpose; the Python side tolerates it for this
+  experiment (real telemetry will carry a timestamp later).</li>
+<li>Order the two writes deterministically by threading the <strong>error wire</strong>
+  <code>TCP Read → ack Case → telemetry Case → inner-loop edge</code>. Both writes then
+  share the session in a defined order and short-circuit if the read errored.</li>
+</ul>
+<h3 id="quick-verification">Quick verification</h3>
+<ul>
+<li><strong>Without Python:</strong> <code>telnet 127.0.0.1 5020</code> — a telemetry line should
+  appear every second; typing
+  <code>{"type":"command","id":1,"name":"x","params":{}}</code> + Enter should return
+  the ack line (see §4).</li>
+<li><strong>With Python:</strong> <code>telemetry seq=...</code> at 1 Hz and <code>ack id=1
+  accepted=True reason='hello from LabVIEW'</code> after each ping; Ctrl-C →
+  <code>RESULT: PASS</code>.</li>
+</ul>
+<h2 id="2-run-the-python-side">2. Run the Python side</h2>
+<p>Two options, in order of preference:</p>
+<p><strong>A. Python on Windows (matches the production topology).</strong> Both processes
+run on the same machine and connect over <code>127.0.0.1</code>, so Windows Firewall is
+not involved. Use <strong>Command Prompt</strong> for the steps below (Win+R → <code>cmd</code> →
+Enter); PowerShell also works with one extra hurdle noted in step 3.</p>
+<p><em>Step 1 — install Python 3.10+ (once).</em></p>
+<ol>
+<li>Check what's already there: <code>py --version</code> (or <code>py -0p</code> to list every
+   installed version). If it reports 3.10 or newer, skip to step 2 — the
+   test suite is verified on 3.10. Careful: typing <code>python</code> on a machine
+   <em>without</em> Python opens the Microsoft Store — that's a Windows alias, not
+   an installation.</li>
+</ol>
+<p>Note for later: Python 3.10 stops receiving security fixes in October
+   2026, so before this layer goes to production, install a current 3.12/3.13
+   alongside it (Windows installs coexist; nothing else on the PC is
+   disturbed) and recreate the venv with <code>py -3.13 -m venv .venv</code>. The code
+   runs unchanged.
+2. Download the latest 64-bit installer from
+   <a href="https://www.python.org/downloads/windows/">https://www.python.org/downloads/windows/</a>.
+3. Run it. On the first screen <strong>check "Add python.exe to PATH"</strong>, then
+   <em>Install Now</em> (per-user install, no admin rights needed).
+4. Close and reopen Command Prompt — PATH changes don't reach already-open
+   windows — and confirm with <code>python --version</code>.</p>
+<p><em>Step 2 — install Git (once).</em> <code>git --version</code>; if it's missing, install
+from <a href="https://git-scm.com/download/win">https://git-scm.com/download/win</a> (all defaults are fine) and reopen
+the terminal. No-git fallback: on the GitHub repo page, <em>Code → Download
+ZIP</em>, extract, and skip the <code>git clone</code> below — but you lose easy
+<code>git pull</code> updates.</p>
+<p><em>Step 3 — clone and install (once).</em></p>
+<pre><code class="language-bat">cd C:\
+git clone https://github.com/guillaumebeardsell/python-labview-controls-project.git
+cd python-labview-controls-project
+py -m venv .venv
+.venv\Scripts\activate
+pip install -e .
+</code></pre>
+<ul>
+<li><code>py -m venv .venv</code> creates a private Python environment in <code>.venv\</code>, so
+  nothing is installed machine-wide on the control-room PC. We use the <code>py</code>
+  launcher (not <code>python</code>) because it works even when Python was installed
+  without the "Add to PATH" option — bare <code>python</code> on such a machine hits
+  the Microsoft Store alias instead. After <code>activate</code>, plain <code>python</code> works
+  in that terminal: the venv puts its own <code>python.exe</code> first on PATH.</li>
+<li><code>activate</code> puts that environment on this terminal's PATH — the prompt
+  gains a <code>(.venv)</code> prefix. It's needed once per new terminal. In
+  PowerShell the command is <code>.venv\Scripts\Activate.ps1</code>; if that's blocked
+  by execution policy, run
+  <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> once, or just use
+  Command Prompt.</li>
+<li><code>pip install -e .</code> downloads pydantic and installs the <code>supervisory</code>
+  package in editable mode: after a <code>git pull</code>, code changes take effect
+  with no reinstall. Expect <code>Successfully installed supervisory-0.1.0</code>.</li>
+<li>Offline control-room PC? <code>pip install</code> needs internet once. If the
+  machine has none, on a connected PC run
+  <code>pip download -d wheels pydantic</code> , copy the <code>wheels\</code> folder over, and
+  install with <code>pip install --no-index --find-links wheels -e .</code>.</li>
+</ul>
+<p><em>Step 4 — run the experiment.</em></p>
+<ol>
+<li>Start the hello VI in LabVIEW (and make sure the <code>stop</code> button isn't
+   still latched TRUE from a previous run).</li>
+<li>In the <code>(.venv)</code> terminal:</li>
+</ol>
+<p><code>bat
+   python examples\hello_link.py</code></p>
+<ol start="3">
+<li>Within a second you should see <code>connected to gateway at 127.0.0.1:5020</code>,
+   the VI's <code>Client Connected</code> LED on, and <code>Lines received</code> climbing about
+   once per second (heartbeats) with an extra bump every 5 s (pings).</li>
+<li>Once the VI's send side is built you'll also see <code>telemetry seq=...</code> at
+   1 Hz and an <code>ack id=1 ...</code> after every ping in the Python window.</li>
+<li>Ctrl-C stops the script and prints the summary. <code>RESULT: PASS</code> needs
+   both directions — with a receive-only VI you'll get telemetry/ack counts
+   of 0 and a FAIL even though the Python→LabVIEW half is proven by
+   <code>Lines received</code>.</li>
+</ol>
+<p><em>Day-to-day afterwards:</em> new terminal →
+<code>cd C:\python-labview-controls-project</code> → <code>.venv\Scripts\activate</code> →
+<code>git pull</code> → run.</p>
+<p><em>Troubleshooting.</em></p>
+<ul>
+<li><code>'python' is not recognized</code>, or the Store opens: the PATH box wasn't
+  checked. Rerun the installer → <em>Modify</em> → check it, then reopen the
+  terminal. The <code>py</code> launcher usually works regardless:
+  <code>py examples\hello_link.py</code>.</li>
+<li><code>'git' is not recognized</code> right after installing: reopen the terminal.</li>
+<li>Python logs endless <code>connect ... failed</code> / <code>No connection could be made
+  because the target machine actively refused it</code>: the VI isn't running or
+  isn't listening on 5020. Check the port independently from PowerShell:
+  <code>Test-NetConnection 127.0.0.1 -Port 5020</code> (the classic <code>telnet</code> client is
+  disabled on Windows by default).</li>
+<li>Script connects but <code>Lines received</code> never moves: the VI is running but
+  stuck before <code>TCP Read</code> — check the <code>Client Connected</code> LED and the case
+  structure paths.</li>
+</ul>
+<p><strong>B. From the devcontainer (no Windows Python needed).</strong> LabVIEW's listener
+accepts connections on all interfaces by default, so from the container:</p>
+<pre><code class="language-bash">python examples/hello_link.py --host host.docker.internal
+</code></pre>
+<p>If it can't connect, Windows Firewall is the usual suspect: allow LabVIEW
+(or port 5020) for the vEthernet/WSL network when Windows prompts, or add an
+inbound rule.</p>
+<h2 id="3-try-the-failure-modes-while-youre-there">3. Try the failure modes while you're there</h2>
+<ul>
+<li>Stop the Python script mid-run: LabVIEW should ride through (read
+  timeouts), then accept the reconnect when you restart the script.</li>
+<li>Stop and restart the VI: Python logs <code>gateway link down, reconnecting</code>,
+  then reconnects by itself within ~5 s.</li>
+</ul>
+<h2 id="4-sanity-check-the-vi-without-python">4. Sanity-check the VI without Python</h2>
+<p>From any shell on the Windows machine, <code>telnet 127.0.0.1 5020</code> (or
+<code>ncat</code>) — you should see a telemetry line appear every second, and typing
+<code>{"type":"command","id":1,"name":"x","params":{}}</code> + Enter should get the
+ack line back.</p></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/hello-vi.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

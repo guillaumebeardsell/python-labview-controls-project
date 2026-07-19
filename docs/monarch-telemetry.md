@@ -3,9 +3,9 @@
 > **Status: LIVE (2026-07-06).** The gateway (`APC_PC_PythonGateway.vi` in the
 > MONARCH project) streams the real, live `PC_ControlSettings` + system state at
 > 1 Hz; Python decodes and records it (`monarch.jsonl`) with zero unmapped
-> fields. **Remaining on this pipeline:** pre-wire the shadow-mode extras
-> (§ below) — that's Phase A2 of `docs/migration-plan.md`, where overall project
-> status lives.
+> fields. **This pipeline is fully wired** — the shadow-mode extras (§ below) were
+> pre-wired in the A2.1 rework (2026-07-07) and verified live (100% shadow-compare
+> agreement). Overall project status: `docs/migration-plan.md`.
 
 The pipeline streams the real engine state to Python once per second, decoded
 into the confirmed `ControlSettings` contract (docs/monarch-control-settings.md).
@@ -198,7 +198,7 @@ The `monarch.jsonl` recordings are the replay corpus for the shadow-compare
 harness (Phase A2): the ported state logic is re-run against recorded telemetry
 and its decisions diffed against LabVIEW's offline.
 
-## Shadow-mode extras — the fuller envelope (Phase A2 gateway task — NEXT)
+## Shadow-mode extras — the fuller envelope (Phase A2 gateway task — DONE 2026-07-07, A2.1)
 
 The read-only pipeline needs only `system_state` + `settings`. Shadow mode
 (Phase A) also needs the rest of the StateMachine's I/O that lives **outside**
@@ -253,8 +253,8 @@ give `1`/`0` — the model accepts JSON `true`/`false`.
 - [x] Gateway Part B — **live** `PC_ControlSettings` + real `CURRENT SYSTEM STATE`
       (via new shared variable), verified live-value tracking (2026-07-06)
 - [x] Shadow-mode extras Python-ready (optional fields; decode+record when pre-wired)
-- [ ] **Pre-wire the shadow-mode extras in the gateway** (`warnings_limit`,
-      `manual_state`, `force_state`, `limited_settings`) — Phase A2
+- [x] **Pre-wire the shadow-mode extras in the gateway** (`warnings_limit`,
+      `manual_state`, `force_state`, `limited_settings`) — A2.1, done 2026-07-07
 
 For overall project status and what comes after this pipeline, see
 `docs/migration-plan.md`.

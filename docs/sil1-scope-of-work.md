@@ -30,8 +30,9 @@ Signal/gate detail lives there; this doc is the click-level procedure.
   dummy loads only — energizing real actuation is SIL-3). Spark/DI *scheduling* is exercised
   here, so treat the Mod4/5/6 connector outputs as **electrically live** — scope/dummy only.
 - **Key interlock:** the NI-9751 drivers must be powered+enabled for *any* spark to appear;
-  keep them **de-energized** unless a specific scope step needs them, and decode `Fault1=126`
-  first (F9).
+  keep them **de-energized** unless a specific scope step needs them. Confirm `Fault1`/`Fault2`
+  = 0 live (F9 resolved 2026-07-16 — the 126 was a stale saved panel); decode any nonzero
+  fault that appears at first HV energize.
 - **E-stop reachable** and the e-stop path itself is a drill item (Step 5f).
 - **Override is a bench aid, not a shortcut (F1):** `Override PC settings = TRUE` bypasses
   **both** the `SYSTEMSTATE ≥ 2` and `¬CylPressError` gates. Use it only for isolated
@@ -221,7 +222,7 @@ As-built facts that matter here:
   bypasses **both** gates (F1) — it proves Mod4/5/6 **wiring only**, never the gate. Log every
   use; FALSE immediately after.
 
-### 4b — DI-module health + decode `Fault1 = 126` (F9) — before anything touches the 9751s
+### 4b — DI-module health + fault-register check (F9 — resolved) — before anything touches the 9751s
 
 Spark is **interlocked on the DI drivers**: the FPGA's DI supervisor emits the **`Key`** that
 unlocks the spark output block (FPGA_main section E). No healthy/powered NI-9751 ⇒ no spark
@@ -606,9 +607,9 @@ Run 5a/5b (destructive to the session) **last** if you want to chain the others 
      lit on stale state** — photograph it; that image is the case for the fix.
   3. Confirm the survivors: physical e-stop still kills outputs; FPGA watchdog intact.
   4. Restart the 9056 (reboot-order rules, `docs/deployed-bringup.md`), clear, recover.
-  *Accept:* behaviour recorded; re-run after the two §6a build tasks (PC-computed
-  watchdog LEDs on `UI_Main`; 9049-side staleness→−1 clamp on the state relay) to show
-  the LEDs go red and the gate closes.
+  *Accept:* behaviour recorded; re-run **with hb-hardening Tasks A+B (BUILT + VERIFIED
+  2026-07-17/18)** deployed, showing the PC-view LEDs go red, the displayed state drops
+  to −1, and the gate closes — the informal 07-16 result stands as the before-image.
 
 *Accept:* all drills pass; F4 echo reconciled and `settings_9049.py` updated; watchdog,
 sync-loss, and e-stop recovery sequences documented click-by-click (they become the
@@ -928,4 +929,5 @@ remains the right pattern for that cleanup when the closed loop work starts.
   9401 input path, deglitch, synthetic-cam, quadrature, and speed transients the internal sim
   can't. (1800 rpm = 108 kHz A / 30 Hz Z, phase-locked.)
 - **SIL-3** — actuation dry tests: coils on bench plugs, DI into dummy loads; Key interlock;
-  decode `Fault1=126` (F9). This is where the team's commissioning plan takes over.
+  fault registers verified clean pre-HV (F9 resolved 2026-07-16) — re-read at first HV
+  energize. This is where the team's commissioning plan takes over.

@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session Handoff — 2026-07-11 (deployment + SIL-0) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/session-handoff-2026-07-11.md</span></div>
+<main><h1 id="session-handoff-2026-07-11-deployment-sil-0">Session Handoff — 2026-07-11 (deployment + SIL-0)</h1>
+<p>Written so a future session (human or model) can pick up cold. This session
+took the project from "Python logic built, nothing deployed" to <strong>both cRIOs
+running autonomously on hardware</strong> and <strong>the 9049 combustion analytics
+validated on synthetic data</strong>. Read <code>docs/migration-plan.md</code> for the phase
+plan; this doc is the <em>current state + what to do next + what's still soft</em>.</p>
+<hr />
+<h2 id="tldr-where-things-stand">TL;DR — where things stand</h2>
+<ul>
+<li><strong>Autonomous deployment WORKS and is cold-boot-verified.</strong> Both cRIOs boot
+  their startup <code>.rtexe</code>s at power-on; the PC HMI + Python gateway run as
+  standalone EXEs; Python observes and can command. Five latent deployment
+  bugs were found and fixed (all invisible in dev mode). Runbook +
+  symptom→cause table: <strong><code>docs/deployed-bringup.md</code></strong>.</li>
+<li><strong>SIL-0 analytics math VALIDATED.</strong> <code>APC_SIL0_HRL_Desktop.vi</code> (globally-free,
+  on My Computer) runs synthetic pressure traces through the real
+  <code>support/APC_HRL.vi</code>; <strong>425 metric comparisons, all within tolerance</strong>
+  (IMEPg Δ0.001, Pmax Δ0.002 bar, CA50 Δ0.11°). The 9049 heat-release / IMEP /
+  CA50 code is proven against known truth. Recipe in
+  <strong><code>docs/9049-openloop-audit.md</code> §7</strong>.</li>
+<li><strong>Test suite: 191 green</strong> (<code>pytest</code>; was 183 at this handoff's writing).</li>
+<li><strong>The frontier is now LabVIEW + hardware</strong>, not Python. Python phases A/B are
+  done and live-verified; the open work is thresholds → SIL-1 → bench →
+  fire, plus a few real safety gaps below. <em>(⇒ see the Update blocks below:
+  as of 2026-07-16 the thresholds + SIL-1 protection half are DONE.)</em></li>
+</ul>
+<hr />
+<h2 id="update-2026-07-14-sil-1-bench-started-tooling">Update 2026-07-14 — SIL-1 bench started + tooling</h2>
+<ul>
+<li><strong>SIL-1 begun on the real 9049 (EPT sim).</strong> <strong>Trig0 follows the sim — CONFIRMED
+  (Step 2 closed):</strong> CAS <code>rpm from DAQ</code> = the <code>SimPeriod</code> rpm set on TS10ms,
+  <code>Graph time</code> delivers full 7200-sample cycles, DAQ error 0. ⇒ the
+  CAS → analytics → <code>Pcyl_Diag</code> chain runs in sim mode on-target; <strong>SIL-2's encoder
+  is not needed for acquisition testing.</strong> Resolved the audit §9 open question.</li>
+<li><strong>Click-level SOWs now exist:</strong> <code>docs/sil0-scope-of-work.md</code> (thresholds/math) and
+  <code>docs/sil1-scope-of-work.md</code> (sync → CAS → gating → drills → false-trip matrix),
+  written against the real front panels (TS10ms <code>EPTControl</code>/<code>EPTData</code>, CAS <code>Graph time</code>,
+  IGNDI <code>NumberOfActiveIGN_DI</code>).</li>
+<li><strong>Correction from the panels:</strong> the 9049 crank is a <strong>3600-line encoder</strong> (54 kHz A
+  @ 900 rpm, 108 kHz @ 1800), <strong>not</strong> a missing-tooth wheel; sync is Z-index + cam.</li>
+<li><strong>Tooling:</strong> <code>tools/compare_hrl.py</code> is now <strong>header-aware</strong> — matches CSV columns by
+  name, so one metrics file (with the added <code>mapo</code>/<code>imepstd</code> columns) feeds both
+  <code>compare_hrl</code> and <code>tune_thresholds</code>; covered by <code>tests/test_compare_hrl.py</code>
+  (<strong>suite 180 green</strong>). New <code>docs/crio-file-access.md</code> (WinSCP/PuTTY to the cRIO).</li>
+<li><strong>Flagged as NEW work (not built):</strong> motoring-vs-fired warning-limit <strong>profiles</strong> —
+  the 9049 has a single slot (<code>9049_WarningLevels</code> → one <code>CylWarningLevels.xml</code>, no state
+  input). Needs a second profile + a state-driven selector. Backlog item in
+  <code>docs/migration-seam.md</code> (3), detail in <code>docs/9049-openloop-audit.md</code> Step 3.</li>
+</ul>
+<hr />
+<h2 id="update-2026-07-1516-false-trip-matrix-complete-f3-dispositions">Update 2026-07-15/16 — false-trip matrix COMPLETE + F3 dispositions</h2>
+<ul>
+<li><strong>SIL-1 Step 6 false-trip/latch matrix COMPLETE 7/7</strong> (2026-07-14): synthetic
+  pressure fed through the real chain via the new CAS_loop sim branch
+  (<code>SIM pressure?</code>, pattern <strong><code>cycle_????.csv</code></strong>); every warning/error tripped on
+  exactly its target cylinders, latched, and cleared. Record sheet:
+  <code>docs/cRIO9049 Warning Matrix.xlsx</code>. Tool: <code>tools/gen_warning_matrix.py</code>
+  (7 sets + all-armed drill XML + manifest + <code>--xlsx</code>).</li>
+<li><strong>Four as-built defects found + dispositioned</strong> (audit F3a–F3d): F3a non-finite
+  CA50 noise trips → cured by sim pressure + the user-built <strong>SYSTEMSTATE ≥ 2
+  state gate</strong> in <code>CombCluster2Array</code> (live-verified both directions); <strong>F3b root
+  cause: <code>Pcyl_Diag</code> "Load INI on startup" saved FALSE — thresholds NEVER loaded
+  since the system was built</strong> (fixed; carry into deployed builds; verify
+  protections by probe, never the display); F3c display order verified correct
+  (name-bound); <strong>F3d: all three misfire checks are one-sided low-side</strong> —
+  misfire-from-IMEP INERT until <code>Expected IMEP</code> is wired from IMEP-REF (decision:
+  no Abs; any <code>Pcyl_Diag</code> change ⇒ re-run the matrix as regression gate).</li>
+<li><strong>W2 settled by the matrix runs</strong> (per-state arming observed live).</li>
+<li><strong>Steps 4–5 remain</strong> — click-level SOW rewritten 2026-07-15/16
+  (<code>docs/sil1-scope-of-work.md</code> 4a–4f, drills 5a–5i). ~~Pending architecture
+  decision~~ → DECIDED 07-16: run both cRIOs (see next update block).</li>
+<li>Close-out still OWED on the bench: restore the <strong>motoring</strong>
+  <code>CylWarningLevels.xml</code> (drill XML must never ride into a fueled run) +
+  <code>SIM pressure? = FALSE</code>.</li>
+</ul>
+<hr />
+<h2 id="update-2026-07-16-pm-step-4-bench-day-4a4d-passed-w5-refuted-loss-of-9056-gap">Update 2026-07-16 (PM) — Step 4 bench day: 4a–4d PASSED, W5 refuted, loss-of-9056 gap</h2>
+<ul>
+<li><strong>Architecture DECIDED: engine-only runs BOTH cRIOs</strong> — dyno command (<code>DYNO-REF</code>) and
+  all engine-health reads (oil/coolant/exhaust/torque/fuel) live on the 9056
+  (<code>docs/engine-only-9056-tradeoff.md</code>).</li>
+<li><strong>SIL-1 4a–4d PASSED</strong> over the real command path + Python CLI: state ladder (+1 per
+  step up, instant down), <strong>panel e-stop verified in PYTHON mode</strong> (clamps −1), DI-module
+  health (F9 CLOSED — <code>Fault1=126</code> was a stale saved panel; live = 0/0), gate LEDs, and
+  <code>NumberOfActiveIGN_DI = 12</code> (⇒ <strong>Key present</strong>, spark edges scheduling). Counters
+  surfaced into TS10ms via grown R/W Control node (rtexe now stale — rebuild). Next:
+  4d.3 truth test (count=2), then 4e scope + SA/SOI sweep, 4f HMI sweep.</li>
+<li><strong>W5 REFUTED LIVE:</strong> the warnings→state clamp IS consumed — a latched severity-3
+  warning drove <code>warn_lim=1</code> and pinned the state at MOTORING in both modes until CLEAR
+  WARNINGS. Diagnostic order now: <code>status</code>→<code>warn_lim</code> first; photograph UI_Errors before
+  clearing (source of this trip was lost). Floating plant channels CAN clamp — manage
+  9056 limits/masks every engine-only session.</li>
+<li><strong>Loss-of-9056 gap (new, <code>docs/command-path-asbuilt.md</code> §6a):</strong> killing <code>APC_9056_RT</code>
+  raises NOTHING — 9056-published SVs freeze, 9049 gate stays open on stale state ≥2.
+  Build tasks: PC-computed watchdog LEDs on <code>UI_Main</code> (operator decision) + 9049-side
+  staleness→−1 clamp on the state relay. Drill <strong>5i</strong> added.</li>
+<li><strong>CLI hardened</strong> (<code>examples/monarch_operate.py</code>, 202 tests green): &gt;+1 upward mode
+  requests REFUSED with the step to request; <code>set</code> values validated against field types
+  (a bad <code>set ign_enable FALSE</code> had poisoned the intent → infinite <code>parse</code>-NACK loop).</li>
+<li>Traps codified: FPGA-subVI panels show saved defaults (never read
+  <code>FPGA_IGNDI_supervisor</code>'s panel); UI_Main watchdog LEDs are <code>9056_*</code>-prefixed 9056
+  verdicts (no 9056-liveness LED). <strong>Verify:</strong> does gateway telemetry carry
+  <code>operator_requests</code>? If absent, the safety-only mirror is inert (check
+  <code>operate_traffic.jsonl</code>).</li>
+</ul>
+<hr />
+<h2 id="update-2026-07-1718-hb-hardening-ab-built-step-4d-passed-deployed-w5-reconciled">Update 2026-07-17/18 — HB hardening A+B built, Step 4d passed deployed, W5 reconciled</h2>
+<ul>
+<li><strong>HB hardening Tasks A + B BUILT + VERIFIED</strong> (<code>docs/hb-hardening-clicklevel.md</code>):
+  9049 staleness→SAFE relay clamp (kill-9056 at FIRING → spark/DI blocked ~5 s) +
+  PC-computed watchdog LEDs + <strong>Min-of-verified-sources state display</strong> (operator
+  design; kill-9049 also drops the display to −1). Task C (gateway
+  <code>operator_requests</code>) pending. Threshold tuning open: measure worst gaps first;
+  Task A can likely go 5 s → 1 s (fast MeasAndCalc timestamp), Task B LEDs ~2 s
+  floor (2 Hz heartbeats). <strong>No local protection against loss-of-supervisor exists
+  below the clamp</strong> — the 5 s window is real firing (verified: count=12 for 5 s).</li>
+<li><strong>SIL-1 4d PASSED incl. counters, on the DEPLOYED SIM build</strong> (<code>APC_9049_RT SIM</code>:
+  SimEnable + SIM pressure? compiled TRUE, never-fuel marker on the spec):
+  <code>NumberOfActiveIGN_DI = 12</code> only at state ≥ 2, <strong>from both writers</strong>; counters
+  surfaced into TS10ms (grown R/W node; both rtexe specs rebuilt). F9 CLOSED
+  (Fault1=126 = stale saved panel; live 0/0). Remaining: 4d.3 count=2, 4e/4f scope.</li>
+<li><strong>W5 reconciled:</strong> the live warnings→state clamp = the <strong>A2.1 pre-wire made
+  2026-07-07</strong> (migration-plan prior-status block) — W5 came from pre-rewire prints.
+  W2 also settled (matrix runs; per-cylinder table inert).</li>
+<li>CLI: state-ladder guard + typed <code>set</code> validation (NACK-poisoning fixed); suite
+  <strong>202 green</strong>. Team one-slider: <code>team-update/team-update-2026-07-18.v2.pptx</code>.</li>
+</ul>
+<hr />
+<h2 id="what-to-do-next-in-order">What to do next (in order)</h2>
+<p><em>(Items 1 and 3 below are DONE as of the 07-15/16 update above; item 2's matrix
+half is done — Steps 4–5 remain. Kept for the historical record.)</em></p>
+<ol>
+<li>~~<strong>Set the motoring warning thresholds</strong>~~ ✅ DONE (2026-07-14; and the real
+   #1 risk turned out to be F3b — thresholds never loaded — see update above).
+   (closes the #1 pre-fuel risk, 9049
+   audit F3: <code>CylPressError</code> false-tripping and vetoing first fire).
+   - Generate a motored set:
+     <code>python tools/gen_cas_traces.py trace-sets/motored_set --cycles 30 --mode motored --bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099</code>
+   - Run it through <code>APC_SIL0_HRL_Desktop.vi</code> → <code>trace-sets/motored_set/labview_metrics.csv</code>.
+   - <code>python tools/tune_thresholds.py trace-sets/motored_set/labview_metrics.csv --mode motored --pmax-hard-limit &lt;engine limit&gt;</code>
+     → recommended <code>MaxPCylMax</code> / <code>MaxIMEPstdError</code> / <code>MaxDevFromAvg</code> + the
+     <strong>disarm list</strong> (<code>CA50max</code>, <code>MaxDevFromExpectedIMEP</code> — motored false-trippers).
+   - Enter those into the 9049 warning XML via the UI CYLINDER (Errors) screen.
+     Keep a <strong>separate fired profile</strong> (re-run with a <code>--mode fired</code> set).</li>
+<li><strong>SIL-1 — virtual crankshaft.</strong> ⇒ <em>Half done (see update above): Steps 0–3 +
+   the Step-6 matrix are complete (sync, CAS, analytics, latch/veto, W2 settled);
+   </em><em>Steps 4–5 remain</em><em> — <code>docs/sil1-scope-of-work.md</code> 4a–4f + drills 5a–5i
+   </em>(4a–4d since PASSED — see the 07-17/18 update block above).<em>
+   On the real 9049, set <code>EPTControl.SimEnable</code>
+   TRUE (<code>SimPeriod = 60·4e7/(rpm·3600)</code>) and watch the whole engine-sync stack
+   run with no engine: sync, spark/DI scheduling, CAS acquisition, the analytics
+   above, IGNDI supervisor, both watchdogs. Agenda: <code>docs/9049-openloop-audit.md</code>
+   §7 SIL-1. </em><em>Pre-fuel checklist there is mandatory before any fueled step.</em>*</li>
+<li>~~<strong>Fix the broken 9049 combustion VIs</strong>~~ ✅ RESOLVED — the chain runs on
+   the 9049 again (the complete Step-6 matrix executed through
+   <code>CombCluster2Array</code>/<code>PressureAnalytics</code>/<code>keyCA50</code>/<code>keyKnock</code>, incl. the new
+   state gate). Residual: the F3c typedef-order alignment stays as rebuild debt.
+   (Original issue: the SIL-0 trace-harness work left them non-executable via a
+   <strong>target-relative</strong> <code>9049_Global_CylPressError</code> node; fix = keep those VIs
+   under the <strong>9049 target</strong>; don't network-publish the safety globals.)</li>
+</ol>
+<hr />
+<h2 id="current-status-by-phase-audited-2026-07-11">Current status by phase (audited 2026-07-11)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>State</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A — Shadow brain</strong></td>
+<td>✅ COMPLETE</td>
+<td>Live shadow-compare 100% across all 5 states + inputs.</td>
+</tr>
+<tr>
+<td><strong>B — Command path + watchdog</strong></td>
+<td>✅ COMPLETE (exit-gate passed 2026-07-09)</td>
+<td>Command path built <strong>end-to-end</strong> (gateway does the full validation ladder, not a stub — see robustness gaps). Loss-of-PC watchdog live-verified.</td>
+</tr>
+<tr>
+<td><strong>C — Bench command</strong></td>
+<td>Python built; <strong>C3/C4/C5 unverified</strong></td>
+<td>Needs bench time + a 2nd operator. Autonomous-deploy platform (was a soft blocker) is now ready.</td>
+</tr>
+<tr>
+<td><strong>D — Sequencing</strong></td>
+<td>Framework + sim + fault-tests built; <strong>never bench-run</strong></td>
+<td>Blocked on <strong>D0 operating-procedure sheets (team)</strong> — the single biggest missing spec.</td>
+</tr>
+<tr>
+<td><strong>E — Commissioning/expansion</strong></td>
+<td>Mechanics unit-tested</td>
+<td>Blocked on TBD(team) rule/schedule values + live campaign.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cross-cutting done this session (not in the phase docs yet): autonomous
+deployment (verified), 9049 open-loop audit (F1–F9 + pre-fuel checklist), SIL-0
+validation.</p>
+<hr />
+<h2 id="robustness-gaps-for-a-production-pythonlabview-system-address-before-firing-relevant-authority">Robustness gaps for a production Python⇄LabVIEW system (address before firing-relevant authority)</h2>
+<p>The command path is genuinely built and its <strong>machine-failure</strong> modes are
+live-verified (Python crash / freeze / TCP drop / malformed / flood → all
+drove SAFE, 3× each). What's weak or missing:</p>
+<p><strong>Command-path architecture (confirmed 2026-07-11 from the PC-side exports):</strong>
+   - <strong>UI write path:</strong> <code>UI_System</code> (P&amp;ID tabs) bundles operator inputs into the
+     LabVIEW global <code>PC_GlobalVariables_PIDsyst2main</code>; <strong><code>UI_Main</code> reads that
+     global, assembles the full command cluster</strong> (EMERGENCY STOP, Requested
+     mode, spark/DI advance+duration, Speed ref, IGN/DI enable, Activate
+     cylinder, Force idling/motoring, PID refs) <strong>and writes <code>PC_ControlSettings</code>.</strong>
+     <code>APC_PC_VariableMapping.vi</code> is the <em>telemetry</em> return (cRIO→PC cluster
+     merge, "9056 prevails"), <strong>not</strong> the command writer — earlier note corrected.
+   - <strong>Gateway (<code>APC_PC_PythonGateway.vi</code>) — source-select IS real:</strong> a
+     <code>CommandSource_IsPython</code> SV gates every command; non-Python source →
+     NACK <code>"source is UI"</code>. Accepted commands write <code>PC_ControlSettings</code> and get
+     a <code>command_ack</code>. The telemetry frame emits <code>system_state, warnings_limit,
+     manual_state, force_state, settings, limited_settings, command_source,
+     operator_requests</code> (verified).</p>
+<ol>
+<li><strong><code>UI_HeartBeat</code> — specified but NOT yet built (the one uncovered dropout
+   case).</strong> <em>Resolved 2026-07-11 from the fresh <code>UI_Main</code> export + ICD §7.5:</em>
+   the source-select and <code>PC_HB</code> handover work correctly and single-writer holds
+   end-to-end — the open item is narrower than I'd written. As-built:
+   - <code>UI_System</code> self-toggles <code>PC_HB</code>; <code>UI_Main</code> writes operator inputs to
+     <code>PC_OperatorRequests</code> <strong>always</strong>, and — gated on <code>CommandSource_IsPython</code> —
+     <strong>promotes <code>PC_OperatorRequests</code> → <code>PC_ControlSettings</code> only in UI mode</strong>
+     (the B3.c redirect, now as-built; <code>PYTHON (effective)</code> LED + the
+     <code>9056_PCnotResponding</code> reads are on the panel too). In PYTHON mode the UI
+     does <strong>not</strong> promote; the gateway writes <code>PC_ControlSettings</code>. Clean
+     single-writer, exactly per ICD §7.4.
+   - <code>PC_HB</code> is by design sourced by whoever holds authority: <strong>UI toggles it in
+     UI mode, Python toggles it (via the gateway relay) in PYTHON mode</strong> (ICD
+     §7.5 option a). So <code>PC_HB</code> tracks the <em>command path</em>, not the UI.
+   - <strong>The genuine gap:</strong> because <code>PC_HB</code> follows Python in PYTHON mode, it
+     <strong>cannot</strong> detect the operator console (HMI holding the software e-stop +
+     monitoring) dying while Python commands. ICD §7.5 already <strong>specifies</strong> the
+     fix — a standalone <code>UI_HeartBeat</code> SV toggled by the UI loop regardless of
+     source, watched as a 5th WatchDog channel — but it is <strong>not implemented</strong>.
+     Build it before Python holds firing-relevant authority (response phase-in:
+     alert + Python-side sequence-abort first, LabVIEW SAFE clamp value
+     team-decided). <em>No re-print needed — this is a build task, not a discovery.</em>
+   - <strong>Loss-of-PC clamp confirmed armed in BOTH modes</strong> (2026-07-11): <code>TS_loop</code>
+     OR's <code>9056/9049/PCnotResponding</code> → <code>Select(−1 SAFE : 3 FIRING)</code> → SM
+     warnings-limit, <strong>no <code>CommandSource</code> gate</strong>. So a frozen command path →
+     SAFE in either mode. This does <em>not</em> close the <code>UI_HeartBeat</code> gap (a dead
+     UI in PYTHON mode doesn't freeze <code>PC_HB</code>). <strong>Full as-built with per-VI
+     evidence: <code>docs/command-path-asbuilt.md</code>.</strong> Owed: one hardware UI-mode
+     <code>PC_HB</code>-freeze drill (logged drills cover only PYTHON-mode freeze).</li>
+<li><strong>Thin gateway setpoint validation (confirmed from the gateway diagram).</strong>
+   The validation ladder range-checks <strong>only <code>Speed ref</code> (0..3000)</strong> — the NACK
+   reasons are <code>rate / source is UI / parse / range: Speed ref / operator only</code>.
+   DI duration, spark advance, and every PID ref pass through unrange-checked.
+   The cRIO FLOOR must catch unsafe actuations — but widen the gateway range
+   checks before firing-relevant authority.</li>
+<li><strong>Unauthenticated TCP on :5020.</strong> Any host on the network can inject
+   commands. Single-writer (<code>CommandSource_IsPython</code> gateway NACK) + e-stop
+   precedence mitigate, but there's no auth — fine for a bench, revisit for the
+   plant network.</li>
+<li><strong>Frozen-but-present telemetry has no content-staleness guard</strong> (same class
+   as 9049 audit F7): a 9056 that keeps publishing a stuck value would let the
+   commander seed intent from stale data. Timestamp/counter staleness check
+   wanted on the content, not just the connection.</li>
+<li><strong>Command-effect is open-loop.</strong> The commander emits and relies on the
+   operator / <code>shadow_compare.py</code> (reverse-verify) rather than an inline "did my
+   command take effect?" check against <code>limited_settings</code>/<code>system_state</code>.</li>
+<li><strong>Drill evidence gap.</strong> <code>migration-plan.md</code> claims "all nine B4 drills passed
+   3×+ … log in docs/drill-logs/", but the folder holds <strong>only B4-1..6</strong>
+   (machine-run). B4-7 (source flip), B4-8 (e-stop precedence — caught a real
+   bug), B4-9 (stale telemetry) were operator-run and <strong>not logged</strong>. Formalize
+   with logs — they're the actual Phase-B exit gate.</li>
+</ol>
+<p><strong>Patterns done right (keep):</strong> one-flag heartbeat supervising the whole PC→cRIO
+chain; single-writer source-select (gateway-enforced NACK); telemetry-as-truth
+(ack ≠ effect); reconnect-rebuild-from-telemetry (bumpless re-seed); pure-decision
+state machines; belt-and-braces staleness (commander <em>and</em> engine drop); e-stop
+set-only through Python (latch cleared operator-direct only); <code>safety_only</code> mirror
+floor; NaN sanitization at the edge (LabVIEW Unflatten rejects the NaN literal —
+real 2026-07-08 bench bug).</p>
+<hr />
+<h2 id="vis-to-export-next-to-complete-the-picture">VIs to export next (to complete the picture)</h2>
+<p>Print (LabVIEW → File → Print → HTML, or the export you've been using) and drop
+under <code>original-labview-codebase/&lt;name&gt;/</code>.</p>
+<p><strong>✅ DONE (printed + analyzed 2026-07-11)</strong> — <code>CombCluster2Array</code>, <code>Pcyl_Diag</code>,
+<code>LoadWarningConfig</code>, <code>PC_UI_System</code>, <code>TS10ms_loop</code>, <code>HRL</code>, <code>SIL0_HRL_Desktop</code>.
+The threshold picture is now fully resolved: the confirmed field↔flag↔metric map
+and the Warnings-vs-Errors <strong>latch</strong> split are in <code>docs/9049-openloop-audit.md</code>
+F3; <code>tools/tune_thresholds.py</code> emits the exact 7-metric × {Warning,Error} set.</p>
+<p>The whole PC-side command path is now resolved from in-repo exports
+(2026-07-11): <code>VariableMapping</code> = telemetry-return (not the command writer); the
+gateway = source-select + thin validation + telemetry contract; the fresh
+<code>UI_Main</code> (re-printed 07-11) = the B3.c source-select redirect + <code>PC_HB</code>
+handover, confirmed as-built per ICD §7.4/§7.5.</p>
+<p><strong>✅ Second print batch DONE (delivered + analyzed 2026-07-14)</strong> — the 9056 warning
+chain (<code>ErrorMask</code>, <code>MaskErrors</code>, <code>MergeCylErrors</code>, <code>ClearSoftWarning</code>), PC
+<code>ClearErrorButton</code>, <code>9049_checkAI</code>, <code>9049_CycleAvgSignals</code>, <code>9056_FPGA_main</code>.
+Findings write-up: <strong><code>docs/9056-warning-policy-asbuilt.md</code></strong> — the Phase-A3
+as-built reference (4-tier raster limits, per-state arming masks, latch/clear
+semantics, cylinder error→"send to motoring" scoring, gaps W1–W7) plus the
+<strong>9056 FPGA RT-stall safe-hold confirmation</strong> (both cRIOs now have verified
+below-RT fallbacks). Note before citing a VI as live: check membership in
+<code>MONARCH.lvproj</code>, not the disk listing — <code>TS100ms_loop</code>, <code>MODBUSTCP_HealingLoop</code>,
+<code>HRLtest</code>, <code>SIL0_TraceHarness</code> are on-disk orphans.</p>
+<p><strong>Still outstanding: one print</strong> — <code>APC_9056_LoadINI.vi</code> (requested with the
+batch, not delivered; wanted as the 9056 config-persistence pattern for the
+second warning profile + load-fail default).</p>
+<p>The remaining non-VI item:
+- ~~<strong>A MAPO/knock harness column</strong>~~ ✅ DONE (2026-07-14) — the harness metrics
+  file carries <code>mapo</code>/<code>imepstd</code> columns and both <code>compare_hrl.py</code> and
+  <code>tune_thresholds.py</code> read them by header name.</p>
+<p>Actual build tasks (not discoveries): implement <code>UI_HeartBeat</code> (ICD §7.5) and
+widen gateway range validation — see robustness gaps #1–2.</p>
+<hr />
+<h2 id="tools-built-this-session-tools">Tools built this session (<code>tools/</code>)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gen_cas_traces.py</code></td>
+<td>Synthetic CAS cycles: raw <code>cycle_NNNN.csv</code> (9×7200, full chain) + phased <code>cycle_NNNN_phased.csv</code> (6×7200, feed <code>APC_HRL</code> directly) + <code>truth.json</code>. Real MONARCH geometry via <code>--bore/--stroke/--conrod/--cr/--pin-offset</code>. Motored/fired/mixed, injectable misfire/knock; <code>--q-jitter</code> (cyclic variability) + continuous cyclic drift ramps (added 07-14/15).</td>
+</tr>
+<tr>
+<td><code>compare_hrl.py</code></td>
+<td>Scores the harness <code>labview_metrics.csv</code> vs <code>truth.json</code>; header-aware column matching (incl. <code>mapo</code>/<code>imepstd</code>); per-metric worst-Δ + pass/fail.</td>
+</tr>
+<tr>
+<td><code>tune_thresholds.py</code></td>
+<td>Reads a motored/fired <code>labview_metrics.csv</code> → recommended 9049 warning limits with margin + the disarm list. <code>--pmax-hard-limit</code> clamps to the physical ceiling.</td>
+</tr>
+<tr>
+<td><code>gen_warning_matrix.py</code> <em>(added 07-14)</em></td>
+<td>One command → the whole SIL-1 false-trip suite: 7 trace sets under <code>trace-sets/warning_matrix/</code>, the all-armed <code>CylWarningLevels.drill.xml</code>, expected-trip <code>manifest.md</code>/<code>.json</code> (one-sided-check-aware), <code>--xlsx</code> record sheet.</td>
+</tr>
+</tbody>
+</table></div>
+<p>LabVIEW harness: <code>APC_SIL0_HRL_Desktop.vi</code> (My Computer). Gotchas baked into the
+recipe: <code>APC_HRL</code> has <strong>no geometry input</strong> (internal <code>VOL</code>) and runs its <strong>own
+per-cylinder loop</strong> (outputs are 6-element arrays); <strong>wire <code>exhaust pressure</code></strong>
+(flat <code>Initialize Array(3.0,7200)</code>) or pegging → NaN; <strong>Read Delimited delimiter
+= comma</strong> (defaults to tab); label columns cycle-first, cylinder second (+1).</p>
+<hr />
+<h2 id="two-debugging-lessons-worth-carrying-cost-real-time-this-session">Two debugging lessons worth carrying (cost real time this session)</h2>
+<ul>
+<li><strong>DSM shows a blank cell for array / "Advanced" shared variables — blank ≠
+  empty.</strong> A genuinely unwritten SV reads "(No Known Value)". We chased a
+  phantom "empty MeasAndCalc" for hours; it was a full array DSM couldn't render.</li>
+<li><strong>A subVI's front panel shows stale <em>default</em> values while the real data flows
+  through its wires.</strong> Trust the caller's indicators or a probe, never the subVI
+  panel. This is what made "generic config in the EXE" look real when it wasn't.</li>
+<li><strong>When a cRIO app "won't come up," pull its RT log over SSH first:</strong>
+  <code>ssh admin@&lt;ip&gt;</code> → <code>/var/local/natinst/log/</code> → <code>cat errlog.txt / lvrt_*_cur.txt</code>.
+  One real error message (the <code>DAbort</code> FPDCO crash, the <code>-200088</code> DAQ error)
+  ended hours of black-box guessing.</li>
+</ul>
+<hr />
+<h2 id="needs-from-the-team-blocking-markers">Needs from the team (blocking markers)</h2>
+<ul>
+<li><strong>Operating-procedure sheets</strong> (D0) — cold-start / purge / motoring→light-off /
+  shutdown / vent+recovery / misfire recovery. The single biggest missing spec;
+  even informal notes suffice.</li>
+<li><strong>Real 9049 sensor calibrations</strong> (cylinder-pressure channels are NI-example
+  placeholders — 9049 audit F2).</li>
+<li><strong>Engine physical max cylinder pressure</strong> — the hard over-pressure trip ceiling.</li>
+<li><strong>Bench + a second operator</strong> for the C3 command-authority handover rehearsal.</li>
+<li>Confirm a couple of as-built items from the audit: <code>9049_ControlSettings</code> echo
+  semantics (live capture), and the <code>SimEnable</code>/<code>Override PC settings</code>/<code>Enque?</code>
+  saved defaults on the deployed builds (pre-fuel checklist).</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/session-handoff-2026-07-11.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

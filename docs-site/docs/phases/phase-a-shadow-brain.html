@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase A — Shadow Brain (detailed instructions) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../../index.html">index</a><span>docs/phases/phase-a-shadow-brain.md</span></div>
+<main><h1 id="phase-a-shadow-brain-detailed-instructions">Phase A — Shadow Brain (detailed instructions)</h1>
+<p><strong>Objective:</strong> Python computes every supervisory decision the 9056 makes today —
+state arbitration, control limiting, warning policy — verified against spec and
+bench captures, <strong>without sending anything</strong>.</p>
+<p><strong>Authority level:</strong> none. Read-only throughout.</p>
+<p><strong>Entry criteria (all met as of 2026-07-06):</strong> read-only telemetry pipeline live
+(<code>docs/monarch-telemetry.md</code>), <code>ControlSettings</code> contract confirmed, <code>monarch.jsonl</code>
+recordings available.</p>
+<p><strong>LabVIEW changes in this phase:</strong> A2.1 only (shared variables + TS_loop taps +
+gateway envelope). A1 and A3 are pure Python; their LabVIEW inputs (exports) are
+already delivered.</p>
+<hr />
+<h2 id="a1-port-apc_9056_statemachine-to-python">A1 — Port <code>APC_9056_StateMachine</code> to Python</h2>
+<p><em>Owner: Python (Claude). LabVIEW input needed: one export (step 0).</em></p>
+<p><strong>A1.0 — Pin the last unknowns</strong> ✅ <strong>done (2026-07-06)</strong> — resolved from the
+re-exported <code>APC_9056_StateMachine/</code> per-frame images (<code>d1</code>–<code>d8</code> + main diagram
+crops). Confirmed semantics:
+- Per-source limits: E-STOP → −1, Force Motoring → 1, Force Idling → 2 (True
+  cases); each <strong>False case → 3</strong> (no restriction).
+- Arbitration implemented as <strong>Build Array → Sort 1D Array → Index[0]</strong>, i.e.
+  MIN over {requested mode, warnings limit, e-stop, force-motoring,
+  force-idling, current+1}; the <code>current+1</code> step-up element is gated by the
+  per-state "forced transition condition" cases, which are <strong>all constant TRUE</strong>
+  (no plant-feedback guards implemented).
+- <code>ForceState</code> TRUE ⇒ <code>SYSTEM STATE</code> = <code>ManualState</code> <strong>absolutely</strong> (the
+  override case output wires directly to the indicator, after/independent of
+  the MIN — bypasses the +1 rule too).
+- <code>DisregardWarnings</code> — <strong>misleading name</strong>: it wraps the controller-level
+  limiter, not the warnings clamp. FALSE case = a For loop taking the
+  element-wise <code>min(requested_level[i], state_row[i])</code>; TRUE case = <strong>bypass</strong>
+  (limited = requested, no per-state caps). It does not affect the state
+  arbitration itself.
+- <code>PostMortemSave</code> is a <strong>shared-variable write</strong> (TRUE) gated by a <code>&gt;</code>
+  comparator AND the per-state forced-transition condition — i.e. it fires on a
+  forced (downward) state transition. <strong>Consumer confirmed</strong> by a binary scan of
+  the raw codebase: <code>APC_9049_SAVE_loop.vi</code> (the 9049 logging loop) is the only
+  other VI referencing the <code>PostMortemSave</code> variable — it triggers the
+  post-mortem A-file capture, exactly as the logging doc describes.
+Residual (single, cosmetic): the <code>&gt;</code> operand order wasn't traceable pixel-level
+— assumed <code>current &gt; new</code> (downward). Mark <code># ASSUMPTION</code> in code.</p>
+<blockquote>
+<p><strong>RESOLVED (2026-07-07, full-res re-export):</strong> operand order confirmed
+<code>current &gt; new</code>; but the AND gate is <strong><code>¬ForceState</code></strong>, not the per-state
+transition condition — a manually forced drop does NOT post-mortem. Also
+resolved: the valve rows and an Ar-row doc/array mismatch (see the A1.3
+note below and <code>docs/shadow-findings.md</code>). Code + tests updated.</p>
+</blockquote>
+<p><strong>A1.1 — Data model</strong>
+New module <code>supervisory/monarch/state_machine.py</code>:
+- <code>StateDecisionInputs</code>: <code>current_state: SystemState</code>, <code>warnings_limit: int</code>,
+  <code>settings: ControlSettings</code> (carries <code>requested_mode</code>, <code>force_idling</code>,
+  <code>force_motoring</code>, <code>emergency_stop</code>), <code>force_state: bool</code>, <code>manual_state: int</code>,
+  <code>disregard_warnings: bool = False</code>.
+- <code>StateDecision</code>: <code>system_state: SystemState</code>, <code>limited_settings:
+  ControlSettings</code>, <code>limits: dict[str, int]</code> (per-source limit values, for
+  the shadow-compare report), <code>post_mortem: bool</code>.</p>
+<p><strong>A1.2 — State arbitration (pure function)</strong>
+<code>decide_state(inputs) -&gt; SystemState</code>:
+1. Compute per-source limits: <code>requested = settings.requested_mode</code>;
+   <code>warnings = warnings_limit</code> (skipped if <code>disregard_warnings</code>);
+   <code>estop = −1 if settings.emergency_stop else 3</code>;
+   <code>force_motoring = 1 if settings.force_motoring else 3</code>;
+   <code>force_idling = 2 if settings.force_idling else 3</code>.
+2. <code>target = min(all of the above)</code>.
+3. <strong>Increase-by-1 rule:</strong> <code>if target &gt; current_state: target = current_state + 1</code>.
+   (Decreases are immediate and unlimited — SAFE is always reachable in one step.)
+4. <strong>Override:</strong> <code>if force_state: target = manual_state</code> (bypasses everything —
+   <strong>confirmed</strong> by the A1.0 per-frame export: absolute override, +1 rule included).
+5. Return the clamped <code>SystemState</code>.</p>
+<p><strong>A1.3 — The limiter (MAX LEVEL OF CONTROL)</strong>
+<code>limit_settings(settings, state) -&gt; ControlSettings</code>: apply the table below —
+each actuator's commanded level is <code>min(requested_level, max_for_state)</code>; boolean
+actuators (vents, IGN/DI enables, feed valves) clamp to their safe value when the
+column says 0. Encode the table as <strong>data</strong> (a dict), not branching code.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Controller</th>
+<th>SAFE −1</th>
+<th>STANDBY 0</th>
+<th>MOTORING 1</th>
+<th>IDLING 2</th>
+<th>FIRING 3</th>
+<th>safe value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NG feed</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>6*</td>
+<td>closed</td>
+</tr>
+<tr>
+<td>Ar feed</td>
+<td>0</td>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>closed</td>
+</tr>
+<tr>
+<td>O2 feed</td>
+<td>0</td>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>closed</td>
+</tr>
+<tr>
+<td>Coolant temp</td>
+<td>1</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>max flow</td>
+</tr>
+<tr>
+<td>Exhaust temp</td>
+<td>1</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>max flow</td>
+</tr>
+<tr>
+<td>Oil temp</td>
+<td>1</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>max flow</td>
+</tr>
+<tr>
+<td>Intake/Cross/Exh vent</td>
+<td>0 (open)</td>
+<td>1 (closed)</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>open</td>
+</tr>
+<tr>
+<td>Dyno</td>
+<td>0</td>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>stopped</td>
+</tr>
+<tr>
+<td>IGN</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>deactivated</td>
+</tr>
+<tr>
+<td>DI</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>deactivated</td>
+</tr>
+<tr>
+<td>MTR</td>
+<td>0</td>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>TBD</td>
+</tr>
+</tbody>
+</table></div>
+<p>* the NG=6 cell is suspected a typo in the VI (levels are 0–2 elsewhere); port it
+<strong>as-is</strong> (fidelity first), flag it in the shadow report, and decide with the team.</p>
+<blockquote>
+<p><strong>Correction (2026-07-07, full-res re-export):</strong> the table above transcribed
+the VI's on-diagram <em>doc table</em>. The <strong>executed array constant</strong> differs:
+Ar feed is (0,0,<strong>3,3,3</strong>) (doc table says 2s), and rows 13–15 are the
+<strong>NG/Ar/O2 feed-valve booleans at (0,1,1,1,1)</strong> — forced closed only in
+SAFE, NOT tied to their feed rows. The port encodes the executed values.
+<strong>(2026-07-08, controller exports):</strong> the "&gt;2" cells are NOT typos — mode
+3 = cascaded closed loop (Texh/Toil/Ar) and NG modes 4/5/6 = feedback
+select, so cap 3 permits cascade (the Ar doc-table 2 would forbid it) and
+NG's 6 permits every NG feedback mode. See <code>docs/shadow-findings.md</code>.</p>
+</blockquote>
+<p><strong>A1.4 — Test matrix (the phase's real deliverable)</strong>
+<code>tests/test_monarch_state_machine.py</code>:
+- <strong>Exhaustive arbitration sweep:</strong> all <code>current_state × requested_mode ×
+  warnings_limit × {e-stop, force_motoring, force_idling} × force_state</code>
+  combinations (5×5×5×8×2 = 2000 cases, trivially fast) asserting the MIN +
+  step-by-1 + override semantics.
+- <strong>Directed cases:</strong> SAFE reachable in one step from FIRING; step-up chain
+  STAND_BY→…→FIRING takes exactly 4 ticks; warnings clamp mid-run forces
+  step-down; e-stop vs ForceState: <strong>CONFIRMED the other way — <code>ForceState</code>
+  overrides EMERGENCY STOP as-built</strong> (<code>docs/shadow-findings.md</code>; flagged as a
+  hazard needing a guard, F1-class); latched-warning behavior is A3's job, not here.
+- <strong>Limiter:</strong> per-state spot checks of every row; vent polarity (SAFE ⇒ vents
+  open = <code>false</code>); <strong>combustion invariant:</strong> any transition out of
+  IDLING/FIRING ⇒ NG and O2 modes clamp to 0 in the same tick.
+- <strong>Fidelity fixture:</strong> feed the recorded <code>monarch.jsonl</code> frames through
+  <code>decide_state</code> and assert no crashes + plausible outputs (full comparison is A2).</p>
+<p><strong>Definition of done (A1):</strong> suite green; every <code># ASSUMPTION</code> either confirmed
+against the A1.0 export or listed in the shadow-compare report as open.</p>
+<blockquote>
+<p><strong>Status: BUILT (2026-07-06).</strong> <code>supervisory/monarch/state_machine.py</code> +
+<code>tests/test_monarch_state_machine.py</code> (28 tests incl. the ~30k-case sweep),
+all green. ~~Two cosmetic <code># ASSUMPTION</code>s remain~~ <strong>Both assumptions
+resolved 2026-07-07</strong> against the full-res StateMachine re-export — both
+needed corrections (post-mortem gate = ¬ForceState; valve rows are their own
+(0,1,1,1,1) rows). Port + tests updated, suite green (152 tests). Details in
+<code>docs/shadow-findings.md</code>.</p>
+</blockquote>
+<hr />
+<h2 id="a2-shadow-compare-harness">A2 — Shadow-compare harness</h2>
+<p><em>Owner: split — LabVIEW pre-wire (you), harness (Claude).</em></p>
+<p><strong>A2.1 — LabVIEW changes required (the only LabVIEW work in Phase A)</strong>
+Per <code>docs/monarch-telemetry.md</code> §Shadow-mode extras. Full detail:</p>
+<p><em>Part 1 — create the shared variables (<code>APC_SharedVars.lvlib</code>).</em>
+Verified against <code>MONARCH.lvproj</code>: <strong>the library lives under the cRIO-9049
+target</strong> (<code>NI-cRIO-9049-…/APC_SharedVars.lvlib</code>) — that's where its Shared
+Variable Engine runs. Add the new rows there (right-click the lvlib <em>under the
+9049 target</em> → <strong>New → Variable</strong>), even though the <strong>writer is the 9056</strong> —
+that's already the house pattern (<code>9056_HeartBeat</code> is 9049-hosted,
+9056-written). All existing variables are plain <strong>Network-Published, no
+buffering</strong> (verified in the lvlib XML); match that. Two consequences worth
+knowing:
+- the <strong>9049 must be powered and deployed</strong> for these variables to resolve —
+  even for 9056-only bench work;
+- a <code>9049_Global_SYSTEMSTATE</code> network variable <strong>already exists</strong> in the
+  library — if the Part-B <code>SystemState</code> variable you added duplicates it,
+  plan to consolidate to one source later (two state variables invite drift).</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Data type</th>
+<th>Carries</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WarningsLimit_SM</code></td>
+<td>I8 (or the state enum typedef)</td>
+<td>the value <strong>on the StateMachine's <code>STATE LIMITATION FROM WARNINGS</code> input terminal</strong></td>
+</tr>
+<tr>
+<td><code>ManualState_SM</code></td>
+<td>I8</td>
+<td>the StateMachine's <code>ManualState</code> input</td>
+</tr>
+<tr>
+<td><code>ForceState_SM</code></td>
+<td>Boolean</td>
+<td>the StateMachine's <code>ForceState</code> input</td>
+</tr>
+<tr>
+<td><code>Limited_ControlSettings</code></td>
+<td><strong>Custom Control → <code>APC_ControlSettings.ctl</code></strong></td>
+<td>the StateMachine's <code>Limited_ControlSettings</code> output</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Deploy</strong> the library after adding (right-click → Deploy). Undeployed
+variables silently read defaults.</p>
+<blockquote>
+<p><strong>Prerequisite fix — wire the warning clamp (confirmed disconnected, 2026-07-07).</strong>
+The StateMachine's <code>STATE LIMITATION FROM WARNINGS</code> input is <strong>not</strong> wired to
+<code>WarningIntegration</code>'s output — it runs on its front-panel default, so the
+warning→state clamp is currently inert (<code>docs/shadow-findings.md</code>). The right
+fix is to <strong>make that wire</strong> in <code>APC_9056_TS_loop.vi</code>: <code>WarningIntegration</code>'s
+<code>STATE LIMITATION FROM WARNINGS</code> output → the StateMachine's same-named input.
+It's FLOOR safety logic that belongs in LabVIEW, it activates a dormant safety
+feature, and it survives into the target architecture (LabVIEW keeps its own
+independent warning clamp even once Python holds authority). <strong>Once wired, the
+SM input equals the WI output</strong>, so a single <code>WarningsLimit_SM</code> variable
+suffices (the earlier two-variable scheme was only to expose the disconnect).
+<em>Behavior caveat:</em> wiring it means active warnings now actually drive the state
+down. Pre-commissioning, sensors reading zero/ambient may fire spurious
+warnings that peg the state to SAFE/idle — that is the <em>correct</em> safe response,
+but validate it deliberately (set warning thresholds wide, or use operator
+clear, during bench work) rather than being surprised on the bench.</p>
+</blockquote>
+<p><em>Part 2 — write them on cRIO-9056, inside <code>APC_9056_TS_loop.vi</code>.</em>
+At the <code>APC_9056_StateMachine.vi</code> call site (main loop, next to the DIAG VI):</p>
+<blockquote>
+<p><strong>Also re-tap <code>system_state</code> here (2026-07-07).</strong> The existing telemetry
+<code>system_state</code> comes from <code>9049_Global_SYSTEMSTATE</code> (a 9049-side echo written
+by <code>APC_9049_CAS_loop</code>), which is frozen when the 9049 loops aren't running
+and lags the SM in general. For shadow compare, add a write from the <strong>9056
+StateMachine's <code>SYSTEM STATE</code> output</strong> to the state variable the gateway reads
+— so state, limited_settings, and the extras are all same-source/same-tick and
+Phase-A testing needs no 9049. Keep the 9049 echo for its own local gate.
+0. <strong>First make the warning wire — recipe (do this cleanly).</strong> Goal: a single
+   direct wire, <code>WarningIntegration.STATE LIMITATION FROM WARNINGS</code> output →
+   <code>StateMachine.STATE LIMITATION FROM WARNINGS</code> input, both inside <code>TS_loop</code>.
+   No shared variable between them — they're on the same diagram, so a wire is
+   the correct (and lowest-latency) way to pass the value.
+   1. <strong>Identify the two nodes.</strong> Open <code>Context Help</code> (Ctrl-H) and hover each
+      subVI to confirm names: the <code>STATE ?</code> icon is <code>APC_9056_StateMachine.vi</code>;
+      the adjacent <code>DIAG</code> icon should be <code>APC_9056_WarningIntegration.vi</code>
+      (confirm — if it isn't, find where WarningIntegration is actually called).
+   2. <strong>Expose the terminals.</strong> Right-click each subVI → <em>Visible Items →
+      Terminals</em> (or just hover a terminal with Ctrl-H open to read its label).
+      On WarningIntegration find the <code>STATE LIMITATION FROM WARNINGS</code> <strong>output</strong>;
+      on the StateMachine find the same-named <strong>input</strong>.
+   3. <strong>Confirm the input is free.</strong> The StateMachine's warnings input should
+      have no wire today (the finding). If a front-panel control's terminal is
+      wired to it instead, delete that stub first.
+   4. <strong>Draw the wire.</strong> Click the WarningIntegration output terminal, drag to
+      the StateMachine input terminal. <strong>Non-destructive branch:</strong> if that output
+      already goes somewhere (a shared-variable write or an indicator), don't
+      disconnect it — start the new wire by clicking anywhere on the existing
+      wire and dragging a branch to the StateMachine input.
+   5. <strong>Match the data type — no coercion dot.</strong> Both should be <code>I8</code> (or the same
+      state-enum typedef). A grey/red coercion dot at the input means the types
+      differ; make them identical (tidier and avoids silent enum↔I8 surprises).
+   6. <strong>Execution order is now correct automatically.</strong> The wire makes
+      WarningIntegration run <em>before</em> the StateMachine each iteration (compute
+      warnings → arbitrate state) — the order you want. <strong>No cycle:</strong> both read
+      <code>CURRENT SYSTEM STATE</code> from the loop's feedback node (last iteration's
+      value), and only the StateMachine writes the new state back, so there is no
+      SM→WI→SM loop.
+   7. <strong>Verify:</strong> the run arrow is not broken; run once and confirm behavior (see
+      the caveat above — warnings will now clamp the state).
+   8. <strong>Forward note (avoid rework):</strong> this same <code>STATE LIMITATION FROM WARNINGS</code>
+      input is where the other detection-without-response fixes also belong — the
+      B0 loss-of-PC clamp (<code>PCnotResponding → −1</code>) and the 9049/9056-FPGA
+      not-responding clamps. When you add those, don't run separate wires: feed
+      them and the WarningIntegration output through one <code>Min</code> (Build Array →
+      Array Max &amp; Min → <em>min</em>) into this single input. Wire WarningIntegration
+      directly now; leave room to insert that <code>Min</code> later.
+1. For each <strong>input</strong> (<code>warnings</code>, <code>ManualState</code>, <code>ForceState</code>): branch the
+   wire that feeds that StateMachine terminal (click the wire → Ctrl-drag a
+   branch), and wire the branch into a shared-variable <strong>write</strong> node (drag the
+   variable from the Project Explorer, right-click → <em>Access Mode → Write</em>). Tap
+   the <strong>terminal wire itself</strong> — not the source VI's output — so telemetry
+   reports what the StateMachine actually received.
+2. For the <strong>output</strong>: branch the <code>Limited_ControlSettings</code> wire leaving the
+   StateMachine and write it to the <code>Limited_ControlSettings</code> variable.
+3. Writes execute once per loop iteration — negligible cost at the TS-loop
+   rate; keep them outside any case structure so they always publish.
+4. Redeploy the 9056 startup app / run the VI so the new writes are live.</p>
+</blockquote>
+<p><em>Part 3 — extend the gateway envelope (<code>APC_PC_PythonGateway.vi</code>, PC).</em>
+Edit the telemetry format-string constant (keep it in <strong>'\' Codes Display</strong> so
+<code>\r\n</code> stays a real CR+LF).</p>
+<p><strong>You have now</strong> (system_state + settings + limited_settings):</p>
+<pre><code>{&quot;type&quot;:&quot;telemetry&quot;,&quot;seq&quot;:%d,&quot;ts&quot;:%.3f,&quot;system_state&quot;:%d,&quot;settings&quot;:%s,&quot;limited_settings&quot;:%s}\r\n
+</code></pre>
+<p><strong>Change it to</strong> (insert the three override/warning fields after <code>system_state</code>):</p>
+<pre><code>{&quot;type&quot;:&quot;telemetry&quot;,&quot;seq&quot;:%d,&quot;ts&quot;:%.3f,&quot;system_state&quot;:%d,&quot;warnings_limit&quot;:%d,&quot;manual_state&quot;:%d,&quot;force_state&quot;:%s,&quot;settings&quot;:%s,&quot;limited_settings&quot;:%s}\r\n
+</code></pre>
+<p>i.e. insert exactly this fragment right after <code>"system_state":%d</code>:</p>
+<pre><code>,&quot;warnings_limit&quot;:%d,&quot;manual_state&quot;:%d,&quot;force_state&quot;:%s
+</code></pre>
+<p>That adds three <code>%</code> specifiers (two <code>%d</code>, one <code>%s</code>), so <strong>grow <code>Format Into
+String</code> from 5 to 8 arguments</strong>. Wire all 8 in this exact order:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Format</th>
+<th>Wire</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>%d</code></td>
+<td><code>seq</code> (existing)</td>
+<td>I32</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>%.3f</code></td>
+<td><code>ts</code> (existing)</td>
+<td>DBL</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>%d</code></td>
+<td><code>system_state</code> (existing shared-var read)</td>
+<td>I8/I32</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>%d</code></td>
+<td><code>WarningsLimit_SM</code> read</td>
+<td>I8</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>%d</code></td>
+<td><code>ManualState_SM</code> read</td>
+<td>I8</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>%s</code></td>
+<td><code>ForceState_SM</code> read → <strong>Select</strong> (TRUE→<code>true</code> string const, FALSE→<code>false</code>)</td>
+<td>String</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>%s</code></td>
+<td><code>Flatten To JSON</code> of the <code>PC_ControlSettings</code> read (existing)</td>
+<td>String</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>%s</code></td>
+<td><strong>new</strong> <code>Flatten To JSON</code> of the <code>Limited_ControlSettings</code> read</td>
+<td>String</td>
+</tr>
+</tbody>
+</table></div>
+<p>Notes:
+- The <strong>three new args (4, 5, 6) are the reason for this edit</strong> — args 1–3, 7, 8
+  are already wired from your current 5-arg string; leave them as they are and
+  just insert the three in the middle.
+- The <strong>boolean (arg 6) must go through a Select</strong> — wiring the boolean straight
+  into <code>%s</code> makes LabVIEW emit <strong><code>TRUE</code>/<code>FALSE</code> (uppercase)</strong>, which is not valid
+  JSON, and every frame gets discarded as malformed (<code>"force_state":FALSE</code> in the
+  capture is the tell-tale). Wire <code>ForceState_SM</code> → <strong>Select</strong> (True input =
+  string constant <code>true</code>, False input = <code>false</code>, both lowercase) → <code>%s</code>.
+  (<code>%d</code> is no good either — it emits <code>1/0</code>.)
+- Once <code>WarningIntegration</code> is wired into the StateMachine (A2.1 step 0), the SM
+  input equals the WI output, so a single <code>WarningsLimit_SM</code> (arg 4) is all you
+  need — no separate <code>warnings_limit_wi</code> field.</p>
+<p><em>Part 4 — verify, and troubleshooting.</em>
+Run <code>python examples/monarch_listen.py</code>: the log line should now show
+<code>warn_lim=… force=… | limited: …</code> and still <code>unmapped=[]</code>.</p>
+<p>If instead you get <strong><code>discarding malformed message</code></strong> warnings (the observer
+connects but decodes nothing):
+- <strong>Capture one full line</strong> to see the actual defect (the log truncates at
+  200 chars): <code>python tools\capture_line.py</code> — prints the whole line, then
+  pinpoints the JSON error position (and hints at the NaN case below).
+- <strong>Most common cause — NaN/Inf:</strong> LabVIEW's <code>Flatten To JSON</code> renders NaN as
+  <code>NaN</code>, which is <strong>invalid JSON</strong> (Python rejects the whole line). An
+  uninitialized <code>Limited_ControlSettings</code> shared variable (never written, or
+  9056 not running) is the usual source. Fix: complete Part 2 and deploy, or
+  default-initialize the variable.
+- <strong>Arg order/count:</strong> one missing <code>Format Into String</code> input shifts every
+  later <code>%</code> — compare the captured line field-by-field against the table above.
+- <strong>Quoting:</strong> string-valued fields need quotes <em>in the format string</em>
+  (<code>"force_state":%s</code> is correct because Select supplies bare <code>true</code>/<code>false</code>;
+  a quoted string like command_source later needs <code>"%s"</code>).
+- The framing/<code>\r\n</code> is proven — don't touch the TCP write while debugging
+  content.</p>
+<p><strong>A2.2 — Python: the compare tool</strong>
+<code>tools/shadow_compare.py</code>:
+- Modes: <code>--replay monarch.jsonl</code> (offline) and <code>--live</code> (connect like the
+  observer).
+- Per frame: build <code>StateDecisionInputs</code> from the envelope, run the A1 port,
+  diff <code>system_state</code> and every <code>limited_settings</code> leaf vs LabVIEW's.
+- Report: agreement %, first-divergence detail (frame, inputs, both outputs),
+  histogram of diverging fields, and the open-assumption list. Exit code 0 only
+  on 100% agreement.
+- Caveat printed in the header: <strong>a divergence is a finding, not automatically a
+  Python bug</strong> — the LabVIEW side is unvalidated; disposition each one.</p>
+<p><strong>A2.3 — Bench input sweeps (you, at the UI; observer recording)</strong>
+With the rig unpowered (pre-commissioning — StateMachine logic runs regardless):
+walk <code>Requested mode</code> up and down; toggle Force idling / Force motoring; press
+and clear EMERGENCY STOP; exercise <code>ManualState</code>+<code>ForceState</code>; if warning
+thresholds can be provoked synthetically (e.g. set a threshold below ambient),
+trigger orange/red/black severities. Each sweep = one <code>monarch.jsonl</code> recording,
+named and kept under <code>recordings/</code> (add to repo or keep local — team choice).</p>
+<p><strong>Definition of done (A2):</strong> shadow compare runs clean (100% agreement or every
+divergence dispositioned) across all sweep recordings.</p>
+<blockquote>
+<p><strong>Status: Python half BUILT (2026-07-06).</strong> <code>tools/shadow_compare.py</code>
+(replay + live modes, session-reset handling, limiter diffing) with its own
+tests. First replay of <code>monarch.jsonl</code>: sim session <strong>247/247 (100%)</strong>; all
+real-session divergences dispositioned as "StateMachine not running during
+capture" — see <code>docs/shadow-findings.md</code>. Remaining: the A2.1 gateway
+pre-wire (LabVIEW) and bench sweeps <strong>with the 9056 StateMachine actually
+running</strong> and writing the SystemState shared variable.</p>
+</blockquote>
+<hr />
+<h2 id="a3-port-the-warning-state-policy">A3 — Port the warning → state policy</h2>
+<p><em>Owner: Python (Claude). LabVIEW input needed: exports.</em></p>
+<p><strong>A3.0 — Exports (you)</strong> — the <code>APC_9056_TexhControl.vi</code> typedef-update error
+that blocked these is <strong>fixed (2026-07-06)</strong>; just export:
+- <code>APC_9056_TS_loop.vi</code> (also closes B0),
+- <code>APC_9056_WarningIntegration.vi</code>,
+- <code>APC_9056_WarningBool.vi</code> / <code>APC_9056_ClearSoftWarning.vi</code> /
+  <code>APC_9056_MaskErrors.vi</code> if small.</p>
+<p><strong>A3.1 — Port</strong> <code>supervisory/monarch/warning_policy.py</code>: severity→max-state map
+(yellow = info, self-clearing; orange → cap IDLING; red → cap MOTORING; black →
+SAFE + vent), latching non-yellow until operator clear, producing
+<code>warnings_limit</code>. Tests mirror A1's style. Temporal rules ("X for Y s") are
+<strong>Phase E</strong> — do not add them here; fidelity first.</p>
+<p><strong>Definition of done (A3):</strong> ported policy reproduces LabVIEW's
+<code>STATE LIMITATION FROM WARNINGS</code> in shadow compare across the warning sweeps.</p>
+<blockquote>
+<p><strong>Status: BUILT (2026-07-06).</strong> <code>supervisory/monarch/warning_policy.py</code> +
+<code>tests/test_warning_policy.py</code> (18 tests), transcribed from the
+WarningIntegration per-frame export. Confirmed semantics: levels 0–4
+(0 none, 1 soft/self-clearing, 2 → idle, 3 → motoring, 4 → safe+vent);
+per-channel 4-threshold evaluation with a ±sign direction and per-level
+enables; latch ratchets via feedback max, soft (1) self-clears, ≥2 holds
+until APC_MASTER/SLAVE_ClearWarnings (multiply-by-0 reset); aggregate =
+max level → mapping {0/1→3, 2→2, 3→1, 4→−1} (Default→3). Simplification:
+cylinder warnings enter as pre-merged levels (<code>extra_levels</code>) — the
+CylPres bitfield decode belongs to the 9049 contract. Remaining for A3
+done-ness: shadow-verify against live sweeps once the gateway pre-wire
+lands. Finding: the VI's 9049/9056-FPGA heartbeat stall detectors drive
+indicators only (same detection-without-response pattern as the PC
+watchdog) — logged in <code>docs/shadow-findings.md</code>.</p>
+</blockquote>
+<hr />
+<h2 id="phase-exit-gate">Phase exit gate</h2>
+<ul>
+<li>A1 + A3 suites green, assumptions resolved or dispositioned.</li>
+<li>Shadow compare: 0 unexplained divergences across all bench sweeps.</li>
+<li>Artifacts: <code>state_machine.py</code>, <code>warning_policy.py</code>, <code>tools/shadow_compare.py</code>,
+  sweep recordings, divergence dispositions (a short <code>docs/shadow-findings.md</code>
+  if any are LabVIEW bugs — likely commissioning gold).</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/phases/phase-a-shadow-brain.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

@@ -1,0 +1,1242 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MONARCH LabVIEW Codebase — VI Reference — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../../index.html">index</a><span>original-labview-codebase/MONARCH-CODEBASE/README.md</span></div>
+<main><h1 id="monarch-labview-codebase-vi-reference">MONARCH LabVIEW Codebase — VI Reference</h1>
+<p>A per-VI map of the MONARCH LabVIEW control system, written so a future session (human or
+model) can understand what every VI does <strong>without opening LabVIEW or re-reading the PDF
+exports</strong>. Compiled 2026-07-07 from: the <code>MONARCH.lvproj</code> target tree, string extraction
+from every <code>.vi</code> binary (subVI calls, shared-variable reads/writes, typedefs), the HTML/PNG
+VI exports in the sibling folders under <code>original-labview-codebase/</code>, the three PDFs
+(<code>APC Control System- LV MONARCH Overview.pdf</code> [Ovw], <code>20251020ERD01GUI01 FPGA on cRIO
+9049.pdf</code> [Deck], <code>9049 FPGA VIs - Google Docs.pdf</code> [GDoc]), the three DOCX docs
+(SCADA_HMI, Data Logging and Variables, the E1/M1 report [Report]), and this repo's live
+findings (<code>docs/migration-seam.md</code>, <code>docs/shadow-findings.md</code>).</p>
+<p>Entries marked <em>(inference)</em> are deduced from names/wiring, not stated in any document.</p>
+<h2 id="what-this-folder-is-and-what-it-is-not">What this folder is — and what it is not</h2>
+<ul>
+<li>A <strong>curated copy</strong> of <code>C:\LabVIEW PROJECT\MONARCH\</code> from the Windows control-room PC
+  (the original folder had 241 files; see <code>MONARCH-cleanup-list.xlsx</code> at the repo root —
+  sync-conflict copies and orphans were excluded from this copy).</li>
+<li><strong>Snapshot taken ~2026-07-06.</strong> The live project has since gained changes NOT in these
+  files: the Python gateway VI (<code>APC_PC_PythonGateway.vi</code>), the B0 watchdog→StateMachine
+  wiring, the WarningIntegration→StateMachine wire, the <code>PC_HB</code> UI toggle, and the
+  telemetry re-taps. <code>docs/migration-seam.md</code> describes the live as-built state.</li>
+<li><code>.vi</code> files are <strong>binary</strong> (LabVIEW 2020 SP1, 32-bit). You cannot read the diagrams here,
+  but <code>strings -n 6 &lt;file&gt;.vi</code> reliably reveals shared-variable paths, subVI references,
+  and typedef usage. Human-readable exports (HTML + PNG/GIF diagrams) for ~30 key VIs live
+  in the sibling folders of <code>original-labview-codebase/</code> (e.g. <code>APC_9056_StateMachine/</code>,
+  <code>APC_9049_FPGA_main_including_hierarchy/</code>). Fresh full-res exports (2026-07-07 late
+  evening) exist for: TS_loop, WatchDog, StateMachine, UI_System, UI_Errors,
+  PythonGateway, ControlSettingsRaster, and all seven 9056 controllers — these
+  post-date the B0/B3.c rewiring and are the as-wired evidence.</li>
+<li><code>FPGA Bitfiles/</code> holds compiled bitfiles for both FPGA targets, so the FPGA VIs can be
+  deployed without recompilation.</li>
+<li><strong>Almost no VI has a real VI-description.</strong> Where a description exists it is usually the
+  generic NI "DAQmx Custom Scales" example boilerplate (many VIs were cloned from that NI
+  example) — ignore it. The real knowledge is in diagram comments and the external docs,
+  which is why this README exists.</li>
+</ul>
+<h2 id="system-map">System map</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>lvproj name</th>
+<th>IP</th>
+<th>Top VI</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows PC</td>
+<td><code>My Computer</code></td>
+<td>—</td>
+<td><code>APC_PC_UI_Main.vi</code></td>
+<td>HMI/SCADA over shared variables; Modbus-TCP <strong>master</strong> to the MTR membrane PLC. Almost no control logic.</td>
+</tr>
+<tr>
+<td>cRIO-9049</td>
+<td><code>NI-cRIO-9049-020A5DED</code></td>
+<td>172.22.10.2</td>
+<td><code>APC_9049_RT_main.vi</code> → <code>APC_9049_FPGA_main.vi</code></td>
+<td>Engine-synchronous: encoder→crank angle, spark &amp; DI pulse generation, cylinder-pressure / combustion analysis, CAS data logging.</td>
+</tr>
+<tr>
+<td>cRIO-9056</td>
+<td><code>CRIO9056 NTS</code></td>
+<td>172.22.10.3</td>
+<td><code>APC_9056_RT_main.vi</code> → <code>APC_9056_FPGA_main.vi</code></td>
+<td>Plant: gas feeds (NG/Ar/O2), thermal HX loops, vents, dyno — <strong>and the supervisory StateMachine + WatchDog</strong>.</td>
+</tr>
+<tr>
+<td>MTR PLC</td>
+<td>external</td>
+<td>172.22.11.1:502</td>
+<td>—</td>
+<td>CO2/membrane gas-separation skid; own state machine + heartbeat; Modbus-TCP slave of the PC.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Command path: operator → PC writes <code>PC_ControlSettings</code> (shared variable cluster) →
+<strong>9056 StateMachine</strong> limits it to <code>Limited_ControlSettings</code> and sets <code>SYSTEM STATE</code> →
+9056 controllers consume it; the 9049 reads <code>PC_ControlSettings</code> directly for spark/DI
+settings and publishes its command subset back as <code>9049_ControlSettings</code>.</p>
+<p><strong>Loop rates</strong> (as-built, some confirmed live 2026-07):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Loop</th>
+<th>Rate</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9049 FPGA main</td>
+<td>40 MHz single-cycle</td>
+<td>encoder tracking, spark/DI output</td>
+</tr>
+<tr>
+<td>9049 FPGA heartbeat frame</td>
+<td>500 ms</td>
+<td>blinks LED, publishes <code>FPGA Heartbeat</code>, chassis temp</td>
+</tr>
+<tr>
+<td>9049 <code>TS10ms_loop</code></td>
+<td>10 ms (1 kHz timed-loop clock, dt=10)</td>
+<td>FPGA interface + spark/DI settings</td>
+</tr>
+<tr>
+<td>9049 <code>CAS_loop</code></td>
+<td>per engine cycle (7200 samples @ 0.1 CAD; ≈67 ms @ 1800 rpm)</td>
+<td>pressure DAQ + combustion analysis</td>
+</tr>
+<tr>
+<td>9056 <code>TS_loop</code> control loop</td>
+<td><strong>~20 ms / ~50 Hz</strong> (paced by the NI9205 DAQmx block read, 20 samples)</td>
+<td>StateMachine + limiter + PIDs + WatchDog. The Report's "100 ms main loop" is the older design.</td>
+</tr>
+<tr>
+<td>9056 <code>TS_loop</code> housekeeping loops</td>
+<td>1000 ms <code>Wait Until Next ms Multiple</code></td>
+<td>TS_loop runs ~5 parallel loops</td>
+</tr>
+<tr>
+<td>PC UI router loop</td>
+<td>200 ms</td>
+<td><code>UI_System</code> visualization + MTR Modbus</td>
+</tr>
+<tr>
+<td>PC telemetry gateway</td>
+<td>1 Hz</td>
+<td>not in this snapshot; see <code>docs/monarch-telemetry.md</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Vocabulary:</strong> CAS = crank-angle-synchronous; TS = time-synchronous; CAD = crank angle
+degrees; CAT = crank angle ticks (here MAX_CAT = 28,800/cycle: 3600-line encoder × 2²
+extrapolation × 2 for 4-stroke; 1 tick = 0.025°); EPT = Engine Position Tracking (NI
+Powertrain Controls library); HRL = heat-release library; DI = direct injection; IGN/SI =
+spark; PFI = port fuel injection; MTR = the membrane skid vendor. System states: <strong>−1
+SAFE, 0 STAND_BY (default), 1 MOTORING, 2 IDLING, 3 FIRING</strong>. Controller mode levels:
+<strong>0 = safe (forces the XML-configured <code>Safe mode control</code> value), 1 = manual
+passthrough, 2 = closed-loop</strong>; cascade-capable loops (Texh/Toil/Ar) add <strong>3 =
+cascaded closed loop</strong>, and NG adds <strong>4/5/6 = closed loop on selected feedback</strong>
+(2/4 = lambda, 5 = IMEP, 6 = torque). Vents encode 1 = closed, 0 = open (chosen so
+min() = safe).</p>
+<hr />
+<h2 id="windows-pc-vis">Windows PC VIs</h2>
+<h3 id="apc_pc_ui_mainvi-operator-main-screen-top-level-pc-vi">APC_PC_UI_Main.vi — operator main screen (top-level PC VI)</h3>
+<p>Three-monitor HMI, screen A ("monarch APC v0.1"). Engine/combustion focus: APC-mode
+slider (<strong>UI-side +1-per-step rate limit</strong>, mirroring the StateMachine's), state
+indicators, EMERGENCY STOP &amp; VENT, IGN/DI/PFI on-off, CA50 closed-loop and knock-limiter
+enables, spark/DI/PFI timing setpoints, speed low/high selector (900/1800 rpm), live
+cylinder-pressure plot with per-cylinder IMEP/IMEPσ/Pmax, cylinder deactivation,
+crank-resync + toggle-TDC buttons, REC/test-ID/pre-trigger/cycle-count logging controls,
+SFTP file transfer from both cRIOs, test notes [Ovw pp.82–85]. Conditions the requested
+state and writes <strong><code>PC_ControlSettings</code></strong>; e-stop buttons on all three screens feed the
+same flag [Ovw p.76]. Calls <code>UI_System</code> + <code>UI_Errors</code> as subpanels, the two SharedVarPolling
+VIs, <code>VariableMapping</code>, <code>ClearErrorButton</code>, <code>System Exec</code>.</p>
+<h3 id="apc_pc_ui_systemvi-pid-mimic-mtr-modbus-master-screen-b">APC_PC_UI_System.vi — P&amp;ID mimic + MTR Modbus master (screen B)</h3>
+<p>Full plant P&amp;ID mimic: sensor/actuator values (names on hover), control-loop
+activate/deactivate, open/closed-loop selection and references, main NG/Ar/O2 + vent
+switches, 9049/9056 RT heartbeat indicators, membrane-skid state + 12 membrane warnings.
+Contains the <strong>Modbus-TCP master to the MTR PLC</strong> (slave 172.22.11.1:502; registers
+40001/41001/45001/46001; MTR states 0 Undefined … 6 Emergency ShutDown) and a "membrane
+skid state machine"; 200 ms name-based router loop that never terminates [Ovw pp.78–80,
+87–88]. Uses <code>float2u16</code>/<code>u162float</code> to pack Modbus registers. <strong>Also generates <code>PC_HB</code>
+(B3.c; pixel-verified in the 2026-07-07 23:42 re-export):</strong> a feedback-node → NOT flips
+the bit each main-loop iteration; it rides the PID-refs cluster into
+<code>PC_GlobalVariables_PIDsyst2main</code>, which <code>UI_Main</code> relays into <code>PC_ControlSettings</code> —
+the heartbeat the 9056 WatchDog clamps on, making the whole UI app the PC-liveness
+proxy. Modbus specifics (same export): reads regs 40001 (7 words: MTR state/HB/errors,
+"Control from LV") and 41001 (38 words → the MTR floats); writes 45001
+(<code>Send2MTRuint16</code>) and 46001 (<code>Send2MTRfloats</code>, min/max-clamped); on comms loss, wait
+(5 s) and retry.</p>
+<h3 id="apc_pc_ui_errorsvi-warningsdiagnostics-screen-screen-c">APC_PC_UI_Errors.vi — warnings/diagnostics screen (screen C)</h3>
+<p>Tabs: SIGNAL WARNINGS / SET SIGNAL LEVEL / CYLINDER; "cycles for std" = 100
+[full export <code>../APC_PC_UI_Errors/</code>, 2026-07-07]. The diagram's own severity legend:
+<strong>level 1 = soft warning (self-cleared), level 2 = set IDLING, level 3 = set MOTORING,
+level 4 = STOP and VENT</strong> (UI colors: green OK, yellow soft, orange idle, red motoring,
+black e-stop [SCADA]). <strong>The "rasters" are the 9056's AI cards</strong> (answers the SCADA-doc
+reviewer's open question): Raster 1 = NI9205 (±10 V: WF-PT/OA, EO-PT, TORQUE, spare
+<code>NI9205_9–15_V</code>), Raster 2 = NI9208 (4–20 mA: NG/NGDI/O2/AR flows+pressures, WF-PT-004/
+014/016, SW-FT-001–004), Raster 3 = NI9214-1 (thermocouples: WF/O2/AR/NG/NGDI/PC/EC-TT),
+Raster 4 = NI9214-2 (EC/SW/EO-TT + spares), Raster 5 = empty/spare. Per raster: LED
+column (level→color) + signal name + selected-channel measured value. Threshold editing
+per chassis is a command quartet over shared variables: <code>set…</code> → <code>*_SetWarningLimits</code>
+(+ MIN/MAX sign), <code>retrieve…</code> → <code>*_RetrieveWarningLimits</code>, <code>SaveINI…</code> →
+<code>*_SaveWarningLimitsToINI</code>, <code>ReloadINI…</code> → <code>*_LoadWarningsFromINI</code>. The 9049 (CYLINDER)
+edit cluster exposes the <code>9049_WarningLevels</code> fields: samples for running IMEP std,
+MaxPCylMax warning/error [bar], MaxDevFromExpectedIMEP warning/error, MaxDevFromAvg
+warning/error, MaxIMEPstdError, MAPOmax warning/error [bar/CAD], CA50max warning/error
+[CADATDC]. Also: per-cylinder CA50/MAPO/IMEP/IMEPσ/MaxPcyl plots, a listbox writing
+<code>9049_SelectBroadcastVar</code> (which pressure trace streams to <code>SyncCylPres [bar]</code>), the
+2D color maps feeding <code>PC_Global_Errors</code>, a <strong>single-button</strong> CLEAR WARNINGS (its own
+small loop raising "Clear warning request"; the doc reviewer had asked for multi-step),
+and an e-stop terminal.</p>
+<h3 id="apc_pc_pythongatewayvi-the-python-telemetrycommand-gateway-not-in-this-snapshot">APC_PC_PythonGateway.vi — the Python telemetry/command gateway (not in this snapshot)</h3>
+<p>Lives only in the live project (created 2026-07); full export in
+<code>../APC_PC_PythonGateway/</code> (2026-07-07 23:42). As-built: TCP listener on the
+gateway port → single-client session loop → <code>TCP Close</code> (listener + connection IDs,
+annotated); <code>TCP Read</code> in <strong>CRLF mode</strong> (4096) with a "Line Arrived?" case that parses
+incoming JSON (<code>params</code>/<code>settings</code>/<code>id</code>/<code>name</code>) and recognizes a
+<strong><code>set_control_settings</code></strong> command (the Phase-B3 command path, in progress); a
+"Command Reply – Acknowledgment" frame that <code>TCP Write</code>s a canned
+<code>{"type":"command_ack","id":…,"accepted":true,"reason":"hello from LabVIEW"}</code>; and a
+1000 ms-paced telemetry frame that formats
+<code>{"type":"telemetry","seq":…,"ts":…,"system_state":…,"warnings_limit":…,"manual_state":…,"force_state":…,"settings":…,"limited_settings":…}</code>
+from <code>SystemState_SM</code>, <code>WarningLimits_SM</code>, <code>ManualState_SM</code>, <code>ForceState_SM</code>, and
+<code>Flatten To JSON</code> of <code>PC_ControlSettings</code> + <code>Limited_ControlSettings</code>, then <code>TCP Write</code>s
+one line. Counters: lines received, telemetry sent. Python-side contract:
+<code>docs/monarch-telemetry.md</code>, <code>docs/icd.md</code>.</p>
+<h3 id="apc_pc_variablemappingvi-apc_pid_variablemappingvi-name-based-signal-routers">APC_PC_VariableMapping.vi / APC_PID_VariableMapping.vi — name-based signal routers</h3>
+<p>Given the flat DBL arrays published by each cRIO (<code>9049_MeasAndCalc</code>, <code>9056_MeasAndCalc</code>)
+plus each side's name registry, searches names and builds index arrays, then fills a
+typed cluster for display — <code>APC_VisualizationCluster_v2.ctl</code> (max 256 entries) for
+<code>VariableMapping</code>, <code>APC_PIDCluster.ctl</code> for <code>PID_VariableMapping</code>. <strong>If a name exists on
+both cRIOs, the 9056 value wins</strong> [Ovw p.94].</p>
+<h3 id="other-pc-side-vis">Other PC-side VIs</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>VI</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>APC_ClearErrorButton.vi</code></td>
+<td>Writes <code>APC_MASTER_ClearWarnings</code> (operator clear of latched warnings).</td>
+</tr>
+<tr>
+<td><code>APC_WarningColorMap.vi</code> / <code>APC_Warning2DColorMap.vi</code></td>
+<td>Map warning level codes → UI colors (1D/2D).</td>
+</tr>
+<tr>
+<td><code>APC_RunHRL_inPC.vi</code></td>
+<td>Offline harness: replays recorded (SCE) pressure data through <code>APC_HRL</code> on the PC [Ovw p.39]. Dev tool, not part of the running system.</td>
+</tr>
+<tr>
+<td><code>APC_HRLtest.vi</code></td>
+<td>HRL test harness writing results to a spreadsheet. <strong>No callers.</strong></td>
+</tr>
+<tr>
+<td><code>APC_PC_SlaveModbus.vi</code></td>
+<td>Modbus-TCP <em>slave</em> on the PC (adapted from the NI example). <strong>No callers</strong> — leftover experiment.</td>
+</tr>
+<tr>
+<td><code>hello-vi.vi</code></td>
+<td>The Python-link connectivity-test VI (TCP/JSON, reads <code>PC_ControlSettings</code> + <code>9049_Global_SYSTEMSTATE</code>). Ancestor of the production gateway below. See <code>docs/hello-vi.md</code>.</td>
+</tr>
+<tr>
+<td><code>support/Message Queue/*</code></td>
+<td>Standard NI QMH message-queue library (create/enqueue/dequeue + <code>Message Cluster.ctl</code>). Template plumbing, no MONARCH logic.</td>
+</tr>
+<tr>
+<td><code>APC_PCglobalVars.lvlib</code></td>
+<td>PC-local globals: <code>PC_Global_Errors</code> (color-box error cluster), listbox selections, <code>PC_GlobalVariables_DBLmain2syst</code> / <code>_PIDsyst2main</code> (Main↔System panel exchange, incl. the PID refs relay).</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="crio-9049-rt-layer">cRIO-9049 — RT layer</h2>
+<h3 id="apc_9049_rt_mainvi-9049-top-level">APC_9049_RT_main.vi — 9049 top level</h3>
+<p>Loads sensor calibration / builds the DAQ task (<code>SensorCalibration</code>), then runs parallel
+loops: <code>CAS_loop</code>, <code>SAVE_loop</code>, <code>TS10ms_loop</code>. A Diagram-Disable structure holds
+<code>MODBUSTCP_HealingLoop</code> ("MODBUS") and <code>TS100ms_loop</code> ("System PID") — <strong>both currently
+Disabled</strong> [Deck p.6; RT_main diagram PNG].</p>
+<h3 id="apc_9049_ts10ms_loopvi-fpga-interface-sparkdi-settings-10-ms">APC_9049_TS10ms_loop.vi — FPGA interface + spark/DI settings (10 ms)</h3>
+<p>Diagram banner: <em>"LOOP DEDICATED TO THE FPGA ACTIONS (SYNCHRONIZATION, SETTINGS FOR
+COMBUSTION AND IGNITION AND ENCODER GENERATION FOR CAS ACQUISITION) and SYSTEM STATE
+MACHINE"</em> (the state machine lived here in 2023; it now runs on the 9056 — see history
+below). Opens the FPGA reference and each 10 ms tick:
+- <strong>A</strong> — per-cylinder DI/spark commands via <code>PlsGen_Time_Convert_revf5</code> +
+  <code>SparkSettings</code>. One For-loop applies identical settings to all 6 cylinders except
+  <strong>TDC offsets = 0, 480, 240, 600, 120, 360</strong> (author: "will be changed for cyl-to-cyl
+  control") [Deck p.10].
+- <strong>B</strong> — DI config cluster: <code>Window_Start/End (DBTDC)</code> are <strong>diagram constants</strong> (90/−30
+  here; GDoc shows 200/0); <code>MainEnable/MainDuration/MainSOI</code> come from the UI
+  (<code>DI enable</code>, <code>DI duration [ms]</code>, <code>DI advance [CADBTDC]</code>) [Deck p.11].
+- <strong>C</strong> — the <strong>hard spark/DI enable gate</strong>: <code>Injection_Enable = ¬CylPressError ∧
+  ActivateCylinder ∧ DI_Enable ∧ (9049_Global_SYSTEMSTATE ≥ 2)</code>; same form for
+  <code>Spark_Enable</code> with <code>IGN Enable</code> [Deck p.12].
+- <strong>D</strong> — writes EPTControl, DI_Control, DI_IPhaseInterface, module DIO, ½-Z-pulse,
+  toggle-TDC, TRIG1 offset to the FPGA; <strong>toggles the FPGA <code>WatchdogIn</code></strong> every iteration
+  (requirement: &gt;4 Hz [GDoc p.2]); drives <code>MissedCrank/CamFlagClr</code> from "Clear Sync
+  Errors". Reports Finished Late?.
+Runs <code>KnockCA50Control</code>, <code>ControlSettingsRaster</code>; shared vars: reads <code>PC_ControlSettings</code>,
+writes <code>9049_HeartBeat</code>, <code>CASyncLost</code>, <code>CRIOtime</code>, <code>CRIOchassisT</code>, touches
+<code>9049_Global_SYSTEMSTATE</code>. Front-panel <code>Override PC settings</code> control exists.</p>
+<h3 id="apc_9049_cas_loopvi-crank-angle-synchronous-acquisition-analysis">APC_9049_CAS_loop.vi — crank-angle-synchronous acquisition + analysis</h3>
+<p>Reads the encoder-clocked DAQmx AI task: <strong>7200 samples = one engine cycle at 0.1 CAD</strong>
+(timeout 1 s). Runs <code>checkAI</code> (verify full cycle), <code>PressureAnalytics</code> (combustion
+metrics), <code>rpm</code>; polls <code>9056</code> data and <code>9049_ControlSettings</code>; enqueues Analog + Cycle
+data for <code>SAVE_loop</code>; broadcasts via <code>SharedVarBroadcast</code>. Handles <code>CASyncLost</code> +
+<code>ForceReSync</code>; <strong>writes <code>9049_Global_SYSTEMSTATE</code></strong> (the 9049's state <em>echo</em> — see
+gotchas) [Deck pp.23–26].</p>
+<h3 id="apc_9049_save_loopvi-data-logging">APC_9049_SAVE_loop.vi — data logging</h3>
+<p>Dequeues the CAS/CycAvg queues and writes the test files (see "Data logging" below).
+Uses <code>FilesPathFormation</code> + <code>SaveTestAverageValues</code>; shared vars <code>DataSaveControl</code>,
+<code>PostMortemSave</code>, <code>SavingInformation</code>.</p>
+<h3 id="apc_9049_ts100ms_loopvi-legacy-system-pid-loop-disabled">APC_9049_TS100ms_loop.vi — legacy "System PID" loop (DISABLED)</h3>
+<p>Contains <code>PID Advanced</code> instances; the system-PID/state loop from when the 9049 owned
+supervisory control (pre-migration design; the Report describes system PIDs + state
+machine here). Disabled in <code>RT_main</code> <em>(inference from diagram label + Report)</em>.</p>
+<h3 id="apc_9049_modbustcp_healingloopvi-modbus-master-keep-alive-disabled">APC_9049_MODBUSTCP_HealingLoop.vi — Modbus master keep-alive (DISABLED)</h3>
+<p>Creates/closes a Modbus master instance in a self-healing reconnect loop. Disabled in
+<code>RT_main</code>; the working MTR Modbus master is on the PC (<code>UI_System</code>).</p>
+<h3 id="9049-combustion-analysis-chain-support-vis">9049 combustion-analysis chain (support VIs)</h3>
+<p>Called per cycle from <code>CAS_loop</code> → <code>PressureAnalytics</code>:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>VI</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>APC_9049_PressureAnalytics.vi</code></td>
+<td>Umbrella: <code>checkAI</code> → <code>PPhaseCorrection</code> → <code>APC_HRL</code> → <code>CombCluster2Array</code>. In: <code>AIdata [bar]</code>, filter coefs, <code>Expected IMEP</code>. Out: <code>SyncCylPres [bar]</code>, <code>9049_CalculatedVariablesRaster</code>.</td>
+</tr>
+<tr>
+<td><code>APC_9049_PPhaseCorrection.vi</code></td>
+<td>Phase-corrects the 6 cylinder-pressure channels using a circular buffer of the last 2 cycles; firing-order init offsets 0,4800,2400,6000,1200,3600 (samples); outputs mean system/exhaust pressure, prechamber peak diff; TDC-fail detection [Deck p.31].</td>
+</tr>
+<tr>
+<td><code>support/APC_HRL.vi</code></td>
+<td>Heat-release umbrella: volume → pegging → zero-phase filters → apparent HRL → IMEP → MAPO → <code>CombustionAnalysisCluster</code> (IMEPn/g, PMEP, Pmax, MAPO, RI, CA03/10/50/90/97, CA10CA90, maxdp/dCAD, maxQ, kappas) + <code>Pcyl_Diag</code> [Ovw p.40]. TODOs: BMEP/BSFC/BSFE/OFR.</td>
+</tr>
+<tr>
+<td><code>APC_9049_HRL_volume.vi</code></td>
+<td>Cylinder volume V(θ), dV/dθ, surface area at 0.1 CAD from geometry cluster. Author flags: "FIX STROKE CALC", "Verify formula", "not accurate with crankpin offset", "IVC/EVO/EVC to be updated" [Ovw p.45].</td>
+</tr>
+<tr>
+<td><code>APC_9049_HRL_pegging.vi</code></td>
+<td>Pegs LP-filtered Pcyl to LP-filtered exhaust pressure over a window (default index 6900, length 200).</td>
+</tr>
+<tr>
+<td><code>APC_9049_HRL_ZeroPhaseFIlter.vi</code> / <code>…BP.vi</code></td>
+<td>Zero-phase (forward-backward) IIR filtering; BP variant band-pass (used by MAPO).</td>
+</tr>
+<tr>
+<td><code>APC_9049_HRL_CreateFilter.vi</code></td>
+<td>Builds the Butterworth IIR coefficient clusters.</td>
+</tr>
+<tr>
+<td><code>APC_9049_HRL_apparentHRL.vi</code></td>
+<td>Single-zone apparent heat release: fits polytropic κ, dQ/dθ = κ/(κ−1)·P·dV + 1/(κ−1)·V·dP; calls <code>MFB</code> + <code>CA</code> (+ <code>cumsum_dQ</code>, <code>APC_CAD_derivative</code>).</td>
+</tr>
+<tr>
+<td><code>APC_9049_HRL_IMEP.vi</code></td>
+<td>Pmax, IMEPn (720°), IMEPg (compression+power, CAD 180–540), PMEP.</td>
+</tr>
+<tr>
+<td><code>APC_9049_HRL_MAPO.vi</code></td>
+<td>Knock metric: max amplitude of band-pass-filtered pressure oscillation.</td>
+</tr>
+<tr>
+<td><code>APC_9049_HRL_preChamber.vi</code></td>
+<td>Cylinder-6 prechamber pressure handling (peak differential).</td>
+</tr>
+<tr>
+<td><code>APC_9049_MFB.vi</code></td>
+<td>Rescales cumulative Q to 0–1 → mass fraction burned.</td>
+</tr>
+<tr>
+<td><code>APC_9049_CA.vi</code></td>
+<td>Finds CA03/10/50/90/97 crossings of the MFB curve (author query: "is first sample −360 or −359.9?").</td>
+</tr>
+<tr>
+<td><code>cumsum_dQ.vi</code></td>
+<td>Cumulative sum of heat-release increments <em>(inference)</em>.</td>
+</tr>
+<tr>
+<td><code>support/APC_CAD_derivative.vi</code></td>
+<td>Derivative w.r.t. crank angle <em>(inference)</em>.</td>
+</tr>
+<tr>
+<td><code>support/APC_Pcyl_Diag.vi</code></td>
+<td>Cylinder-pressure diagnostics vs thresholds from <code>LoadWarningConfig</code> (running IMEP std via PtByPt std-dev); feeds warning flags.</td>
+</tr>
+<tr>
+<td><code>support/APC_9049_CombCluster2Array.vi</code></td>
+<td>Flattens the combustion cluster → <code>9049_CalculatedVariablesRaster</code>; evaluates warning flags (max pressure, misfire self-reg / cyl-to-cyl / IMEP, cyclic variability, knock, late combustion) and <strong>sets <code>9049_Global_CylPressError</code></strong> (the spark/DI gate input); consumes <code>APC_SLAVE_ClearWarnings</code>; calls <code>keyCA50</code>/<code>keyKnock</code> [Deck p.33].</td>
+</tr>
+<tr>
+<td><code>APC_9049_keyCA50.vi</code> / <code>APC_9049_keyKnock.vi</code></td>
+<td>Pull the CA50 / knock values out of the metrics set (feed <code>9049_Global_CA50</code> / <code>_SensedKnock</code>) <em>(inference)</em>.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="9049-commandtelemetry-plumbing-support-vis">9049 command/telemetry plumbing (support VIs)</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>VI</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>APC_9049_ControlSettingsRaster.vi</code></td>
+<td>Packs the 9049 command subset into the SGL array written to <strong><code>9049_ControlSettings</code></strong>. Confirmed order (2026-07-07 reprint): [0] 9049 STATE (u8), [1] InjectionEnable, [2] MainEnable, [3] MainDuration (ms), [4] MainSOI (DBTDC), [5] SparkEnable, [6] SparkTiming (DBTDC), [7] Speed (RPM); booleans as 1/0. Modeled in <code>supervisory/monarch/settings_9049.py</code> (<code>from_array</code>/<code>to_array</code>).</td>
+</tr>
+<tr>
+<td><code>APC_9049_ControlSettingsPolling.vi</code></td>
+<td>A bare read of the <code>9049_ControlSettings</code> shared variable, returned as the raw DBL array — no unpacking; consumers index it (layout above). Author comment: "Gathering of system wide information on the applied controls… this could be in the 10 ms timed loop."</td>
+</tr>
+<tr>
+<td><code>APC_9049_SharedVarBroadcast.vi</code></td>
+<td>Publishes <code>9049_MeasAndCalc</code> (flat DBL array of measurements + combustion metrics) and <code>SyncCylPres [bar]</code> (selected pressure trace; channel chosen by <code>9049_SelectBroadcastVar</code>).</td>
+</tr>
+<tr>
+<td><code>APC_9049_9056SharedVarPolling.vi</code></td>
+<td>Reads <code>9056_MeasAndCalc</code> → 9056 IO array + timestamp + <code>SystemState</code> (name registry via <code>APC_9056_Signals</code>). Also used on the PC.</td>
+</tr>
+<tr>
+<td><code>APC_9049_SensorCalibration.vi</code></td>
+<td>Builds the scaled CAS DAQmx task (custom scales = sensor calibrations); calls the per-card config VIs of <em>both</em> chassis to assemble the global name registry.</td>
+</tr>
+<tr>
+<td><code>APC_9049_NI9222conf.vi</code></td>
+<td>Channel config (names/offsets/gains/units) for the NI 9222 AI cards (cylinder pressures etc.). The "enter once" per-card config pattern [Report].</td>
+</tr>
+<tr>
+<td><code>APC_9049_CycleAvgSignals.vi</code></td>
+<td>Name registry for the 9049 cycle-averaged variable array (confirmed from the 2026-07-14 print: Build Array of TimeStamp + ControlSettingsRaster + CycleRaster name lists → <code>CRIo9049_CycleAvgSignals</code>).</td>
+</tr>
+<tr>
+<td><code>APC_9049_LoadWarningConfig.vi</code></td>
+<td>Loads/saves cylinder-diagnostic warning thresholds from/to XML; publishes <code>9049_WarningLevels</code>.</td>
+</tr>
+<tr>
+<td><code>APC_9049_checkAI.vi</code></td>
+<td>Verifies an acquisition block has 7200 columns (a full cycle).</td>
+</tr>
+<tr>
+<td><code>APC_9049_rpm.vi</code></td>
+<td>Engine speed from the DAQ data.</td>
+</tr>
+<tr>
+<td><code>APC_9049_FilesPathFormation.vi</code></td>
+<td>Builds log-file paths per the naming convention (<code>APC_CRIO9049_DATE_HOUR_TESTCODE_ID_*</code>).</td>
+</tr>
+<tr>
+<td><code>APC_9049_SaveTestAverageValues.vi</code></td>
+<td>AVG/STD/MIN/MAX rows for the test-averaged file.</td>
+</tr>
+<tr>
+<td><code>APC_9049_SparkSettings.vi</code></td>
+<td>Spark advance (DBTDC) + cutoff → <code>SparkControl</code> cluster in CAT/ticks via <code>Offset2CAT</code>/<code>time2ticks</code>. <strong>Dwell hard-coded locally: 4 ms (min 2, max 6)</strong> [Deck p.15].</td>
+</tr>
+<tr>
+<td><code>APC_9049_KnockCA50Control.vi</code></td>
+<td>PID spark-advance trim to a CA50 setpoint, with knock override (knock sensed → retard by Delay_Knock; else creep forward by Advance_No_Knock). Reads <code>9049_Global_CA50</code>/<code>_SensedKnock</code>. <strong>Both enables FALSE in lab config</strong> — manual SA passthrough [Deck pp.17–19].</td>
+</tr>
+<tr>
+<td><code>APC_9049_float2u16.vi</code> / <code>APC_9049_u162float.vi</code></td>
+<td>Pack/unpack float ↔ 2×U16 (Modbus registers; used by <code>UI_System</code>).</td>
+</tr>
+<tr>
+<td><code>APC_AppendUnits.vi</code> / <code>APC_ReplaceInNames.vi</code></td>
+<td>Signal-name utilities: append unit suffixes (<code>_bar</code>, <code>_degC</code>, <code>_b</code>, …); replace <code>-</code>→<code>_</code> for Matlab-safe names [DATALOG].</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="crio-9049-fpga-layer">cRIO-9049 — FPGA layer</h2>
+<h3 id="apc_9049_fpga_mainvi-40-mhz-single-cycle-fpga-main">APC_9049_FPGA_main.vi — 40 MHz single-cycle FPGA main</h3>
+<p>Five sections [Deck pp.36–41]:
+- <strong>A</strong> — configure NI-9401 DIO direction (Mod3: DIO0–3 in = enc A/B/Z + cam, DIO4–7 out;
+  Mod4: all 8 out) and wait 1–2 s → <code>NI9401 Ready</code>.
+- <strong>B</strong> — 500 ms heartbeat frame: <code>FPGA Heartbeat</code>, LED blink, <code>Chassis Temp Raw (×4 C)</code>
+  (host converts), <code>dT HB (ms)</code>.
+- <strong>C</strong> — encoder conditioning: per-signal deglitch low-pass filters (thresholds in clock
+  ticks) → <code>ept_enc_vte2_revc</code> (NI Powertrain EPT, encoder pattern, EXTRAP=2 bits).
+  Setup modes: real cam (<code>Must Use Cam &amp; Z</code>=T) / 4-stroke cam-less (<code>1/2 Z pulse</code>=T →
+  synthetic 720° cam from every other Z; <code>toggle TDC</code> inverts it) / 2-stroke.
+- <strong>D</strong> — DAQ triggers: <strong>Trig0 = conditioned ENC A = the sample clock for cylinder-pressure
+  DAQ</strong>; Trig1 = synthetic once-per-cycle pulse at <code>TRIG1_offset_ticks</code> (width = one cam
+  tooth). Trig3 routable to PFI0 for debug/broadcast.
+- <strong>E</strong> — actuation: <code>di_supv_exp_revf5</code> (DI driver supervisor; emits the <strong><code>Key</code></strong> that
+  unlocks spark) + <code>esttl_vt_spark_reva</code> (spark out; needs Key + SparkControl +
+  FuelSparkSupervisor from EPT). DI 1–6 → Mod5/Mod6 (NI 9751 DI-driver modules);
+  Spark 1–6 → Mod4/DIO0–5.</p>
+<p><strong>The safety anchor:</strong> EPT's <code>WatchdogIn</code> must be toggled &gt;4 Hz by the RT side
+(<code>TS10ms_loop</code>); on loss of RT↔FPGA communication it <strong>shuts down engine position
+tracking and all engine-synchronous outputs</strong> (spark/DI die with it) [GDoc p.2]. Sync loss
+(<code>MissedCrankFlag</code>/<code>MissedCamFlag</code>) latches until explicitly cleared.</p>
+<h3 id="apc_9049_fpga_igndi_supervisorvi-igndi-activity-counter">APC_9049_FPGA_IGNDI_supervisor.vi — IGN/DI activity counter</h3>
+<p>Per-channel timers over SI1–6 + DI1–6: a channel with no rising edge within
+<code>Time out limit</code> ticks is inactive; publishes <code>NumberOfActiveIGN_DI</code> (12 = all healthy on
+6 cylinders), factoring <code>CrankStalled</code>/<code>SyncStopped</code> [Deck pp.43–46].</p>
+<h3 id="third-party-fpgart-chain-ni-powertrain-controls-on-disk-inside-the-vis">Third-party FPGA/RT chain (NI Powertrain Controls, on disk inside the VIs)</h3>
+<p><code>ept_revc</code> / <code>ept_enc_vte2_revc</code> (position tracking), <code>PlsGen_StdA5_revf5</code> (5-pulse DI
+pulse generator; GDoc calls it PlsGen_StdT5), <code>PlsGen_Time_Convert_revf5</code> (ms/angle →
+ticks/CAT, up to 5 pulses, non-overlapping windows; 5 ms max pulse by default),
+<code>di_supv_revf5</code>/<code>di_supv_exp_revf5</code> + <code>di_rt_control_revf5</code>/<code>di_rt_iphase_conv_revf5</code>
+(DI driver + 8-phase current profile), <code>esttl_vt_spark_reva</code> (spark),
+<code>time2ticks</code>/<code>Offset2CAT</code>/<code>ticks2speed</code> (unit conversions), <code>filt_int_reva</code> (deglitch),
+<code>one_shot_s1_reva</code>. Documented in [GDoc] and [Deck]; treat as vendor library.</p>
+<hr />
+<h2 id="crio-9056-rt-layer">cRIO-9056 — RT layer</h2>
+<h3 id="apc_9056_rt_mainvi-9056-top-level">APC_9056_RT_main.vi — 9056 top level</h3>
+<p>Startup: <code>LoadINI</code> (pushes XML/INI-persisted PID gains + warning limits into all
+controllers), <code>SensorCalibrations</code> (build DAQ tasks + name registry), then <code>TS_loop</code>
+forever.</p>
+<h3 id="apc_9056_ts_loopvi-plant-control-loop-the-supervisory-heart">APC_9056_TS_loop.vi — plant control loop (the supervisory heart)</h3>
+<p>~5 parallel loops; the <strong>control loop is paced by the NI9205 DAQmx block read at ~20 ms
+(~50 Hz)</strong> (confirmed live 2026-07-07 — the <code>1000 ms</code> wait belongs to a separate
+housekeeping/streaming loop). Each control tick: read AI → sensor signals → run
+<code>WarningIntegration</code>, <code>WatchDog</code>, <strong><code>StateMachine</code></strong>, then the per-subsystem controllers
+(<code>NGControl</code>, <code>O2Control</code>, <code>ArControl</code>, <code>TcoolantControl</code>, <code>TexhControl</code>, <code>ToilControl</code>,
+<code>DynoControl</code>, <code>MTRsignals</code>), convert outputs via <code>0_100_to_4_20mA</code>/<code>rpm_to_4_20mA</code>,
+write AO/DIO through <code>APC_9056_FPGA_main</code>, publish <code>9056_MeasAndCalc</code>
+(<code>SharedVarBroadcast</code>) and toggle <code>9056_HeartBeat</code>. Controller→actuator map [Ovw p.62]:
+O2→<code>O2-FC-001-REF</code>, Ar→<code>N-PC-002-REF</code>, NG→<code>NG-FC-001-REF</code>, Tcoolant→<code>EC-FC-001-REF</code>,
+Texh→<code>SW-FC-004-REF</code>, Toil→<code>SW-FC-009-REF</code>, Dyno→<code>DYNO-REF</code>; PC override switches route
+NG/Ar/O2/vents to <code>NG-FV-001</code>, <code>O2-PV-004</code>, <code>AR-PV-004</code>, <code>WF-FC-001/002/003</code>.
+Front panel carries the <strong>unbound dev controls <code>ForceState</code>/<code>ManualState</code></strong> (see gotchas).
+The leftover <code>APC_9053_FPGA_main.vi</code> reference sits in a <strong>Disabled</strong> diagram frame from
+the lab-substitute cRIO-9053 era [Report; export d1 page]. Note: the export in
+<code>../APC_9056_TS_loop/</code> (2026-07-07 22:49) <strong>post-dates the B0 rewiring</strong> — its main
+diagram shows the as-wired WatchDog→Select(−1:3)→Min→StateMachine chain and the <code>*_SM</code>
+telemetry-tap variables (verified by direct image inspection), even though the <code>.vi</code>
+binary in this folder is the earlier snapshot.</p>
+<h3 id="apc_9056_statemachinevi-the-supervisory-state-machine-ported-supervisorymonarchstate_machinepy">APC_9056_StateMachine.vi — THE supervisory state machine (ported → <code>supervisory/monarch/state_machine.py</code>)</h3>
+<p>"Turns <code>PC_ControlSettings</code> into <code>Limited_ControlSettings</code> and updates SYSTEM STATE,
+never allowing a controller to run at a level higher than what the current state and the
+state limitations from warnings permit" [Ovw p.74]. Inputs: <code>CURRENT SYSTEM STATE</code>,
+<code>STATE LIMITATION FROM WARNINGS</code>, <code>PC_ControlSettings</code>, <code>ForceState</code>, <code>ManualState</code>.
+Outputs: <code>SYSTEM STATE</code>, <code>Limited_ControlSettings</code> (+ diagnostic terminals for each
+limitation source). Logic: state = <strong>min</strong>(requested, warnings limit, Force-idling→≤2,
+Force-motoring→≤1, EMERGENCY STOP→−1), clamped to <strong>+1 per tick</strong> on the way up;
+<code>ForceState=TRUE</code> overrides everything with <code>ManualState</code> (including e-stop — see
+gotchas). The <strong>executed</strong> 16-row limiting array (pixel-verified from the full-res
+2026-07-07 re-export; rows × states −1/0/1/2/3, plus the doc table's safe level):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Controller</th>
+<th>SAFE</th>
+<th>STAND_BY</th>
+<th>MOTORING</th>
+<th>IDLING</th>
+<th>FIRING</th>
+<th>safe level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>NG feed</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td><strong>6</strong>¹</td>
+<td>closed</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Ar feed</td>
+<td>0</td>
+<td>0</td>
+<td><strong>3</strong>²</td>
+<td>3</td>
+<td>3</td>
+<td>closed</td>
+</tr>
+<tr>
+<td>2</td>
+<td>O2 feed</td>
+<td>0</td>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>closed</td>
+</tr>
+<tr>
+<td>3</td>
+<td>COOL TEMP</td>
+<td>1</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>max flow</td>
+</tr>
+<tr>
+<td>4</td>
+<td>EXH TEMP</td>
+<td>1</td>
+<td><strong>3</strong>¹</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>max flow</td>
+</tr>
+<tr>
+<td>5</td>
+<td>OIL TEMP</td>
+<td>1</td>
+<td><strong>3</strong>¹</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>max flow</td>
+</tr>
+<tr>
+<td>6–8</td>
+<td>INT/CROSS/EXH VENT</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>open</td>
+</tr>
+<tr>
+<td>9</td>
+<td>DYNO</td>
+<td>0</td>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>stopped</td>
+</tr>
+<tr>
+<td>10</td>
+<td>IGN</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>off</td>
+</tr>
+<tr>
+<td>11</td>
+<td>DI</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>off</td>
+</tr>
+<tr>
+<td>12</td>
+<td>MTR</td>
+<td>0</td>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>TBD</td>
+</tr>
+<tr>
+<td>13–15</td>
+<td><strong>NG/Ar/O2 feed valves</strong></td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>closed</td>
+</tr>
+</tbody>
+</table></div>
+<p>¹ NOT typos (resolved 2026-07-08 via the controller exports): mode enums extend past
+2 — cap 3 permits <strong>cascaded</strong> closed loop (Texh/Toil/Ar), and NG's 6 permits every NG
+feedback mode (4/5/6 = lambda/IMEP/torque select).
+² The on-diagram documentation table says Ar = 2s, but the executed array constant has
+3s — a real difference: the executed value permits cascaded Ar control from MOTORING,
+the doc table's 2 would forbid it.
+Note rows 13–15: the feed shutoff valves are <strong>forced closed only in SAFE</strong>; in all
+other states the requested valve position passes through — leaving FIRING, gas is cut
+by the feed-controller modes going to 0, not by the valves.
+<code>PostMortemSave</code> = <code>(CURRENT SYSTEM STATE &gt; new state) ∧ ¬ForceState</code> — a manually
+forced drop does not trigger the post-mortem dump. <code>DisregardWarnings</code> bypasses the
+<strong>entire</strong> limiter, not just warnings. <strong><code>APC_9056_StateMachine.vi</code> = current 2026
+version; <code>_v2</code> on disk elsewhere is an older 2024 draft, not newer.</strong></p>
+<h3 id="apc_9056_warningintegrationvi-warnings-state-limitation">APC_9056_WarningIntegration.vi — warnings → state limitation</h3>
+<p>Compares NI9205/9208/9214 channel arrays + a named process-signal cluster (AR-FT-001,
+NG-FC-001, WF-OA-001/002, temperatures, IMEPn6, TORQUE, CylPresWarnings/Errors, …)
+against <code>Raster*_limits</code> thresholds (INI-persisted; commanded via the
+<code>9056_Set/Retrieve/Save/LoadWarnings*</code> shared variables; raster = one 9056 AI card —
+see the UI_Errors entry), publishes the
+<code>Raster1–5_Warnings/_WarningLevels/_WarningSign</code> + <code>Cylinder_Warnings</code> arrays, and
+outputs <strong><code>STATE LIMITATION FROM WARNINGS</code></strong> (I8) for the StateMachine. Handles operator
+clears (<code>APC_MASTER/SLAVE_ClearWarnings</code>) with <code>ClearSoftWarning</code> (yellow = self-clearing).
+Also stall-detects the 9049 + 9056-FPGA heartbeats (counter vs threshold 10) — but those
+flags drive <strong>front-panel indicators only</strong> (see gotchas).</p>
+<p><strong>Full as-built semantics decoded 2026-07-14</strong> (page-by-page re-read + the warning-helper
+prints) → <strong><code>docs/9056-warning-policy-asbuilt.md</code></strong>. Highlights: limits are <strong>4 severity
+tiers × 16 slots per raster</strong> (<code>value×sign &lt; limit×sign</code>, severity = highest tier tripped,
+legend 1 soft/self-clear · 2 → idle · 3 → motoring · 4 → safe+vent); per-slot severities
+<strong>max-latch</strong> (soft 1s auto-zeroed by <code>ClearSoftWarning</code>; MASTER clear zeroes all + fires
+the SLAVE handshake to the 9049); <code>ErrorMask</code> gates trips by state (nothing armed in
+SAFE/STAND_BY, everything from MOTORING up); cylinder flags score <code>error?3:(warning?1:0)</code>
+via <code>MergeCylErrors</code> — a 9049 cylinder ERROR clamps to <strong>MOTORING, not SAFE</strong>; the
+<code>MaskErrors</code>/CylinderMask post-hoc masking design sits in a <strong>Disabled diagram frame</strong>
+(dead code).</p>
+<h3 id="apc_9056_watchdogvi-liveness-watchdog-detection">APC_9056_WatchDog.vi — liveness watchdog (detection)</h3>
+<p>Monitors four heartbeats: <code>9056_HeartBeat</code>, <code>9049_HeartBeat</code>, and <code>PC_HB</code>/<code>MTR HB</code>
+carried inside <code>PC_ControlSettings.PID control references</code>. Per heartbeat: a counter
+increments each ~20 ms iteration the value is <em>unchanged</em> and trips <code>*notResponding</code>
+past a threshold. The threshold inputs are <strong>not wired at the TS_loop call site</strong>, so
+the VI's saved front-panel values are the deployed configuration. <strong>Deployed values
+(reprint 2026-07-07 23:41):</strong> <code>Iteration Time [ms]</code> ≈ 20–21, <code>PCwatchdogThreshold</code> =
+<strong>250</strong> (= 5 s, per the sizing analysis in <code>docs/migration-seam.md</code> — 50 would
+false-trip on the ~1 Hz PC heartbeat), 9056/9049/MTR thresholds = 50 (= 1 s; fine for
+the fast RT heartbeats, and the MTR flag is indicator-only). The reprinted panel also
+carries an in-VI doc label: iteration time is set by the NI9205 DAQmx 20-sample block
+read (~20 ms), so thresholds are multiples of 20 ms. In this snapshot the
+outputs are <strong>unwired</strong> at the TS_loop call site; the live project (2026-07-07) wires
+<code>PCnotResponding ∨ 9049notResponding → Select(−1:3) → Min →</code> StateMachine warnings input
+— verified by a real PC-drop test.</p>
+<h3 id="9056-subsystem-controllers-the-shared-mode-pattern">9056 subsystem controllers — the shared mode pattern</h3>
+<p>All six are copies of one template (<code>TEMPLATEControl</code> is the blank scaffold, <strong>no
+callers</strong>); facts below verified from the full exports (2026-07-07/08). Inputs =
+signal cluster + <code>PC_ControlSettings</code> + <code>LoadIni?</code>. Mode (from <code>PID control
+references.&lt;X&gt; control mode</code>): <strong>0 = safe → output forced to the XML-configured
+<code>Safe mode control</code> value</strong> (currently 0.00 everywhere; not hard-coded, not
+last-value); <strong>1 = manual → the <code>&lt;X&gt;-REF (manual)</code> reference passes straight
+through</strong>; <strong>2 = closed loop (NI <code>PID Advanced</code>)</strong>; cascade VIs add <strong>3 = cascaded</strong>
+(HL PID sets the LL PID's setpoint); NG adds <strong>4/5/6 = feedback select</strong>. Common
+plumbing: <code>Override PC PID references</code> selects PC-supplied vs local references (mode
+itself always comes from the PC); a <code>learn?</code> boolean captures feed-forward into
+<code>FF control</code>; <strong>every PID runs with hard-wired <code>dt = 0.100 s</code></strong> (see gotchas); per-loop
+settings (gains, ranges, FF, safe value) persist to <code>…/bin/APC_9056_&lt;X&gt;_Settings.xml</code>.
+The StateMachine's limiter caps each VI's mode.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>VI</th>
+<th>Structure</th>
+<th>PID PV → setpoint ref</th>
+<th>Output</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>APC_9056_NGControl.vi</code></td>
+<td>Single PID + feedback selector</td>
+<td>mode 2/4: <strong>1/λ</strong> from <code>WF-OA-002</code> → <code>WF-OA-002-REF</code>; mode 5: <code>IMEPn6</code> → <code>IMEP-REF</code>; mode 6: <code>TORQUE</code> → <code>Nm-REF</code> (per-feedback gain sets)</td>
+<td><code>NG-FC-001-REF</code></td>
+<td>Diagram note: the flow regulator does the low-level control, so no cascade needed. <strong>XML path is Windows-style <code>home:\…</code></strong> (others POSIX) — persistence may fail on Linux RT.</td>
+</tr>
+<tr>
+<td><code>APC_9056_O2Control.vi</code></td>
+<td>Single PID + NG feed-forward</td>
+<td><strong><code>EC-TT-001</code> (a coolant temp — mis-wired, see gotchas)</strong> → <code>WF-OA-001-O2corr-REF</code></td>
+<td><code>O2-FC-001-REF</code></td>
+<td>Switchable <code>compensate NG</code> feed-forward: NG flow (<code>NG-FT-001</code>/<code>NG-FC-001</code> via <code>FT/FC?</code>) × <code>O2/NG</code> ratio (default 3) added after the PID. (The overview p.64 said this compensation "should not be used"; no red box exists in the as-built VI.)</td>
+</tr>
+<tr>
+<td><code>APC_9056_ArControl.vi</code></td>
+<td><strong>Cascade</strong></td>
+<td>HL: <code>WF-PT-004</code> (system pressure) → <code>WF-PT-004-REF</code>; LL: <code>AR-FT-001</code> (Ar flow) → HL output (or <code>AR-FT-001-REF</code>)</td>
+<td><code>AR-PC-002-REF</code></td>
+<td>Both PIDs captioned <strong>"Warning hysteresis!"</strong>. Panel notes: start with lower pressure reference; pressure-release mechanism TBD. LL manual ref mislabeled <code>SW-FT-001-REF</code>.</td>
+</tr>
+<tr>
+<td><code>APC_9056_TcoolantControl.vi</code></td>
+<td>Single PID</td>
+<td><code>EC-TT-001</code> → <code>EC-TT-001-REF</code></td>
+<td><code>EC-FC-001-REF</code> (% → 4–20 mA)</td>
+<td>The simplest of the family (modes 0/1/2 only).</td>
+</tr>
+<tr>
+<td><code>APC_9056_TexhControl.vi</code></td>
+<td><strong>Cascade</strong></td>
+<td>HL: <code>WF-TT-004</code> (WF temp at exh HX) → <code>WF-TT-004-REF</code>; LL: <code>SW-FT-002</code> (water flow) → HL output (or <code>SW-FT-002-REF</code>)</td>
+<td><code>SW-FC-004-REF</code> (% → 4–20 mA)</td>
+<td>HL PV <em>indicator</em> mislabeled <code>WF-TT-001</code> (wire is <code>WF-TT-004</code>). Panel gains all 0 — relies on its XML.</td>
+</tr>
+<tr>
+<td><code>APC_9056_ToilControl.vi</code></td>
+<td><strong>Cascade</strong></td>
+<td>HL: <code>EO-TT-001</code> (oil temp) → <code>EO-TT-001-REF</code>; LL: <code>SW-FT-004</code> (water flow) → HL output (or <code>SW-FT-004-REF</code>)</td>
+<td><code>SW-FC-009-REF</code> (% → 4–20 mA)</td>
+<td>Same shape as Texh.</td>
+</tr>
+<tr>
+<td><code>APC_9056_DynoControl.vi</code></td>
+<td>Single PID</td>
+<td><code>EngineSpeed_rpm</code> → <code>Speed ref</code> (PC cluster; manual refs <code>SpeedSetpointForPID</code>/<code>SpeedReference</code>)</td>
+<td><code>DYNO-REF</code></td>
+<td>Modes 0/1/2 only. Cosmetic copy-paste leftovers: modes comment box says "Tcool CONTROL MODES"; XML cluster labels say "LL …".</td>
+</tr>
+<tr>
+<td><code>APC_9056_MTRsignals.vi</code></td>
+<td>—</td>
+<td>—</td>
+<td><code>MTR signals array</code></td>
+<td>Unpacks the MTR fields (<code>MTR modbus floats</code>/<code>u16</code>) carried inside <code>PC_ControlSettings</code> for logging/broadcast <em>(inference; the Modbus master is on the PC)</em>.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Thermal loops fail to <strong>max cooling</strong> in SAFE (safe level = max flow).</p>
+<h3 id="other-9056-support-vis">Other 9056 support VIs</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>VI</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>APC_9056_LoadINI.vi</code></td>
+<td>Startup: calls every controller + <code>WarningIntegration</code> in load-config mode (XML PID gains, warning limits).</td>
+</tr>
+<tr>
+<td><code>APC_9056_SensorCalibrations.vi</code></td>
+<td>Builds the 9056 DAQmx tasks + custom scales; calls the card-config VIs + <code>SetPathsTS</code>.</td>
+</tr>
+<tr>
+<td><code>APC_9056_NI9205conf.vi</code> / <code>NI9208conf.vi</code> / <code>NI9214conf.vi</code></td>
+<td>Channel name/offset/gain/unit registries per AI card (9205 ±10 V, 9208 4–20 mA, 9214 thermocouples).</td>
+</tr>
+<tr>
+<td><code>APC_9056_Signals.vi</code></td>
+<td>Assembles the full 9056 signal-name registry from the card configs + <code>additonalSignals</code>.</td>
+</tr>
+<tr>
+<td><code>APC_9056_additonalSignals.vi</code></td>
+<td>Names of derived/computed extra signals <em>(inference)</em>.</td>
+</tr>
+<tr>
+<td><code>APC_9056_SetPathsTS.vi</code></td>
+<td>Builds the TS log-file path (<code>APC_CRIO9056_DATE_HOUR_10Hz</code>) <em>(inference)</em>.</td>
+</tr>
+<tr>
+<td><code>APC_9056_SharedVarBroadcast.vi</code></td>
+<td>Publishes <code>9056_MeasAndCalc</code>.</td>
+</tr>
+<tr>
+<td><code>APC_9056_9049SharedVarPolling.vi</code></td>
+<td>Reads <code>9049_MeasAndCalc</code> (names via <code>APC_9049_CycleAvgSignals</code>).</td>
+</tr>
+<tr>
+<td><code>APC_9056_ErrorMask.vi</code></td>
+<td><strong>Per-state arming masks</strong> (printed 2026-07-14). In: <code>SYSTEM STATE</code> only. Out: <code>raster1..5mask</code> + <code>CylinderMask</code> from saved boolean tables — rasters all-OFF in SAFE/STAND_BY, all-ON from MOTORING up; CylinderMask arms only MaxPressure+Knock and only in IDLING/FIRING. A low-speed AND branch exists but is inert (<code>EngineSpeed</code> not on the connector pane, low-speed table all-TRUE).</td>
+</tr>
+<tr>
+<td><code>APC_9056_MaskErrors.vi</code></td>
+<td>Elementwise <code>mask ? warning : 0</code> (U8 severities). <strong>Dead as-built</strong> — all call sites in a Disabled diagram frame of WarningIntegration (print d9).</td>
+</tr>
+<tr>
+<td><code>APC_9056_MergeCylErrors.vi</code></td>
+<td>9049 flag matrices → five severity scalars (MaxPress, Misfire[rows 1–3 merged], CyclicVar, Knock, LateComb); per element <code>error ? 3 : (warning ? 1 : 0)</code>, max over cylinders. Row order: 0 MaxPress · 1–3 misfire variants · 4 CyclicVar · 5 Knock · 6 LateComb.</td>
+</tr>
+<tr>
+<td><code>APC_9056_ClearSoftWarning.vi</code></td>
+<td>Elementwise <code>x==1 ? 0 : x</code> ("Warning vector 0 to 4") — clears soft warnings only, ≥2 stay latched.</td>
+</tr>
+<tr>
+<td><code>APC_9056_WarningBool.vi</code>, <code>ForceArraySize16.vi</code>/<code>6b.vi</code></td>
+<td>Threshold booleans, array-size normalization <em>(inference from names/wiring)</em>.</td>
+</tr>
+<tr>
+<td><code>APC_0_100_to_4_20mA.vi</code> / <code>APC_rpm_to_4_20mA.vi</code></td>
+<td>Scale 0–100 % / rpm → 4–20 mA AO values.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="apc_9056_fpga_mainvi-9056-fpga-bridge-rt-stall-safe-hold">APC_9056_FPGA_main.vi — 9056 FPGA (bridge + RT-stall safe-hold)</h3>
+<p>I/O bridge between the C-series modules (NI 9375 DIO, 9264 AO 0–10 V, 9266 AO 4–20 mA)
+and RT [Report §B.2] — <strong>but not logic-free (print 2026-07-14)</strong>: an <code>RT watchdog</code>
+boolean the RT side must keep toggling is edge-checked on a 10 ms clock; <code>Counter max</code>
+(default 100 ⇒ 1 s) overflow → <em>"SAFE state is applied if RT watchdog is not alive"</em> —
+<strong>all AOs 0, all DOs FALSE</strong>. So the 9056 has a below-RT hardware fallback symmetric to
+the 9049 FPGA watchdog. Also: 0.5 s <code>FPGA Hearbeat</code> (→ <code>9056_HeartBeat</code>), chassis temp,
+and a <code>cRIO_Trig7</code> toggle-period → <code>Detected mode</code> decoder (13-entry table; producer and
+consumer unidentified — open question). Panel: "low level FPGA interface only — use RT
+module to configure." Separate 9053/9056 variants existed for the lab-vs-plant chassis
+swap. Details: <code>docs/9056-warning-policy-asbuilt.md</code> (side findings).</p>
+<hr />
+<h2 id="data-logging-who-writes-what">Data logging (who writes what)</h2>
+<p>Four files, stored on the cRIO SSDs [DATALOG]:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Producer</th>
+<th>Format</th>
+<th>Trigger</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*_CAS.tdms</code></td>
+<td>9049 <code>SAVE_loop</code></td>
+<td>TDMS, 1/test</td>
+<td>operator REC <strong>or error</strong></td>
+<td>raw CAS AI (Pcyl1–6, Ppre, Psyst, Pexh), 7200 rows/cycle, ≤1000 cycles; pre-trigger mode keeps the buffer before REC.</td>
+</tr>
+<tr>
+<td><code>*_CycleAVG.tdms</code></td>
+<td>9049 <code>SAVE_loop</code></td>
+<td>TDMS, 1/test</td>
+<td>operator or error</td>
+<td>1 row/cycle: combustion metrics + 9049 control echoes + 9056 TS variables + MTR block.</td>
+</tr>
+<tr>
+<td><code>APC_CRIO9049_DATE_TESTCODE.txt</code></td>
+<td>9049 <code>SAVE_loop</code></td>
+<td>ASCII, 1/campaign</td>
+<td>appended per recording</td>
+<td>4 rows (AVG/STD/MIN/MAX) × all CycleAVG columns; <code>Warning</code> column = 0 (operator) or error code (error-triggered); trailing file-name + test-notes columns.</td>
+</tr>
+<tr>
+<td><code>APC_CRIO9056_DATE_HOUR_10Hz</code></td>
+<td>9056 TS_loop logging loop</td>
+<td>TDMS (doc also says .txt)</td>
+<td>automatic at startup</td>
+<td>10 Hz stream of all TS signals + MTR block + polled CAS averages.</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>DataSaveControl</code> (TEST CODE / ID / FLUSH-and-SAVE cluster) commands recording;
+<code>PostMortemSave</code> requests an error-triggered dump (the StateMachine raises it on forced
+transitions); <code>SavingInformation</code> reports back. Author flag: post-mortem behavior
+"[TO BE VERIFIED]"; MTR + PC signals were still to be routed into the logs.</p>
+<hr />
+<h2 id="shared-variables">Shared variables</h2>
+<p><code>APC_SharedVars.lvlib</code> — 60 variables, hosted on the 9049. Variable URLs inside the <code>.vi</code>
+binaries read <code>\\10.1.10.171\APC_SharedVars\…</code>, while the overview gives the cRIOs as
+172.22.10.2/.3 — presumably lab vs plant network addressing; reconcile before deploying.
+Types decoded from the lvlib. Producers/consumers from VI strings + docs; unmarked = not
+yet traced.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Type</th>
+<th>Meaning / producer → consumer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PC_ControlSettings</code></td>
+<td>cluster (<code>APC_ControlSettings.ctl</code>)</td>
+<td><strong>The operator command cluster</strong> (spark/DI/PFI settings, mode requests, e-stop, PID refs subcluster incl. <code>PC_HB</code>/<code>MTR HB</code>, MTR Modbus arrays). PC UI writes → 9049 TS10ms, 9056 TS_loop/WatchDog read. Modeled in <code>supervisory/monarch/control_settings.py</code>.</td>
+</tr>
+<tr>
+<td><code>9049_ControlSettings</code></td>
+<td>SGL array (8 elems)</td>
+<td>9049 command echo. <code>ControlSettingsRaster</code> writes → PC + 9056. Layout confirmed from the 2026-07-07 print and modeled in <code>supervisory/monarch/settings_9049.py</code> (values/scaling still to confirm against a live capture).</td>
+</tr>
+<tr>
+<td><code>Limited_ControlSettings</code></td>
+<td>—</td>
+<td><strong>Does not exist as a shared variable</strong> — it is a wire inside <code>TS_loop</code> (StateMachine output → controllers). A telemetry-only SV was added later by the gateway work.</td>
+</tr>
+<tr>
+<td><code>9049_Global_SYSTEMSTATE</code></td>
+<td>DBL</td>
+<td>The 9049's <strong>echo</strong> of system state (written by <code>CAS_loop</code>); gates spark/DI in TS10ms. Can go stale if 9049 loops stop — fails safe (low = blocked).</td>
+</tr>
+<tr>
+<td><code>9049_Global_CA50</code>, <code>9049_Global_SensedKnock</code>, <code>9049_Global_CylPressError</code></td>
+<td>DBL / bool / bool</td>
+<td>9049-local (single-process) combustion feedback: CA50 for the spark PID, knock flag, and the pressure-error flag set by <code>CombCluster2Array</code> that kills spark/DI.</td>
+</tr>
+<tr>
+<td><code>9049_HeartBeat</code>, <code>9056_HeartBeat</code></td>
+<td>bool</td>
+<td>RT liveness toggles (WatchDog + WarningIntegration + PC UI watch them).</td>
+</tr>
+<tr>
+<td><code>9049_MeasAndCalc</code>, <code>9056_MeasAndCalc</code></td>
+<td>DBL array</td>
+<td>Each chassis' flat measurement+calculation broadcast (decoded by name registries).</td>
+</tr>
+<tr>
+<td><code>SyncCylPres [bar]</code></td>
+<td>DBL array</td>
+<td>One selected live cylinder-pressure trace for the UI plot; channel picked by <code>9049_SelectBroadcastVar</code> (u8).</td>
+</tr>
+<tr>
+<td><code>IMEPg [bar]</code>, <code>IMEPn [bar]</code></td>
+<td>DBL array</td>
+<td>Per-cylinder IMEP broadcasts.</td>
+</tr>
+<tr>
+<td><code>9049_WarningLevels</code>, <code>9056_WarningLevels</code></td>
+<td>clusters</td>
+<td>Active warning-threshold sets (incl. running-IMEP-std / expected-IMEP deviation limits).</td>
+</tr>
+<tr>
+<td><code>9049_…</code> / <code>9056_…</code> <code>SetWarningLimits</code>, <code>RetrieveWarningLimits</code>, <code>SaveWarningLimitsToINI</code>, <code>LoadWarningsFromINI</code></td>
+<td>bool</td>
+<td>Command flags from the Errors UI to each chassis' warning config.</td>
+</tr>
+<tr>
+<td><code>Raster1–5_Warnings</code> / <code>_WarningLevels</code> / <code>_WarningSign</code></td>
+<td>u8 / DBL arrays</td>
+<td>The five warning "rasters" published by <code>WarningIntegration</code> for the Errors UI. <strong>Raster = one 9056 AI card</strong>: 1 = NI9205, 2 = NI9208, 3 = NI9214-1, 4 = NI9214-2, 5 = spare (from the UI_Errors export — resolves the SCADA reviewer's "what are rasters 1–5?").</td>
+</tr>
+<tr>
+<td><code>Cylinder_Warnings</code></td>
+<td>u8 array</td>
+<td>Per-cylinder combustion warnings.</td>
+</tr>
+<tr>
+<td><code>APC_MASTER_ClearWarnings</code>, <code>APC_SLAVE_ClearWarnings</code></td>
+<td>bool</td>
+<td>Operator clear (PC button) / 9049-side clear relay.</td>
+</tr>
+<tr>
+<td><code>APC_MASTER_EmergencyStop</code></td>
+<td>bool</td>
+<td>E-stop broadcast (in addition to the flag inside <code>PC_ControlSettings</code>).</td>
+</tr>
+<tr>
+<td><code>CASyncLost</code></td>
+<td>bool</td>
+<td>Crank-sync loss flag (9049 → UI resync button flashes).</td>
+</tr>
+<tr>
+<td><code>CRIOtime</code>, <code>CRIOchassisT</code></td>
+<td>u32 / DBL</td>
+<td>9049 loop time [ms] and chassis temperature.</td>
+</tr>
+<tr>
+<td><code>DataSaveControl</code>, <code>PostMortemSave</code>, <code>SavingInformation</code>, <code>SendSyncTraces</code></td>
+<td>cluster/bool</td>
+<td>Logging control (see Data logging).</td>
+</tr>
+<tr>
+<td><code>Ar_ON</code>, <code>Cond_ON</code>, <code>Cool_ON</code>, <code>DYNO_ON</code>, <code>ExhVENT_ON</code>, <code>IGN_DI_ON</code>, <code>IntVENT_ON</code>, <code>O2_ON</code>, <code>PFI_ON</code>, <code>MTR</code></td>
+<td>u8</td>
+<td>Per-subsystem status/level flags (0/1/2 mode levels) <em>(inference; consumers not traced)</em>.</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>APC_PCglobalVars.lvlib</code> (PC-local): <code>PC_Global_Errors</code> (color-box cluster),
+<code>PC_Global_ListboxVarBroadcast*</code> (UI selections), <code>PC_GlobalVariables_DBLmain2syst</code> /
+<code>PC_GlobalVariables_PIDsyst2main</code> (Main↔System panel exchange; the PID-refs relay that
+also carries the live <code>PC_HB</code> toggle), plus a PC copy of <code>9049_Global_CA50</code>.</p>
+<h2 id="typedefs-controls">Typedefs (<code>controls/</code>)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Typedef</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>APC_ControlSettings.ctl</code></td>
+<td>The command cluster — <strong>byte-for-byte contract with Python</strong> (<code>docs/monarch-control-settings.md</code>; re-run the flatten diff when it changes).</td>
+</tr>
+<tr>
+<td><code>APC_PIDcontrolSettings.ctl</code></td>
+<td>The "PID control references" subcluster (modes, setpoints, vents, <code>PC_HB</code>/<code>MTR HB</code>, MTR Modbus arrays).</td>
+</tr>
+<tr>
+<td><code>APC_PIDCluster.ctl</code>, <code>APC_PIDsettings.ctl</code>, <code>APC_cascadePIDsettings.ctl</code>, <code>APC_NG_PIDsettings.ctl</code></td>
+<td>PID display/gain clusters (single, cascade, NG-specific).</td>
+</tr>
+<tr>
+<td><code>APC_WarningLimits.ctl</code></td>
+<td>9056 warning-threshold cluster.</td>
+</tr>
+<tr>
+<td><code>APC_CombustionMetrics.ctl</code>, <code>APC_CylMetrics.ctl</code>, <code>APC_PcylDiag.ctl</code>, <code>APC_CylDaignosticsCluster.ctl</code> (sic)</td>
+<td>Combustion-analysis result/diagnostic clusters.</td>
+</tr>
+<tr>
+<td><code>APC_DAQqueues.ctl</code></td>
+<td>CAS/CycAvg queue + signal-list cluster handed between 9049 loops.</td>
+</tr>
+<tr>
+<td><code>APC_SavingFile.ctl</code></td>
+<td>Logging control cluster.</td>
+</tr>
+<tr>
+<td><code>APC_VisualizationCluster_v2.ctl</code></td>
+<td>The PC UI named-signal cluster (max 256).</td>
+</tr>
+<tr>
+<td><code>APC_volume.ctl</code></td>
+<td>Engine geometry (bore/stroke/rod/CR/offset) for the volume calc.</td>
+</tr>
+<tr>
+<td><code>APC_ErrorCluster.ctl</code>, <code>Error Type.ctl</code>, <code>FPGA State.ctl</code>, <code>Raw Values.ctl</code>, <code>Variable References.ctl</code>, <code>support/Message Queue/*.ctl</code></td>
+<td>UI/support plumbing.</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="as-built-gotchas-read-before-trusting-any-diagram">As-built gotchas (read before trusting any diagram)</h2>
+<p>The system was <strong>built but never commissioned</strong>; the original developer left. Treat docs
+as intent, VIs as ground truth, and expect provisioned-but-not-wired features. Live
+verifications below are from this repo's Phase A/B work (2026-07), which post-dates this
+snapshot.</p>
+<ol>
+<li><strong>Detection without response was the norm.</strong> Five instances found: (a) WatchDog
+   <code>*notResponding</code> outputs unwired at the TS_loop call site → <strong>fixed live 2026-07-07</strong>
+   (B0 wiring, verified by a real PC drop); (b) StateMachine's <code>STATE LIMITATION FROM
+   WARNINGS</code> input ran on its front-panel default, warnings clamped nothing → <strong>fixed
+   live</strong> (WarningIntegration output wired in); (c) WarningIntegration's own 9049/9056-FPGA
+   heartbeat-stall flags drive indicators only — <strong>still open</strong>; (d) nothing toggled
+   <code>PC_HB</code>, so <code>PCnotResponding</code> would have read permanently tripped → <strong>fixed live</strong>
+   (UI_System toggle); (e) the <code>Limited_ControlSettings</code> telemetry shared variable was
+   created but never written → superseded by call-site taps.</li>
+<li><strong><code>ForceState</code>/<code>ManualState</code> are unbound front-panel dev controls on <code>TS_loop</code></strong>
+   (headless RT target ⇒ compiled defaults False/0 forever). The override path is inert
+   as-built. Note: when forced, <strong>ForceState overrides EMERGENCY STOP</strong> (wired after the
+   Min) — flagged for review.</li>
+<li><strong><code>DisregardWarnings</code> bypasses the entire limiter</strong>, not just the warning clamp —
+   misleading name.</li>
+<li><strong>The limit table's "&gt;2" cells are real mode caps, not typos</strong> (resolved
+   2026-07-08): cap 3 = cascade allowed (Texh/Toil/Ar), NG's 6 = all NG feedback
+   modes allowed. The Ar row is a genuine <strong>doc/array mismatch</strong> (doc table 2s = no
+   cascade; executed 3s = cascade allowed from MOTORING). And the NG/Ar/O2
+   <strong>feed-valve booleans are forced closed only in SAFE</strong> (rows 0,1,1,1,1) — leaving
+   FIRING, gas is cut by the controller modes, not the valves. The Python port
+   reproduces all of this as-is.
+4b. <strong><code>APC_9056_O2Control.vi</code>'s PID process variable is mis-wired to <code>EC-TT-001</code> (a
+   coolant temperature)</strong> — a Tcoolant copy-paste leftover; the setpoint is an O2
+   concentration. Closed-loop O2 as-built regulates flow against the wrong signal —
+   re-tag before any closed-loop O2 use. Smaller mislabels of the same family:
+   Texh's HL PV indicator says <code>WF-TT-001</code> (wire is <code>WF-TT-004</code>); Ar's LL manual ref
+   says <code>SW-FT-001-REF</code> (loop runs on <code>AR-FT-001</code>). Also: NG's settings-XML path is
+   Windows-style (<code>home:\…</code>) on a Linux-RT target (persistence may silently fail),
+   and every controller PID runs with hard-wired <code>dt = 0.100 s</code> while the TS_loop
+   control loop is ~20 ms — if called every tick, integral/derivative action is ~5×
+   faster than the gains imply. Verify at tuning time.</li>
+<li><strong>State-echo skew</strong>: <code>9049_Global_SYSTEMSTATE</code> (written by CAS_loop) is a relay of the
+   9056 StateMachine's output and freezes if 9049 loops stop — observed fail-safe (a low
+   echo blocks spark/DI), but alarm on sustained mismatch during commissioning.</li>
+<li><strong>StateMachine location history</strong>: 2023 design ran it in the 9049 <code>TS10ms_loop</code>
+   (its diagram banner still says so, and the disabled <code>TS100ms_loop</code> is the leftover);
+   it was migrated to the 9056 <code>TS_loop</code>. <code>APC_9056_StateMachine.vi</code> (2026) is current;
+   <code>_v2</code> is an older 2024 draft despite the suffix.</li>
+<li><strong>9053 vs 9056</strong>: the lab validated on a cRIO-9053 stand-in; a 9053 FPGA variant
+   existed, and a stale <code>APC_9053_FPGA_main.vi</code> reference survives inside the <code>TS_loop</code>
+   binary.</li>
+<li><strong>Boilerplate noise</strong>: any "DAQmx Custom Scales" VI description and generic NI PID/
+   statistics per-control text is template residue — no VI carries real documentation.</li>
+<li><strong>Hardware/project mismatch</strong>: the overview flags 9049 Mod8 (NI 9222) as not matching
+   the wiring diagram; encoder is a BEI H25D 3600-line (0.1°).</li>
+<li><strong>No-caller VIs in this copy</strong>: <code>APC_9056_TEMPLATEControl.vi</code> (scaffold),
+    <code>APC_PC_SlaveModbus.vi</code>, <code>APC_HRLtest.vi</code> (dev harnesses). <code>Items-W-No-Callers/</code>
+    lists the orphans excluded from the copy.</li>
+<li><strong>Author TODO hotspots</strong> (from the docs, unresolved as of the snapshot): HRL volume
+    calc ("FIX STROKE CALC", crankpin offset, IVC/EVO/EVC); O2Control red-box logic "do
+    not use"; per-cylinder (vs uniform) spark/DI control; temporal warning rules ("oil
+    pressure low &gt; X s") never built; run sequences (purge/start/light-off/venting
+    recovery) <strong>never built at all</strong> — greenfield, being authored in Python (Phase D);
+    MTR PLC never successfully interfaced end-to-end; post-mortem save "[TO BE VERIFIED]".</li>
+</ol>
+<h2 id="where-to-go-deeper">Where to go deeper</h2>
+<ul>
+<li><strong>This repo's docs</strong> (authoritative for the migration): <code>docs/migration-seam.md</code>
+  (FLOOR/MIDDLE/BRAIN boundary + backlog), <code>docs/migration-plan.md</code> (phases + status),
+  <code>docs/shadow-findings.md</code> (live validation log), <code>docs/monarch-control-settings.md</code>
+  (the cluster contract), <code>docs/monarch-telemetry.md</code> (gateway), <code>docs/handoff.md</code>.</li>
+<li><strong>Exports</strong> (diagrams as PNG/HTML): sibling folders under <code>original-labview-codebase/</code>.</li>
+<li><strong>PDFs/DOCX</strong> in <code>original-labview-codebase/</code>: the Overview [Ovw] for slide-by-slide VI
+  walkthroughs, [Deck] for the 9049 FPGA design, [GDoc] for EPT cluster field docs,
+  SCADA/DATALOG/Report DOCX for HMI, logging, and the author's own status.</li>
+<li><strong>Python ports</strong>: <code>supervisory/monarch/</code> — <code>state_machine.py</code> (validated 100% against
+  live LabVIEW), <code>warning_policy.py</code>, <code>control_settings.py</code>, <code>labview_mapping.py</code>.</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>original-labview-codebase/MONARCH-CODEBASE/README.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase D — Sequencing Engine (detailed instructions) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../../index.html">index</a><span>docs/phases/phase-d-sequencing.md</span></div>
+<main><h1 id="phase-d-sequencing-engine-detailed-instructions">Phase D — Sequencing Engine (detailed instructions)</h1>
+<p><strong>Objective:</strong> build the layer that has never existed — automated operating
+procedures (start, purge, light-off, venting, recovery) — test-first in Python.</p>
+<p><strong>Authority level:</strong> sequences issue the same commands Phase C already proved;
+no new command surface. A sequence is "authorized" only for the plant
+capabilities already commissioned at that time.</p>
+<p><strong>Entry criteria:</strong> D1/D2 can start <strong>now</strong> (no dependencies). D3 requires
+Phase C exit. D-content (real procedures) requires D0.</p>
+<p><strong>LabVIEW changes in this phase: none required.</strong> Sequences are pure Python,
+issuing the same <code>set_control_settings</code> commands Phase C proved, confirmed by
+the same telemetry. The one foreseeable exception: a D0 procedure's
+<em>confirmation</em> needs a plant signal that isn't in telemetry yet (a pressure,
+a temperature, a valve feedback). The fix is one repeatable recipe — click
+level, using <code>WF-PT-004</code> (working-fluid pressure, the venting sequence's
+confirmation) as the worked example:</p>
+<ol>
+<li><strong>Find the signal on the 9056.</strong> In <code>APC_9056_TS_loop.vi</code>, locate the
+   scaled value's wire (the AI-loop output feeding that sensor's indicator /
+   control loop — <code>Ctrl-H</code> + hover to confirm which wire carries the scaled
+   engineering value, not raw counts).</li>
+<li><strong>Publish it:</strong> <code>APC_SharedVars.lvlib</code> (9049 target) → <em>New → Variable</em> →
+   name it after the tag (<code>WF_PT_004_bar</code>), <strong>DBL</strong>, Network-Published →
+   <em>Deploy All</em>. Branch the scaled wire (click it, drag a branch) → a
+   shared-variable <strong>write</strong> (<em>Access Mode → Write</em>), outside any case so it
+   publishes every iteration. Redeploy the 9056 from the project.</li>
+<li><strong>Envelope:</strong> in the gateway's telemetry <code>Format Into String</code>, add a
+   <code>plant</code> object. First tag:
+   <code>,"plant":{"WF-PT-004_bar":%g}</code> — one new <code>%g</code> argument wired from the
+   shared-variable read. More tags extend the same object:
+   <code>,"plant":{"WF-PT-004_bar":%g,"EC-TT-001_degC":%g}</code> etc.
+   <strong>NaN caveat (the A2.1 lesson):</strong> a channel that isn't being written — DAQ
+   loop stopped, sensor task not running — flattens as <code>NaN</code>, which is
+   invalid JSON and kills every frame. Only publish channels the running DAQ
+   writes every iteration, and check with <code>python tools/capture_line.py</code>
+   after each tag you add.</li>
+<li><strong>Tag names must match the sim</strong> so a sequence runs unchanged against sim
+   and bench. The sim's current tags (<code>SimPlantModel.readings()</code> in
+   <code>supervisory/monarch/simserver_monarch.py</code>): <code>WF-PT-004_bar</code>,
+   <code>WF-OA-001_O2pct</code>, <code>EC-TT-001_degC</code>, <code>EO-TT-001_degC</code>, <code>WF-TT-004_degC</code>.
+   Adding a tag the sim doesn't have? Add it to <code>SimPlantModel</code> too (a
+   first-order lag is fine) — sequences confirm on <code>tm.plant["&lt;tag&gt;"]</code> via
+   <code>plant_below()</code>/<code>plant_within()</code> and won't pass in sim otherwise.</li>
+<li><strong>Python side needs nothing:</strong> <code>MonarchTelemetry.plant</code> already parses any
+   tags that appear. Log each addition in <code>docs/monarch-telemetry.md</code> so the
+   envelope stays documented.</li>
+</ol>
+<hr />
+<h2 id="d0-operating-procedure-spec-team-input-the-critical-path">D0 — Operating-procedure spec (team input — the critical path)</h2>
+<p><em>Owner: you + team. I formalize whatever you produce.</em></p>
+<p>For each procedure — cold-start/cranking, purge, motoring→firing light-off,
+normal shutdown, emergency vent, recovery-from-venting, misfire recovery,
+working-fluid quality check — capture, in any format (bullet notes fine):</p>
+<ol>
+<li><strong>Goal + preconditions</strong> (state, temperatures, pressures, valve lineup).</li>
+<li><strong>Steps in order</strong>: action (what to command) + <strong>confirmation</strong> (what
+   telemetry proves the step took) + <strong>timeout</strong> (how long before it's a fail).</li>
+<li><strong>Holds</strong>: points requiring operator confirmation before proceeding.</li>
+<li><strong>Abort conditions per step</strong> and where the abort lands (SAFE? STAND_BY?
+   specific vent lineup?).</li>
+<li><strong>Invariants</strong> that must hold throughout (e.g. combustion stop ⇒ NG+O2 cut;
+   never close all vents below state X; coolant flow before firing).</li>
+</ol>
+<p>A one-page template lives at the bottom of this file — one copy per procedure.
+Where the team is unsure (never run!), write the <em>intent</em> and mark <code>TBD</code>; the
+sim work in D2 is where TBDs get exercised safely.</p>
+<h2 id="d1-sequence-framework">D1 — Sequence framework</h2>
+<p><em>Owner: Claude. Start immediately with placeholder sequences.</em></p>
+<p><code>supervisory/sequencing.py</code> (generic layer, MONARCH-agnostic):
+- <strong>Step primitives:</strong> <code>command(intent)</code>, <code>wait_for(condition, timeout)</code>,
+  <code>hold(message)</code> (operator confirm), <code>branch(condition, then, else)</code>,
+  <code>abort_to(state)</code>.
+- A <code>Sequence</code> is <strong>data</strong> (a list of steps), executed by a <code>SequenceRunner</code>
+  that is itself a <code>StateMachine</code> (pure decisions per tick — reuses the whole
+  engine/test/replay stack).
+- <strong>Semantics:</strong> every step's confirmation comes from telemetry, never from
+  "command sent". Timeouts and telemetry staleness both abort. Aborts are
+  always reachable (checked every tick, not between steps), always land in the
+  declared safe state, and always run the invariant checks. Operator can
+  pause/abort any sequence at any tick.
+- <strong>Invariant hooks:</strong> a list of predicates evaluated on every tick of every
+  sequence; violation ⇒ immediate abort path. First entries: combustion-stop ⇒
+  NG+O2 cut; vent lineup rules (from D0).
+- Tests: framework semantics (timeout, abort mid-step, staleness abort,
+  invariant trip, hold behavior) with scripted fake telemetry.</p>
+<h2 id="d2-plant-simulator-upgrade">D2 — Plant simulator upgrade</h2>
+<p><em>Owner: Claude, with plant sanity checks from you.</em></p>
+<p>Extend <code>simserver_monarch</code> into a minimal plant: first-order responses for the
+thermal loops, pressure dynamics for Ar feed/venting, gas-analyzer lag, warning
+injection hooks, and state-consistent behavior (e.g. temperatures only move
+when their loop mode &gt; 0). Fidelity target: <em>good enough to exercise sequence
+logic</em>, not physics. Then:
+- run every D0 sequence against the sim;
+- <strong>property tests</strong>: random fault injection (warning trip, telemetry dropout,
+  NACK, plant stall) at random steps ⇒ the runner always lands in the declared
+  abort state with invariants intact — hundreds of randomized runs in CI.</p>
+<h2 id="d3-bench-execution">D3 — Bench execution</h2>
+<p><em>Owner: joint. Requires Phase C exit + commissioned plant pieces.</em></p>
+<p>Order sequences by hardware needed, not by operational order — the
+non-combustion ones both come first and are what commissioning itself needs:
+1. Venting / vent-lineup sequences (valves only).
+2. Working-fluid quality check (sensors + venting).
+3. Thermal warm-up (coolant/oil/exhaust loops).
+4. Purge and Ar fill (gas handling).
+5. Cranking/motoring (needs dyno + 9049 commissioned).
+6. Light-off / firing (last, with the team, as commissioning dictates).</p>
+<p>Each: dry-run in sim the same day → bench run under C3 handover → archive
+recording → mark the sequence "bench-proven" in its spec file.</p>
+<p><strong>Ownership handback rule (ICD §7.7 corollary):</strong> a sequence owns the intent
+only while <code>RUNNING</code>/<code>HOLDING</code> (a Hold pauses the procedure, not the
+ownership). The tick it reaches DONE or <strong>ABORTED</strong>, the panel resumes full
+ownership — so an abort's safe landing persists only until the mirror
+re-asserts the panel's current values. Consequence for procedures: the C3
+lineup-check discipline applies <strong>after every sequence end, especially
+aborts</strong> — the operator confirms the panel reads the intended post-sequence
+lineup (or takes the plant back to one) before anything else.</p>
+<hr />
+<h2 id="phase-exit-gate">Phase exit gate</h2>
+<ul>
+<li>Framework + sim property tests green in CI.</li>
+<li>Every D0-specced sequence has spec-traceable tests.</li>
+<li>Non-combustion sequences (1–4) bench-proven.</li>
+</ul>
+<p><strong>Artifacts:</strong> <code>sequencing.py</code>, upgraded plant sim, <code>sequences/</code> (one file per
+procedure: spec header + step data), property-test suite, bench recordings.</p>
+<hr />
+<h2 id="appendix-procedure-spec-template-copy-per-procedure">Appendix — procedure spec template (copy per procedure)</h2>
+<pre><code>PROCEDURE: &lt;name&gt;                     AUTHOR/DATE:
+GOAL:
+PRECONDITIONS:  state=       plant conditions=       valve lineup=
+INVARIANTS (throughout):
+STEPS:
+  1. ACTION:            CONFIRM (telemetry):          TIMEOUT:      ABORT→
+  2. ...
+HOLDS (operator confirm before step #):
+ABORT LANDING (default):              NOTES/TBD:
+</code></pre></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/phases/phase-d-sequencing.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

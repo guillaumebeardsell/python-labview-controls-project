@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engine-only operation: with or without the cRIO-9056? — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/engine-only-9056-tradeoff.md</span></div>
+<main><h1 id="engine-only-operation-with-or-without-the-crio-9056">Engine-only operation: with or without the cRIO-9056?</h1>
+<p><em>Decision memo, 2026-07-16. Context: open-loop engine commissioning — engine breathing
+air, only spark + DI actuate. Question: does the 9056 RT app need to run, or can the
+bench be 9049 + PC only?</em></p>
+<h2 id="the-facts-that-frame-the-decision">The facts that frame the decision</h2>
+<ul>
+<li>There is <strong>one global <code>SYSTEM STATE</code></strong> for engine and plant; the state machine that
+  produces it (<code>APC_9056_StateMachine</code>) runs <strong>on the 9056</strong>.</li>
+<li>The 9049 spark/DI hard gate is <code>¬CylPressError ∧ Activate ∧ Enable ∧ (SYSTEMSTATE ≥ 2)</code>;
+  <code>9049_Global_SYSTEMSTATE</code> is the CAS_loop's <strong>relay of the 9056's output</strong>. 9056 dark
+  ⇒ gate never opens ⇒ engine inert (fail-safe, but no run).</li>
+<li><code>APC_SharedVars.lvlib</code> is <strong>hosted on the 9049</strong> — PC ⇄ 9049 comms are alive without
+  the 9056. Spark/DI timing values flow PC → 9049 directly (<code>PC_ControlSettings</code>).</li>
+<li>With the 9056 running but the plant disconnected, its floating analog channels feed
+  <code>WarningIntegration</code> — and <strong>the warnings→state clamp is LIVE in the running build</strong>
+  (~~gap W5~~ <strong>refuted on the bench 2026-07-16</strong>: a latched severity-3 warning drove
+  <code>warn_lim=1</code> and pinned the state at MOTORING in both UI and PYTHON modes until CLEAR
+  WARNINGS; see <code>docs/9056-warning-policy-asbuilt.md</code>). So plant-side warnings CAN block
+  spark/DI <strong>today</strong>: the 9056 plant warning limits/masks must be managed for engine-only
+  running (opened/masked, documented, restored — the custody discipline), and raster
+  severities max-latch, so a single transient trip persists until cleared.</li>
+<li>The state machine ran on the 9049 <code>TS10ms_loop</code> in the 2023 design (banner still says
+  so) — moving a minimal version back is a return, not an invention.</li>
+<li><code>MTRnotResponding</code> is <strong>not</strong> in the SAFE-clamp OR — the membrane PLC being absent is
+  fine in every option.</li>
+<li><strong>The dyno is commanded from the 9056</strong> (<code>APC_9056_DynoControl</code> → <code>DYNO-REF</code>, a 9056
+  analog output). An open-loop engine must be <em>spun</em> by the dyno, so a dark 9056 means
+  no motoring at all unless the dyno drive is operated manually at its own cabinet.</li>
+<li><strong>All slow engine-health instrumentation lives on the 9056's four AI cards</strong> (see the
+  signal table below) — oil pressure/temperature, coolant and exhaust temperatures,
+  torque, fuel flows and pressures, lambda. The 9049 measures only what is
+  crank-synchronous (the 9222 fast pressures + rpm + combustion metrics).</li>
+</ul>
+<h2 id="options">Options</h2>
+<p><strong>A — run the 9056 headless</strong> (plant unconnected, plant loops commanded to mode 0).
+<strong>B — 9049 + PC only</strong>, with a small 9049 modification: local
+<code>SYSTEMSTATE = min(requested, limit)</code> in TS10ms + a <code>PC_HB</code> stall watchdog feeding the
+limit, CAS_loop echo repointed to the local value.
+<strong>Hybrid (B + 9056 as instrument)</strong> — the B modifications make the 9049 independent of
+the 9056's state; the 9056 also runs, purely to supply reads + dyno command. Decoupling
+bonus: a 9056 crash mid-run leaves the engine governed by the 9049's own state logic
+instead of a frozen relay.</p>
+<h2 id="engine-signals-read-through-the-9056-lost-if-it-is-dark">Engine signals read through the 9056 (lost if it is dark)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Signals</th>
+<th>9056 card</th>
+<th>When it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lubrication</td>
+<td><code>EO-PT</code> oil pressure; <code>EO-TT</code> oil temperature</td>
+<td>NI9205 (r1); NI9214-2 (r4)</td>
+<td><strong>From the first crank</strong></td>
+</tr>
+<tr>
+<td>Cooling</td>
+<td><code>EC-TT</code> coolant temps; <code>SW-FT-001–004</code> service-water flows; <code>SW-TT</code> temps</td>
+<td>NI9214-1/2; NI9208</td>
+<td>Sustained motoring, any firing</td>
+</tr>
+<tr>
+<td>Exhaust temps</td>
+<td>exhaust-side thermocouples (<code>WF</code>/<code>SW-TT</code>, Texh-loop feedback)</td>
+<td>NI9214-1/2</td>
+<td>First fire</td>
+</tr>
+<tr>
+<td>Load / torque</td>
+<td><code>TORQUE</code> (dyno shaft)</td>
+<td>NI9205</td>
+<td>Motoring friction check; only independent cross-check on IMEP once fired</td>
+</tr>
+<tr>
+<td>Fuel system</td>
+<td><code>NG</code>/<code>NGDI</code> flows + supply/rail pressures; line temps</td>
+<td>NI9208; NI9214-1</td>
+<td>DI rail pressure critical the day fuel arrives</td>
+</tr>
+<tr>
+<td>Air/charge path</td>
+<td><code>WF-PT-004/014/016</code> slow absolute pressures; <code>WF-TT</code> intake temps</td>
+<td>NI9208; NI9214-1</td>
+<td>Manifold conditions, pegging sanity</td>
+</tr>
+<tr>
+<td>Lambda</td>
+<td><code>WF-OA-001/002</code> O₂ analyzers</td>
+<td>NI9205</td>
+<td>AFR sanity at first fire</td>
+</tr>
+</tbody>
+</table></div>
+<p>The 9049 keeps, regardless: Pcyl1–6 + <code>Ppre</code>/<code>Psyst</code>/<code>Pexh</code> (fast, crank-synchronous),
+rpm, and every combustion metric. So Option B keeps the <em>combustion</em> picture intact but
+loses the <em>engine-health</em> picture entirely — and because of W5, what is lost is
+monitoring/logging, not automatic protection (plant warnings never actuated anything
+as-built). Rewiring EO-PT/EO-TT/EC-TT onto the 9049 is not practical: its spare fast
+±10 V channels are the wrong hardware for thermocouples. Display note: <code>VariableMapping</code>
+prefers 9056 values on name collisions, so a dark 9056 leaves stale/empty rows on the
+UI screens.</p>
+<h2 id="pros-cons">Pros / cons</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th></th>
+<th>A — 9056 headless</th>
+<th>B — 9049 + PC only (modified)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Architecture</td>
+<td>✅ As-built, unchanged; no surgery near the gate</td>
+<td>⚠️ LabVIEW changes inside TS10ms, adjacent to the spark/DI gate</td>
+</tr>
+<tr>
+<td>Evidence carry-over</td>
+<td>✅ Matrix + watchdog drills stay valid as-is</td>
+<td>⚠️ Regression owed: re-run false-trip matrix + gate drills on the new build</td>
+</tr>
+<tr>
+<td>Plant-warning clamp</td>
+<td>❌ <strong>LIVE</strong> (W5 refuted on the bench 2026-07-16): latched warnings clamp the shared state — the 9056 plant limits/masks must be managed for engine-only running: a custody hazard on the safety chassis</td>
+<td>✅ Problem eliminated — no plant warnings exist</td>
+</tr>
+<tr>
+<td>Loss-of-PC SAFE clamp</td>
+<td>✅ Exists today (<code>TS_loop</code>, armed both modes, drilled)</td>
+<td>⚠️ Must be built — but it is the documented roadmap gap owed before Python command authority anyway</td>
+</tr>
+<tr>
+<td>Bench complexity</td>
+<td>❌ Second chassis to boot/maintain; reboot-order dependency; must verify 9056 RT_main tolerates missing modules</td>
+<td>✅ Fewer moving parts; matches the hardware actually on the bench</td>
+</tr>
+<tr>
+<td>Config custody</td>
+<td>✅ One configuration for engine-only and full-plant</td>
+<td>❌ A fork: must be labeled and reconciled before full-plant ops</td>
+</tr>
+<tr>
+<td>Commissioning logic</td>
+<td>⚠️ First fire on a config with masked plant warnings</td>
+<td>✅ Commission the configuration you will actually fire on</td>
+</tr>
+<tr>
+<td><strong>Engine instrumentation</strong></td>
+<td>✅ Oil P/T, coolant, exhaust temps, torque, fuel, lambda all available</td>
+<td>❌ <strong>All engine-health reads dark</strong> (see signal table) — monitoring by eye impossible</td>
+</tr>
+<tr>
+<td><strong>Dyno (motoring the engine)</strong></td>
+<td>✅ <code>DynoControl</code> → <code>DYNO-REF</code> available</td>
+<td>❌ <strong>No dyno command</strong> — engine cannot be spun except by manual/local dyno drive control</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="safety-function-coverage">Safety-function coverage</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Function</th>
+<th>A (9056 on)</th>
+<th>9056 off, 9049 unmodified</th>
+<th>B (9049 modified)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>State arbitration + limiter</td>
+<td>✅ full StateMachine</td>
+<td>❌ state stuck low — engine inert</td>
+<td>✅ local <code>min(requested, limit)</code></td>
+</tr>
+<tr>
+<td>Loss-of-PC → SAFE</td>
+<td>✅ <code>WatchDog</code> → <code>TS_loop</code> clamp</td>
+<td>❌ none</td>
+<td>✅ new <code>PC_HB</code> stall counter on 9049</td>
+</tr>
+<tr>
+<td>Warning → state clamp (plant)</td>
+<td>✅ <strong>LIVE — verified 2026-07-16</strong> (severity 3 → clamp MOTORING, both modes); ⚠ false-trips on floating/disconnected channels — manage limits/masks</td>
+<td>— (no plant)</td>
+<td>— (no plant)</td>
+</tr>
+<tr>
+<td><code>CylPressError</code> spark/DI veto</td>
+<td>✅ 9049-local, unaffected</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>FPGA watchdog (&gt;4 Hz kill)</td>
+<td>✅ 9049-local, unaffected</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>E-stop</td>
+<td>✅ enters via 9056 SM + hardware</td>
+<td>⚠️ hardware path only — verify</td>
+<td>⚠️ re-run drill 5f in this config</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="work-required">Work required</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>A — 9056 headless</th>
+<th>B — 9049 + PC only</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Open/mask 9056 plant warning limits for engine-only running — <strong>due now, the clamp is live</strong> (document + restore discipline)</td>
+<td>TS10ms: local state <code>Select(−1:3)</code> → <code>Min</code> logic</td>
+</tr>
+<tr>
+<td>Verify 9056 RT_main starts clean with plant modules missing (−200088-class)</td>
+<td><code>PC_HB</code> stall watchdog (≈ the <code>APC_9056_WatchDog</code> pattern, one channel)</td>
+</tr>
+<tr>
+<td>Confirm plant loops hold mode 0 across states</td>
+<td>Repoint <code>9049_Global_SYSTEMSTATE</code> echo to the local value</td>
+</tr>
+<tr>
+<td>—</td>
+<td>Verify stale <code>9056_MeasAndCalc</code> reads are harmless downstream</td>
+</tr>
+<tr>
+<td>—</td>
+<td>E-stop drill (5f) in this configuration</td>
+</tr>
+<tr>
+<td>—</td>
+<td><strong>Regression gate: re-run the 7-set false-trip matrix + state-gate drills</strong></td>
+</tr>
+<tr>
+<td>—</td>
+<td>Fork custody: label the build; reconciliation plan for full-plant return</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="decision-2026-07-16">Decision (2026-07-16)</h2>
+<p><strong>Run the 9056 alongside the 9049 for engine-only testing.</strong> Pure Option B is not
+viable: the dyno — without which the engine cannot be motored at all — is commanded
+through a 9056 analog output, and every engine-health read (oil pressure/temperature,
+coolant and exhaust temperatures, torque, fuel-system pressures) arrives on the 9056's
+AI cards. Duplicating that I/O on the 9049 is the wrong hardware and real wiring work;
+running the chassis that already owns it is not.</p>
+<p>What survives from the B analysis:</p>
+<ul>
+<li>The <strong>9049-side <code>PC_HB</code> stale-command→SAFE watchdog</strong> stays on the roadmap — it is
+  owed before Python holds command authority regardless of this decision.</li>
+<li>The <strong>hybrid decoupling</strong> (9049 no longer depending on the 9056's state relay) remains
+  an attractive hardening step, to be weighed against the regression cost of touching
+  TS10ms; it is <em>optional</em> for engine-only testing, not a precondition.</li>
+</ul>
+<p>Conditions attached to running the 9056 on the engine-only bench:</p>
+<ol>
+<li>Verify 9056 RT_main starts clean with plant modules missing/disconnected
+   (−200088-class startup races — same fix pattern as the 9049 DAQ retry).</li>
+<li>Plant loops commanded to mode 0; confirm they hold 0 across all states.</li>
+<li><strong>The warnings→state clamp is live (W5 refuted 2026-07-16)</strong> — a latched severity-3
+   warning pinned the bench at MOTORING in both modes. Manage the 9056 plant warning
+   limits/masks at every engine-only session (opened/masked, documented, restored: the
+   custody discipline). When the state won't rise, check <code>warn_lim</code> in the CLI <code>status</code>
+   first; photograph <code>UI_Errors</code> before clearing.</li>
+<li>E-stop and loss-of-PC drills (5a/5b/5f) run on this exact two-chassis configuration.</li>
+</ol></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/engine-only-9056-tradeoff.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

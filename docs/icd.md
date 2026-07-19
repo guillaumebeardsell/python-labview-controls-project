@@ -204,8 +204,10 @@ Unknown labels inside `settings` are ignored (forward-compat, matching telemetry
 
 The 9056 `WatchDog` stall-counts `PC_HB`; when Python freezes/dies, `PC_HB` stops
 changing and `PCnotResponding` trips. The B0 LabVIEW work wires that flag into the
-StateMachine's state limitation as a **−1 (SAFE) clamp**, gated on
-source = PYTHON. The sim gateway implements exactly this behavior.
+StateMachine's state limitation as a **−1 (SAFE) clamp**. (This paragraph describes
+the superseded *interim* design "gated on source = PYTHON" — the as-built clamp is
+**armed in BOTH modes**, per the Decisions block below and
+`docs/command-path-asbuilt.md` §5.) The sim gateway implements this behavior.
 
 Note the toggle is a **relay across the whole PC-side chain**: Python flips the
 field in its command → TCP → the gateway VI writes the `PC_ControlSettings`

@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Command path — as-built &amp; verified (PC ⇄ cRIO) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/command-path-asbuilt.md</span></div>
+<main><h1 id="command-path-as-built-verified-pc-crio">Command path — as-built &amp; verified (PC ⇄ cRIO)</h1>
+<p><strong>What this is:</strong> the <em>verified as-built</em> of the PC→cRIO command path and its
+loss-of-supervisor safety net, reconstructed from the LabVIEW exports under
+<code>original-labview-codebase/</code> on <strong>2026-07-11</strong>. The <strong>ICD (<code>docs/icd.md</code> §7) is
+the spec</strong>; this doc is the <em>evidence</em> that the spec is (or isn't) realized, with
+per-claim VI + diagram-page citations so a future session can re-verify fast.</p>
+<blockquote>
+<p>TL;DR — The command path is <strong>sound and single-writer end-to-end</strong>.
+Source-select, e-stop precedence, and the <code>PC_HB</code> relay all match the ICD.
+The loss-of-PC SAFE clamp is <strong>armed in both UI and PYTHON modes</strong> (verified).
+<strong>One specified-but-unbuilt gap:</strong> <code>UI_HeartBeat</code> (ICD §7.5) — a dead operator
+console while Python holds authority is not yet detectable.</p>
+</blockquote>
+<hr />
+<h2 id="1-end-to-end-flow">1. End-to-end flow</h2>
+<pre><code>                     operator inputs (setpoints, modes, e-stop, PC_HB)
+                                      │
+   APC_PC_UI_System.vi ── writes ──►  PC_GlobalVariables_PIDsyst2main   (LabVIEW global)
+        (P&amp;ID tabs;                    │
+         self-toggles PC_HB)           ▼
+   APC_PC_UI_Main.vi ── reads global, assembles the full command cluster ──►  PC_OperatorRequests  (SV, ALWAYS)
+        │                                                                        │
+        │  case: CommandSource_IsPython?                                         │  (Python reads this as
+        │   • FALSE (UI mode)  → promote PC_OperatorRequests → PC_ControlSettings│   telemetry &quot;operator_requests&quot;)
+        │   • TRUE  (PYTHON)   → do NOT promote (gateway writes it instead)      │
+        ▼                                                                        ▼
+   ┌─ UI mode:     UI  ──────────────────────────────────►  PC_ControlSettings (SV)  ──►  cRIO 9056
+   └─ PYTHON mode: Python ─TCP:5020─► APC_PC_PythonGateway.vi ─► PC_ControlSettings (SV) ─►  cRIO 9056
+                                       (validates, single-writer)
+</code></pre>
+<p><strong>Exactly one writer of <code>PC_ControlSettings</code> at a time</strong> — UI in UI mode, gateway
+in PYTHON mode. Never both (the UI redirects to <code>PC_OperatorRequests</code> in PYTHON
+mode). This is ICD §7.4, and it is as-built (see §2, §3).</p>
+<hr />
+<h2 id="2-ui-side-apc_pc_ui_systemvi-apc_pc_ui_mainvi">2. UI side — <code>APC_PC_UI_System.vi</code> + <code>APC_PC_UI_Main.vi</code></h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UI_System</code> bundles every operator input (all <code>-REF</code> setpoints, control modes, <code>EMERGENCY STOP</code>, <code>PC_HB</code>, <code>MTR HB</code>) into the LabVIEW global <code>PC_GlobalVariables_PIDsyst2main</code>.</td>
+<td><code>APC_PC_UI_System/…d.png</code></td>
+</tr>
+<tr>
+<td><code>UI_System</code> <strong>self-generates <code>PC_HB</code></strong> — feedback-node → Boolean NOT, flips every loop iteration (not on-change).</td>
+<td><code>APC_PC_UI_System/…d.png</code></td>
+</tr>
+<tr>
+<td><code>UI_System</code> has <strong>no</strong> source-select and <strong>no</strong> <code>UI_HeartBeat</code>.</td>
+<td><code>APC_PC_UI_System</code> (all pages)</td>
+</tr>
+<tr>
+<td><code>UI_Main</code> reads the global and assembles the full <code>APCControlSettings</code> cluster (EMERGENCY STOP, Requested mode, spark/DI advance+duration, Speed ref, IGN/DI enable, Activate cylinder, Force idling/motoring, PID refs).</td>
+<td><code>APC_PC_UI_Main/…d.png</code> (2026-07-11 export)</td>
+</tr>
+<tr>
+<td><strong>Source-select redirect (B3.c) — as-built.</strong> <code>UI_Main</code> writes <code>PC_OperatorRequests</code> <strong>always</strong>; a case gated on <code>CommandSource_IsPython</code> promotes <code>PC_OperatorRequests → PC_ControlSettings</code> <strong>only in the FALSE (UI-mode) case</strong>.</td>
+<td><code>APC_PC_UI_Main/…d.png</code>, source-select case crop</td>
+</tr>
+<tr>
+<td><code>PYTHON (effective)</code> LED + <code>9056_PCnotResponding</code>/<code>9056_9049notResponding</code>/<code>9056_MTRnotResponding</code> reads are on the <code>UI_Main</code> panel (B3.b affordances; exact panel labels, <code>9056_</code> prefix — <strong>no 9056-liveness LED exists</strong>, and no plain <code>PCnotResponding</code>).</td>
+<td><code>APC_PC_UI_Main/…p.png</code></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>Stale-export note:</strong> the <code>UI_Main</code> export was <strong>re-printed 2026-07-11 01:59</strong>.
+An earlier 2026-07-08 copy predated B3.c and showed the UI writing
+<code>PC_ControlSettings</code> unconditionally — do not trust pre-07-11 <code>UI_Main</code> prints.</p>
+</blockquote>
+<hr />
+<h2 id="3-gateway-apc_pc_pythongatewayvi-python-facing-tcp-5020">3. Gateway — <code>APC_PC_PythonGateway.vi</code> (Python-facing, TCP :5020)</h2>
+<p>Exports are <code>.gif</code>; convert with PIL to view (<code>Image.open(g).convert('RGB')</code>).</p>
+<p><strong>Command block (upper True/"line arrived?" case):</strong>
+- Parses the JSON command (<code>name</code>, <code>id</code>, <code>params</code>/<code>settings</code>).
+- <strong>Source-select enforced:</strong> a <code>CommandSource_IsPython</code> SV gates acceptance;
+  a Python command while source = UI is <strong>NACKed <code>"source is UI"</code></strong>.
+- <strong>Validation ladder</strong> (NACK <code>reason</code> strings seen on the diagram):
+  <code>rate</code> · <code>source is UI</code> · <code>parse</code> · <code>range: Speed ref %g</code> · <code>operator only</code>.
+  → <strong>Range-checking is <code>Speed ref</code> only (0..3000).</strong> DI duration, spark advance,
+  and PID refs are <strong>not</strong> range-checked at the gateway (see gap in §6).
+- On accept: writes <strong><code>PC_ControlSettings</code></strong> (boxed True case) and replies
+  <code>{"type":"command_ack","id":%d,"accepted":%s,"reason":"%s"}\r\n</code>.
+- <code>CLEAR EMERGENCY STOP</code> is <code>operator only</code> → always NACKed from Python (e-stop
+  precedence, ICD §7.4).</p>
+<p><strong>Telemetry frame (lower True case) — emits all of:</strong>
+<code>{"type":"telemetry","seq","ts","system_state","warnings_limit","manual_state",</code>
+<code>"force_state","settings","limited_settings","command_source","operator_requests"}</code>.
+SV reads feeding it: <code>SystemState_SM</code>, <code>PC_ControlSettings</code>,
+<code>Limited_ControlSettings</code>, <code>ManualState_SM</code>, <code>WarningLevels_SM</code>, <code>ForceState_SM</code>,
+<code>CommandSource_IsPython</code>, <code>Operator Requests</code>.</p>
+<p>Evidence: <code>APC_PC_PythonGateway/…d.gif</code> (main), command-region + telemetry-region crops.</p>
+<hr />
+<h2 id="4-pc_hb-ownership-the-watchdog-detection">4. <code>PC_HB</code> ownership &amp; the WatchDog (detection)</h2>
+<ul>
+<li><strong><code>PC_HB</code> is a field of the command cluster</strong> (<code>PID control references.PC_HB</code>),
+  so whoever writes <code>PC_ControlSettings</code> sources it:
+  <strong>UI toggles it in UI mode; Python toggles it (via the gateway relay, every
+  send) in PYTHON mode</strong> (ICD §7.2/§7.5 option a). So <code>PC_HB</code> supervises the
+  <em>active command path</em>, not the UI specifically.</li>
+<li><strong><code>APC_9056_WatchDog.vi</code></strong> stall-counts four heartbeats independently. For PC:
+  reads <code>PC_ControlSettings.PID control references.PC_HB</code> → change-detect →
+  increment-or-reset counter → compare <code>&gt; PCwatchdogThreshold</code> → <code>PCnotResponding</code>.
+  <strong>No source gate</strong> — detection is mode-independent.
+  Threshold = <strong>250 counts ≈ 5 s</strong> at the TS-loop rate (ICD §7.5).
+  Same pattern for <code>9049_HeartBeat</code>, <code>9056_HeartBeat</code>, <code>MTR HB</code>.</li>
+<li>Evidence: <code>APC_9056_WatchDog/…d.gif</code> (07-07 export; the four-channel counter).</li>
+</ul>
+<hr />
+<h2 id="5-loss-of-pc-safe-clamp-apc_9056_ts_loopvi-apc_9056_statemachinevi">5. Loss-of-PC SAFE clamp — <code>APC_9056_TS_loop.vi</code> → <code>APC_9056_StateMachine.vi</code></h2>
+<p><strong>The question "is the SAFE clamp gated on source = PYTHON?" — answer: NO, it is
+armed in BOTH modes.</strong> Verified from the 2026-07-10 <code>TS_loop</code> export:</p>
+<pre><code>   9056notResponding ─┐
+   9049notResponding ─┤ OR ─► Select( true → -1 [SAFE] , false → 3 [FIRING] ) ─► StateMachine
+   PCnotResponding  ──┘                                                          &quot;STATE LIMITATION
+                                                                                  FROM WARNINGS&quot; (I8)
+</code></pre>
+<ul>
+<li>The <code>PCnotResponding</code> flag feeds the −1/3 Select <strong>directly</strong>, OR'd with the
+  two cRIO watchdogs. <strong>No <code>CommandSource_IsPython</code> node gates it.</strong> So a frozen
+  <code>PC_HB</code> (Python <em>or</em> UI-mode command path dead) → limit −1 → SAFE, in either
+  mode. This is the ICD §7.5 <strong>end-state</strong>, not the interim PYTHON-only gating.</li>
+<li><code>MTRnotResponding</code> (membrane rig) is on a <strong>separate</strong> path — not in this OR.</li>
+<li><strong><code>APC_9056_StateMachine.vi</code></strong> consumes that I8 as <code>STATE LIMITATION FROM
+  WARNINGS</code> and <strong>Min's it against the requested state</strong> (warnings can only
+  <em>lower</em> state), using the <code>MAX LEVEL OF CONTROL</code> table (rows = actuators, cols
+  = states −1..3, plus a SAFE-LEVEL column). <code>DisregardWarnings</code> can bypass.
+  Outputs <code>SYSTEM STATE</code> (I8) and <code>Limited_ControlSettings</code>.</li>
+<li>Evidence: <code>APC_9056_TS_loop/…d.png</code> (clamp crop) + <code>APC_9056_StateMachine/…d.png</code>.</li>
+</ul>
+<blockquote>
+<p><strong>Staleness caveat:</strong> WatchDog &amp; StateMachine exports are <strong>2026-07-07</strong>,
+TS_loop is <strong>2026-07-10</strong> — all pre-date the B3.c UI redirect (07-11), but the
+clamp wiring is direction-independent (it only reads the <code>*notResponding</code>
+flags), so the "armed in both modes" finding stands. Confirm once on hardware
+with a <strong>UI-mode <code>PC_HB</code>-freeze drill</strong> (kill the UI in UI mode → expect the
+9056 to clamp SAFE within ~5 s). Logged drills only cover the PYTHON-mode
+freeze so far (B4-1/2).</p>
+</blockquote>
+<hr />
+<h2 id="6-the-real-gaps">6. The real gaps</h2>
+<h3 id="6a-loss-of-9056-nothing-responds-discovered-live-2026-07-16-closed-2026-07-1718">6a. Loss-of-9056 — NOTHING responds (discovered live 2026-07-16) — <strong>CLOSED 2026-07-17/18</strong></h3>
+<blockquote>
+<p><strong>Both build tasks below are BUILT + VERIFIED</strong> (kill-9056 at FIRING → spark/DI
+blocked ~5 s; kill-9049 → display drops to −1): <code>docs/hb-hardening-clicklevel.md</code>
+Tasks A + B. Task C (gateway <code>operator_requests</code>) remains open. The as-found
+behavior below is kept as the before-picture for drill 5i.</p>
+</blockquote>
+<p>Bench observation (SIL-1, two-chassis config): <strong>force-stopping <code>APC_9056_RT</code> mid-run
+raises no warning anywhere and clamps nothing.</strong> Walk the watchdog coverage:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Dies</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PC</td>
+<td>✅ 9056 WatchDog → SAFE clamp (§5)</td>
+</tr>
+<tr>
+<td>9049 RT</td>
+<td>✅ FPGA watchdog kills spark/DI (&gt;4 Hz)</td>
+</tr>
+<tr>
+<td><strong>9056</strong></td>
+<td>❌ <strong>nothing</strong> — every 9056-published SV (incl. <code>SystemState_SM</code>, the three <code>*notResponding</code> flags, <code>9056_MeasAndCalc</code>) freezes at its last value; SV reads serve stale data without error</td>
+</tr>
+</tbody>
+</table></div>
+<p>Consequences while the 9056 is dead: the <code>9049_Global_SYSTEMSTATE</code> echo freezes — <strong>if
+state was ≥2, the 9049 spark/DI gate stays open on stale state</strong>; the loss-of-PC clamp
+is gone (it lives on the 9056); the UI/CLI e-stop path through the StateMachine is dead.
+Only the physical e-stop chain and the 9049 FPGA RT-stall watchdog remain.</p>
+<p>Two build tasks (both PC/9049-side, neither exists today) — <strong>click-level build
+instructions: <code>docs/hb-hardening-clicklevel.md</code></strong> (Tasks A/B there; Task C = the
+gateway <code>operator_requests</code> field that makes the Python safety mirror real):</p>
+<ol>
+<li><strong>Observability — PC-computed watchdog LEDs on <code>UI_Main</code></strong> (operator decision
+   2026-07-16): add PC-local stall counters (the <code>APC_9056_WatchDog</code> pattern, ~5 s
+   threshold) on <code>9049_HeartBeat</code> and <code>9056_HeartBeat</code>, plus an MTR LED driven by the
+   PC's own Modbus comms status (the PC is the Modbus master — first-hand knowledge).
+   Keep <code>9056_PCnotResponding</code> as a fourth, relabeled LED ("PC HB fault — 9056 view"):
+   it is the only external check on the PC's own heartbeat path; the adjacent
+   PC-computed <code>9056notResponding</code> going red tells the operator when to distrust it.</li>
+<li><strong>Control path — 9049-side staleness clamp on the state relay</strong>: in <code>CAS_loop</code>,
+   if <code>9056_MeasAndCalc</code> stops updating for N cycles, write <strong>−1</strong> to
+   <code>9049_Global_SYSTEMSTATE</code> instead of relaying the stale value → the TS10ms gate
+   closes. Same family as the 9049-local hardening in
+   <code>docs/engine-only-9056-tradeoff.md</code>; any change here re-runs the false-trip matrix +
+   gate drills (regression rule).</li>
+</ol>
+<p>Drill: kill-9056 is now SOW Step 5 drill <strong>5i</strong> (<code>docs/sil1-scope-of-work.md</code>).</p>
+<h3 id="6b-ui_heartbeat-specified-not-built">6b. <code>UI_HeartBeat</code> (specified, NOT built)</h3>
+<p>Because <code>PC_HB</code> follows Python in PYTHON mode (§4), it <strong>cannot</strong> detect the
+operator console (the HMI that holds the software e-stop + monitoring) dying
+while Python holds authority — Python keeps <code>PC_HB</code> alive through the gateway.
+The clamp being armed in both modes (§5) does <strong>not</strong> close this: it fires on
+<code>PC_HB</code> freeze, and <code>PC_HB</code> isn't frozen in that scenario.</p>
+<p>ICD §7.5 already <strong>specifies</strong> the fix: a standalone <code>UI_HeartBeat</code> network SV
+toggled by the UI loop <em>regardless of source</em>, watched as a <strong>5th WatchDog
+channel</strong>. Response phase-in: alert + Python-side sequence-abort first; LabVIEW
+SAFE clamp value team-decided (conservative default: SAFE). <strong>Build task — not a
+discovery.</strong> Required before Python holds firing-relevant authority.</p>
+<p>Other command-path gaps (see <code>docs/session-handoff-2026-07-11.md</code> §robustness):
+thin gateway validation (Speed-ref-only, §3); unauthenticated TCP :5020;
+no content-staleness guard on frozen-but-present telemetry.</p>
+<hr />
+<h2 id="7-evidence-index-what-to-re-open-and-its-freshness">7. Evidence index (what to re-open, and its freshness)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>VI export dir</th>
+<th>Role here</th>
+<th>Print date</th>
+<th>Fresh enough?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>APC_PC_UI_System</code></td>
+<td>operator inputs → global; self-toggles <code>PC_HB</code></td>
+<td>2026-07-11</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>APC_PC_UI_Main</code></td>
+<td>global → cluster; <strong>source-select redirect</strong></td>
+<td>2026-07-11</td>
+<td>✅ (re-printed)</td>
+</tr>
+<tr>
+<td><code>APC_PC_PythonGateway</code></td>
+<td>validate + write <code>PC_ControlSettings</code>; telemetry frame</td>
+<td>2026-07-08</td>
+<td>✅ (shows B3 command path)</td>
+</tr>
+<tr>
+<td><code>APC_PC_VariableMapping</code></td>
+<td><strong>telemetry return</strong> (cRIO→PC merge) — <em>not</em> the command writer</td>
+<td>2026-07-11</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>APC_9056_WatchDog</code></td>
+<td>stall-count heartbeats → <code>*notResponding</code></td>
+<td>2026-07-07</td>
+<td>✅ (direction-independent)</td>
+</tr>
+<tr>
+<td><code>APC_9056_TS_loop</code></td>
+<td><code>*notResponding</code> → Select(−1:3) → SM warnings-limit</td>
+<td>2026-07-10</td>
+<td>✅ (direction-independent)</td>
+</tr>
+<tr>
+<td><code>APC_9056_StateMachine</code></td>
+<td>Min warnings-limit vs requested; the limiter table</td>
+<td>2026-07-07</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cross-refs: <strong>spec</strong> <code>docs/icd.md</code> §7; <strong>seam/B0</strong> <code>docs/migration-seam.md</code>;
+<strong>current status + robustness gaps</strong> <code>docs/session-handoff-2026-07-11.md</code>.</p></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/command-path-asbuilt.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

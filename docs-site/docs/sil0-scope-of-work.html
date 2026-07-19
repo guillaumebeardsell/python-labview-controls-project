@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIL-0 — Scope of Work (click-level) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/sil0-scope-of-work.md</span></div>
+<main><h1 id="sil-0-scope-of-work-click-level">SIL-0 — Scope of Work (click-level)</h1>
+<p><strong>What SIL-0 is:</strong> validate the 9049 combustion analytics (<code>APC_HRL</code> → IMEP / Pmax /
+CA50 / MAPO / IMEPstd) and derive the warning-limit thresholds <strong>on the dev PC, with no
+hardware</strong>, by feeding synthetic crank-angle pressure traces of known truth.</p>
+<p><strong>Scope boundary (read first):</strong> the desktop harness runs <strong><code>support/APC_HRL.vi</code> only</strong> —
+it computes the metrics. It does <strong>not</strong> run the <code>Pcyl_Diag → CombCluster2Array →
+9049_Global_CylPressError</code> chain (that global is a <em>target-relative single-process</em>
+variable that only exists on the 9049). So the <strong>latch / false-trip matrix is SIL-1</strong>, on
+the real 9049 — not part of SIL-0. SIL-0 delivers <em>numbers and thresholds</em>; SIL-1 proves
+<em>trip-and-latch behaviour</em>.</p>
+<p><strong>Status (2026-07-14): SIL-0 COMPLETE.</strong> The <strong>math is validated</strong> (2026-07-11 — 425
+comparisons, all within tolerance; worst |Δ|: IMEPg 0.001 bar, Pmax 0.002 bar, CA50
+0.112 CADATDC); the MAPO/IMEPstd columns were added; the motoring profile was derived,
+loaded, and validated on-target; and the false-trip matrix ran <strong>7/7 in SIL-1 Step 6</strong>
+(2026-07-14, <code>tools/gen_warning_matrix.py</code> + record sheet
+<code>docs/cRIO9049 Warning Matrix.xlsx</code>). This doc stays as the <em>repeatable recipe</em> — it is
+the regression procedure whenever <code>Pcyl_Diag</code>, the harness, or the thresholds change
+(F3d rule: any <code>Pcyl_Diag</code> change ⇒ re-run the matrix).</p>
+<p>Derived from <code>docs/9049-openloop-audit.md</code> §7. Geometry flags throughout are the picture15
+as-built: <code>--bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099</code>.</p>
+<hr />
+<h2 id="step-0-one-time-setup">Step 0 — One-time setup</h2>
+<p><strong>Terminal (dev PC):</strong></p>
+<pre><code>pip install -e &quot;.[dev]&quot;
+python tools/gen_cas_traces.py  --help      # trace generator
+python tools/compare_hrl.py     --help      # scores LabVIEW metrics vs truth.json
+python tools/tune_thresholds.py --help      # recommends 9049_WarningLevels from metrics
+</code></pre>
+<p><strong>LabVIEW:</strong>
+1. Open <code>MONARCH.lvproj</code> → <strong>My Computer</strong> → open <strong><code>APC_SIL0_HRL_Desktop.vi</code></strong>.
+2. On its front panel, locate the <strong><code>traces folder</code></strong> path control (top-left) — this is the
+   only input you set. Outputs to watch: <code>Pressure Trace</code> / <code>HP filtered</code> graphs,
+   <code>CombustionAnalysisCluster</code>, <code>PcylDiagWarningsAndErrors</code>.</p>
+<p><em>Accept:</em> the three tools print <code>--help</code>; the harness VI opens with no broken run-arrow.</p>
+<hr />
+<h2 id="step-1-generate-the-motored-trace-set">Step 1 — Generate the motored trace set</h2>
+<p><strong>Terminal:</strong></p>
+<pre><code>python tools/gen_cas_traces.py trace-sets/motored_set --cycles 30 --mode motored \
+  --bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099
+</code></pre>
+<p>Writes into <code>trace-sets/motored_set/</code>: <code>cycle_NNNN.csv</code> (9×7200 raw), <strong><code>cycle_NNNN_phased.csv</code>
+(6×7200, each cylinder in its own frame, TDC at sample 3600 — the harness reads these)</strong>,
+and <code>truth.json</code>. <code>--mode motored</code> = compression/expansion only → IMEP ≈ −1 bar, Pmax ≈
+150 bar at this geometry.</p>
+<p><em>Accept:</em> 30 <code>*_phased.csv</code> files + <code>truth.json</code> present.</p>
+<hr />
+<h2 id="step-2-run-the-harness-metrics-re-confirm-the-math">Step 2 — Run the harness → metrics, re-confirm the math</h2>
+<p><strong>LabVIEW (click-level):</strong>
+1. In <code>APC_SIL0_HRL_Desktop.vi</code>, click the <strong><code>traces folder</code></strong> browse (folder) button and
+   select the <strong><code>trace-sets/motored_set</code></strong> folder (the harness globs <code>*_phased.csv</code> inside it).
+2. Click the <strong>Run</strong> arrow (or <strong>Ctrl+R</strong>). The For-loop steps every phased CSV → reads it
+   (comma delimiter) → <code>support/APC_HRL.vi</code> (which loops over the 6 cylinders internally, so
+   <code>IMEPg/IMEPn/Pmax/CA50</code> come out as 6-element arrays) → writes one row per (cycle, cyl)
+   <code>[cycle, cyl, IMEPg, IMEPn, Pmax, CA50]</code> to <strong><code>trace-sets/motored_set/labview_metrics.csv</code></strong>.
+3. Watch <code>Pressure Trace</code> sweep and <code>CombustionAnalysisCluster</code> update per file.</p>
+<p><strong>Terminal (sanity gate before trusting any threshold):</strong></p>
+<pre><code>python tools/compare_hrl.py trace-sets/motored_set/truth.json trace-sets/motored_set/labview_metrics.csv
+</code></pre>
+<p><em>Accept:</em> <code>labview_metrics.csv</code> has 30×6 = 180 numeric rows and <code>compare_hrl</code> prints
+<strong>"ALL metrics within tolerance"</strong>. If it fails, fix the harness before proceeding.</p>
+<hr />
+<h2 id="step-3-recommend-enter-the-motoring-thresholds-core-remaining-sil-0-work">Step 3 — Recommend &amp; enter the MOTORING thresholds  ← <em>core remaining SIL-0 work</em></h2>
+<p><strong>Terminal:</strong></p>
+<pre><code>python tools/tune_thresholds.py trace-sets/motored_set/labview_metrics.csv --mode motored \
+  --pmax-hard-limit &lt;engine over-pressure ceiling, bar — get from the team&gt;
+</code></pre>
+<p>Prints the full <code>9049_WarningLevels</code> set (each field as <code>&lt;field&gt;Warning</code> / <code>&lt;field&gt;Error</code>)
++ the <code>samples for running IMEP std</code> window, with rationale. Expect:
+- <strong><code>MaxPCylMax</code></strong> — Warning ≈ peak×1.2, Error ≈ min(peak×1.3, <code>--pmax-hard-limit</code>); the
+  Error limit is never allowed above the physical ceiling.
+- <strong><code>MaxIMEPstd</code> / <code>MaxDevFromAvg</code> / <code>MaxDevFromSelfAvg</code></strong> — generous (motored cycles repeat).
+- <strong>DISARMED for motoring</strong> (field set to the huge sentinel): <code>CA50max</code> (motored CA50 is MFB
+  noise), <code>MaxDevFromExpectedIMEP</code> (the unwired-Expected-IMEP-0 trap, F3), <code>MAPOmax</code>
+  (motoring can't knock).
+Tuning knobs: <code>--pmax-margin</code> (1.30), <code>--std-margin</code> (5.0), <code>--imep-std-samples</code> (20).</p>
+<p><strong>LabVIEW UI (click-level) — enter the profile on the 9049:</strong>
+1. Open the operator UI <strong><code>APC_PC_UI_Errors.vi</code></strong> (needs the 9049's shared variables live —
+   see <code>docs/deployed-bringup.md</code> for host/SV setup).
+2. Select the <strong>CYLINDER</strong> (9049 diagnostics) tab.
+3. Type each printed <strong>Warning</strong> and <strong>Error</strong> value into the matching field (<code>MaxPCylMax…</code>,
+   <code>CA50max…</code>, <code>MAPOmax…</code>, <code>MaxDevFrom…</code>, plus <code>cycles for std</code> / <code>samples for running IMEP
+   std</code>).
+4. Click <strong>set new warning levels</strong> (<code>SetWarningLimits</code>) → pushes them into <code>9049_WarningLevels</code>
+   (live).
+5. Click <strong>save to ini file</strong> (<code>SaveWarningLimitsToINI</code>) → persists to <code>CylWarningLevels.xml</code>
+   on the 9049 so it survives redeploy (<code>LoadWarningConfig</code> reloads it at startup).
+6. <em>(Optional verify)</em> pull <code>CylWarningLevels.xml</code> off the 9049 and eyeball it — see
+   <code>docs/crio-file-access.md</code>.</p>
+<p><em>Accept:</em> the motoring profile saved on the 9049; a <strong>CLEAR WARNINGS</strong> then
+<code>CylPressError = FALSE</code> confirmed before the first IDLING request.</p>
+<blockquote>
+<p>⚠ <strong>One profile slot only.</strong> Steps 3 and 5 both write the <em>same</em> <code>CylWarningLevels.xml</code>.
+There is no motoring/fired auto-switch in the as-built — swapping profiles is manual
+today (re-enter + Save before changing run type). See <code>docs/9049-openloop-audit.md</code> Step 3
+and the port backlog in <code>docs/migration-seam.md</code> (item 3).</p>
+</blockquote>
+<hr />
+<h2 id="step-4-optional-add-mapo-imepstd-columns-to-the-harness">Step 4 — (optional) add MAPO + IMEPstd columns to the harness</h2>
+<p><code>MAPOmax</code> (knock) and <code>MaxIMEPstd</code> (cyclic variability) can't be derived from IMEP/Pmax/CA50
+— they need the analytics' own <code>MAPO</code> and <code>IMEPstd</code>. <code>APC_HRL</code> <strong>already computes</strong> both
+inside <code>CombustionAnalysisCluster</code> (visible on the harness panel); the harness just isn't
+writing them to CSV yet.</p>
+<p><strong>LabVIEW (click-level), in <code>APC_SIL0_HRL_Desktop.vi</code> block diagram:</strong>
+1. Unbundle <strong><code>MAPO [bar/CAD]</code></strong> and <strong><code>IMEPstd [bar]</code></strong> from <code>CombustionAnalysisCluster</code>
+   alongside the existing four metrics.
+2. Extend the inner-loop <strong>Build Array</strong> to include them.
+3. <strong>Write a header row</strong> naming the columns. Both <code>compare_hrl</code> and <code>tune_thresholds</code> match
+   columns <strong>by name</strong> when a header is present (names are normalized — <code>MAPO [bar/CAD]</code> →
+   <code>mapo</code>), so extra columns and any order are fine and <strong>one file feeds both tools</strong>:
+   <code>cycle,cylinder,imep_g,imep_n,pmax,ca50,mapo,imepstd</code>
+   Simplest way to emit it: a second <strong>Write Delimited Spreadsheet</strong> for the header — a 1-D
+   <strong>string</strong> array of the names, delimiter <code>,</code>, <strong>append?=FALSE</strong> — wired <em>ahead</em> of the
+   numeric write by chaining its <code>new file path</code> output into the numeric write's <code>file path</code>
+   input, with the numeric write set to <strong>append?=TRUE</strong> (both delimiters comma; numeric
+   format <code>%.6f</code>, system-decimal-point OFF).
+4. Re-run Steps 1–2, then <code>tune_thresholds</code>: <code>compare_hrl</code> reads the header'd file directly,
+   and the tuner report now reads "analytics IMEPstd column" and, in <code>--mode fired</code>, emits a
+   numeric <code>MAPOmax</code>. Motored still disarms <code>MAPOmax</code> but tightens <code>MaxIMEPstd</code> from the real
+   column.</p>
+<hr />
+<h2 id="step-5-fired-profile-false-trip-latch-matrix-sil-1-not-sil-0">Step 5 — Fired profile + false-trip / latch matrix  → <strong>SIL-1, not SIL-0</strong></h2>
+<p><em>(Click-level SIL-1 procedure: <code>docs/sil1-scope-of-work.md</code>.)</em></p>
+<p>Generate a fired set and tune a fired profile the same way:</p>
+<pre><code>python tools/gen_cas_traces.py trace-sets/fired_set --cycles 30 --mode fired --fire-from 0 \
+  --bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099 [--q-fired 6000]
+python tools/tune_thresholds.py trace-sets/fired_set/labview_metrics.csv --mode fired --pmax-hard-limit &lt;ceiling&gt;
+</code></pre>
+<p>Fired mode arms <code>CA50max</code> (from data) and, with the MAPO column, <code>MAPOmax</code>;
+<code>MaxDevFromExpectedIMEP</code> stays disarmed unless Expected IMEP is actually driven.</p>
+<p><strong>The latch tests themselves are SIL-1</strong> — they need <code>Pcyl_Diag → CombCluster2Array →
+9049_Global_CylPressError</code> on the real 9049. Inject each fault with the generator
+(<code>--misfire &lt;cyl&gt;:&lt;cycle&gt;</code>, <code>--knock &lt;cyl&gt;:&lt;cycle&gt;:&lt;intensity&gt;</code>, first-cycle zero-pad) and
+confirm the mapped Error <strong>trips and latches</strong>, then that <strong>PC CLEAR WARNINGS →
+<code>APC_MASTER_ClearWarnings</code> → 9049 <code>APC_SLAVE_ClearWarnings</code></strong> releases it and spark/DI gating
+is restored.</p>
+<hr />
+<h2 id="sil-0-exit-criteria-deliverables">SIL-0 exit criteria / deliverables</h2>
+<ul>
+<li>[x] Math validated: <code>compare_hrl</code> "ALL within tolerance" on a mixed set (done 2026-07-11).</li>
+<li>[x] <code>labview_metrics.csv</code> regenerated with the <strong>MAPO + IMEPstd</strong> columns (done 2026-07-14).</li>
+<li>[x] <strong>Motoring</strong> <code>9049_WarningLevels</code> profile derived, entered, and <strong>saved to
+      <code>CylWarningLevels.xml</code></strong> on the 9049; CLEAR→<code>CylPressError=FALSE</code> confirmed
+      (done 2026-07-14 — after the F3b Load-INI root-cause fix; SIL-1 Step 3 exceeded it).</li>
+<li>[x] <strong>Fired</strong>-strength profile derived and recorded as the all-armed <strong>drill XML</strong>
+      (<code>trace-sets/warning_matrix/CylWarningLevels.drill.xml</code> — separate file, one-slot
+      caveat respected; ⚠ <code>MaxPCylMax</code> statistics-derived, uncapped pending the mechanical
+      rating; must never ride into a fueled run).</li>
+<li>[x] False-trip matrix documented — <strong>COMPLETE 7/7 in SIL-1 Step 6 (2026-07-14)</strong>;
+      record sheet <code>docs/cRIO9049 Warning Matrix.xlsx</code>.</li>
+</ul>
+<h2 id="known-gotchas-from-the-audit">Known gotchas (from the audit)</h2>
+<ul>
+<li><strong><code>exhaust pressure</code> must be wired</strong> on <code>APC_HRL</code> (flat <code>Initialize Array(3.0, 7200)</code>) or
+  pegging → NaN.</li>
+<li>Read Delimited Spreadsheet must use the <strong>comma</strong> delimiter.</li>
+<li><code>APC_HRL</code> has <strong>no geometry input</strong> (internal <code>VOL</code> constant) — geometry lives in the
+  <em>generator</em> flags, so both must match the as-built engine.</li>
+<li><strong>First acquired cycle is zero-padded</strong> (2-cycle circular buffer) → can nuisance-trip
+  <code>cyclic variability</code>; the <code>MaxIMEPstd</code> floor (or skip-first-cycle) must suppress it —
+  a SIL-1 check.</li>
+<li>The two-profile split is <strong>not built</strong> — see Step 3's caveat.</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/sil0-scope-of-work.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

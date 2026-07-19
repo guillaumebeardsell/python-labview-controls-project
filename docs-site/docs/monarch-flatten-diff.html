@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confirming the ControlSettings contract with a Flatten-To-JSON diff — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/monarch-flatten-diff.md</span></div>
+<main><h1 id="confirming-the-controlsettings-contract-with-a-flatten-to-json-diff">Confirming the ControlSettings contract with a Flatten-To-JSON diff</h1>
+<p>Goal: verify the Python <code>ControlSettings</code> model (docs/monarch-control-settings.md)
+matches the real LabVIEW cluster — field names, types, array lengths, and
+boolean polarity — by capturing one <code>Flatten To JSON</code> of the actual cluster and
+diffing it with an automated tool.</p>
+<p><strong>Almost all of this is automated.</strong> Your only manual job is the ~5-node
+LabVIEW capture in step 1. The tool does the comparison and tells you exactly
+what (if anything) disagrees.</p>
+<h2 id="step-1-capture-the-cluster-as-json-labview-one-time-throwaway">Step 1 — capture the cluster as JSON (LabVIEW, one-time throwaway)</h2>
+<p>Build a tiny scratch VI (or drop these on an existing free block-diagram area):</p>
+<ol>
+<li>Get an <code>APC_ControlSettings</code> value to flatten. <strong>Best:</strong> branch a <em>live</em>
+   <code>PC_ControlSettings</code> wire where it already exists (e.g. in the UI or where
+   the StateMachine is called) — a real value captures true polarity, array
+   sizes, and defaults. <strong>Simplest:</strong> right-click the <code>APC_ControlSettings.ctl</code>
+   typedef → <em>Create » Constant</em> to flatten a default value (still confirms
+   names/types/lengths, but not live polarity).</li>
+<li>Wire that value into <strong><code>Flatten To JSON</code></strong> (Programming » Cluster, Class &amp;
+   Variant » JSON). Leave inputs at default.
+   - If you have the <strong>JSONtext</strong> toolkit installed, its <code>Serialize</code> works too;
+     either is fine.</li>
+<li>Wire the JSON string into <strong><code>Write to Text File</code></strong> (Programming » File I/O).
+   Set the path to, say, <code>C:\temp\control_settings_flatten.json</code>.</li>
+<li>Run the VI once. You now have the file. Delete the scratch VI afterward.</li>
+</ol>
+<p>Notes:
+- The <code>Requested mode</code> enum may flatten as a <strong>number</strong> (0..3, what the model
+  expects) or as its <strong>string</strong> name — the tool reports which, so either is
+  fine to start.
+- Don't worry about pretty-printing or key order; the tool is order-insensitive.</p>
+<h2 id="step-2-run-the-diff">Step 2 — run the diff</h2>
+<p>Put the captured file anywhere and run:</p>
+<pre><code class="language-bat">python tools\compare_flatten.py C:\temp\control_settings_flatten.json
+</code></pre>
+<p>Or commit it to the repo (e.g. <code>original-labview-codebase/control_settings_flatten.json</code>)
+and I'll run the diff and interpret it for you.</p>
+<h2 id="step-3-read-the-report">Step 3 — read the report</h2>
+<p>The tool prints, and exits non-zero if any of the first four are non-empty:</p>
+<ul>
+<li><strong>LabVIEW fields not in the model</strong> — a real field the model is missing, or a
+  label I guessed wrong (I'll fix the mapping/model).</li>
+<li><strong>Model fields absent from the capture</strong> — a field the model has but LabVIEW
+  didn't emit (e.g. the removed <code>PFI advance</code>), or a label mismatch.</li>
+<li><strong>Type mismatches</strong> — e.g. a bool the model treats as a number, or the
+  enum-as-string case above.</li>
+<li><strong>Array length mismatches</strong> — <code>activate_cylinder</code>, <code>mtr_modbus_floats</code>,
+  <code>mtr_modbus_u16</code>.</li>
+<li><strong>Booleans observed</strong> — every boolean and its captured value. This is how we
+  settle <strong>polarity</strong>: with a live capture in a known plant state, we can read
+  off whether e.g. <code>Intake vent = true</code> means closed (the diagram says vents are
+  <code>1 = closed, 0 = open</code>) and whether NG/Ar/O2 feed valves match.</li>
+<li><strong>Arrays observed</strong> — lengths, to confirm the three array sizes.</li>
+</ul>
+<p><code>RESULT: AGREE</code> means the structure is locked in. Any disagreements: send me the
+report (or the JSON) and I'll reconcile the model and mapping, then we re-run
+until it's clean.</p>
+<h2 id="what-this-unblocks">What this unblocks</h2>
+<p>A confirmed contract lets the gateway VI use the same <code>LABEL_TO_PATH</code> mapping
+(<code>supervisory/monarch/labview_mapping.py</code>) to build the real telemetry JSON, and
+lets the first state-machine port trust the field it reads. It closes all four
+open questions in docs/monarch-control-settings.md in one shot.</p></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/monarch-flatten-diff.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

@@ -55,6 +55,7 @@ python tools/compare_flatten.py <labview_flatten.json>   # diff a LabVIEW cluste
 python tools/shadow_compare.py monarch.jsonl              # replay decisions vs the ported StateMachine
 python examples/monarch_operate.py                        # operator CLI (needs source=PYTHON on the gateway)
 python tools/gen_warning_matrix.py                        # SIL-1 false-trip drill suite (7 sets + drill XML + manifest)
+python tools/build_docs_html.py                           # regenerate docs-site/ (styled HTML) from the markdown docs
 ```
 
 Environment: developed on a Windows control-room PC (Python 3.10, `.venv`). `requires-python` is

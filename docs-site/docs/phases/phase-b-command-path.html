@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase B — Command Path + Watchdog Proof (detailed instructions) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../../index.html">index</a><span>docs/phases/phase-b-command-path.md</span></div>
+<main><h1 id="phase-b-command-path-watchdog-proof-detailed-instructions">Phase B — Command Path + Watchdog Proof (detailed instructions)</h1>
+<blockquote>
+<p><strong>Status update (2026-07-08 evening): B3 LabVIEW work essentially BUILT.</strong>
+B3.a verified on the gateway (parse trio, checks, Max&amp;Min resolver, rate
+memory, gated write, dynamic reply nested in the type:command case —
+heartbeats ignored; 0 stray acks in 1900 frames). <strong>B3.b built</strong> (switch +
+effective-LED, on the <code>UI_Main</code> panel). <strong>B3.c built AS-BUILT VARIANT</strong>
+(see B3.c): bundle → <code>PC_OperatorRequests</code> unconditional; <code>PC_ControlSettings</code>
+= a Case-gated <em>copy</em> of the requests variable (False/UI case only).
+<strong>Watchdog-under-authority proven 3×:</strong> flip to PYTHON with no commander →
+<code>pc_hb</code> freezes → SAFE in exactly 5.0 s → flip back → step-by-1 recovery
+(= drills B4-1/2 under authority, banked).</p>
+<p><strong>2026-07-08 late: UI-side NACK ladder PASSED live, verbatim</strong> (run with
+<code>tools/send_command.py</code> against the real gateway): <code>valid</code> →
+<code>source is UI</code> with id echo; <code>unknown</code> → <code>unknown command 'bogus'</code>;
+<code>rate</code> → 6th/7th command NACK <code>rate</code> (rolling window verified on
+hardware); <code>garbage</code> → id −1 NACK then the next command answered =
+<strong>session survived, drill B4-4 core passed</strong>.</p>
+<p><strong>2026-07-08, end of day: the FULL ladder is live-verified and Python has
+driven the plant.</strong> PYTHON-gated rungs: <code>parse</code> ✓, <code>estop-clear</code> →
+<code>operator only</code> ✓ (Python cannot clear an e-stop, proven on hardware),
+<code>range</code> rejected ✓ (cosmetic: its reason Format node has the constant on
+<em>initial string</em> — same one-terminal fix as <code>unknown</code> had), and <code>valid</code> →
+<strong><code>accepted:true</code> — the first clean ACK.</strong> Same day: the handover held
+(commander feeding the watchdog, zero trips), the <strong>HMI panel drove the
+full state ladder 1→0→1→2→3 through Python</strong> (mirror architecture
+end-to-end), the e-stop set-path fired instantly through the same route,
+and recovery-by-demotion was exercised (ICD §7.7 / C3). Also found live:
+the NaN echo (commander now sanitizes) and the CRLF/compact-JSON framing
+rules (ICD §2). Remaining for Phase B exit: the range-node terminal fix,
+confirm the old direct write is deleted (Find), then the scripted B4
+drill table 3× each.</p>
+<p><strong>Status (2026-07-07):</strong> <strong>B0 BUILT + WIRED + LIVE-VERIFIED</strong> — the refreshed
+WatchDog is wired (<code>PCnotResponding</code>/<code>9049notResponding</code> → Select (−1:3) → Min
+into the SM warnings input); a real PC drop drove <code>SYSTEM STATE → SAFE</code> with
+step-by-1 recovery, shadow compare 100% (<code>docs/migration-seam.md</code>). Threshold
+<strong>set to 250 counts (5 s) and the loss-of-PC drill re-verified at it</strong>: <code>pc_hb</code>
+freeze → <code>warnings_limit=−1</code> → <code>SYSTEM STATE→SAFE</code> in ~5 s, step-by-1 recovery,
+shadow compare <strong>100%/100%</strong> (<code>docs/shadow-findings.md</code>). Sizing trap noted: the
+count is ~20 ms control-loop ticks and must be several <code>PC_HB</code> (~1 Hz) periods,
+so 50 counts (1 s) false-trips; 250 = 5 s is correct. <strong>B1 FROZEN</strong> — ICD v0.2
+§7: 5 s threshold; UI toggles <code>PC_HB</code> too; <code>UI_HeartBeat</code> follow-on. Only soft
+B1 item left: the <code>CommandSource</code> HMI switch. <strong>B2 BUILT + VERIFIED</strong> —
+<code>commander.py</code>, the commandable sim gateway running the A1 StateMachine, 13
+failure-matrix tests green, end-to-end TCP run. Next real build: <strong>B3 gateway
+write path</strong> → B4 bench drills.</p>
+</blockquote>
+<p><strong>Objective:</strong> a hardened Python→LabVIEW command channel whose failure modes are
+all proven safe on the bench. This phase <em>builds</em> authority plumbing; it grants
+none until its exit gate passes.</p>
+<p><strong>Authority level:</strong> none until B4 drills pass. Everything is testable against
+the sim and with <code>source-select = UI</code> (Python's writes ignored) before that.</p>
+<p><strong>Entry criteria:</strong> telemetry pipeline live (done). A1 is <em>not</em> a prerequisite
+for B1/B2 (they can run in parallel); B4 wants A2's shadow compare available as
+a divergence alarm.</p>
+<p><strong>LabVIEW changes in this phase:</strong> B0 (wire the WatchDog + SAFE clamp in
+<code>APC_9056_TS_loop.vi</code> — ✅ done + live-verified) and B3 (two new shared
+variables <code>PC_OperatorRequests</code> + <code>CommandSource_IsPython</code>, the gateway
+command branch + envelope echo, the HMI source switch, and the UI
+single-writer <strong>redirect</strong>). B1/B2/B4 need no LabVIEW edits (B4 <em>exercises</em>
+the B0/B3 work).</p>
+<hr />
+<h2 id="b0-close-the-loss-of-pc-question-first-it-shapes-b3">B0 — Close the loss-of-PC question (FIRST — it shapes B3)</h2>
+<p><em>Owner: you (LabVIEW), with my analysis on the export.</em></p>
+<ol>
+<li>~~Fix the typedef-update error~~ <strong>done (2026-07-06).</strong></li>
+<li>~~Export <code>APC_9056_TS_loop.vi</code>~~ <strong>done (2026-07-06).</strong></li>
+<li>~~Trace what consumes the WatchDog outputs~~ <strong>done — OUTCOME: Case 2, worse
+   than expected.</strong> The WatchDog subVI sits on the TS_loop diagram <strong>completely
+   unwired</strong> — no inputs, no outputs. It runs (reads heartbeats via shared
+   variables internally) but <code>PCnotResponding</code> is consumed by nothing.</li>
+</ol>
+<p><strong>Remaining B0 work — LabVIEW changes required (node-by-node, in
+<code>APC_9056_TS_loop.vi</code> at the StateMachine call site):</strong></p>
+<ol>
+<li><strong>Wire the WatchDog call.</strong> <em>(Updated 2026-07-07: the VI internals were
+   refreshed — four proper stall counters + a new <code>Iteration Time [ms]</code>
+   indicator — and the UI now toggles <code>PC_HB</code> (B3.c step 4 done), so only the
+   call-site wiring remains.)</em>
+   - <em>Inputs:</em> the four <code>*watchdogThreshold</code> terminals. The threshold counts
+     <strong>iterations</strong> of the ~50 Hz control loop, so use the new indicator:
+     <code>5000 / Iteration Time [ms]</code> → <code>To I32</code> → the threshold inputs (≈ <strong>250</strong>
+     at ~20 ms) — the 5 s intent stays explicit on the diagram and survives
+     loop-rate changes. Wire all four channels (defaults are 0 = trip on the
+     first unchanged sample).
+   - <em>Output:</em> <code>PCnotResponding</code> (Boolean). No source gate needed — the UI
+     toggle is live, so the clamp arms in both modes per ICD §7.5.</li>
+<li><strong>Build the clamp:</strong> <code>PCnotResponding</code> → <strong><code>Select</code></strong> (TRUE → I8 constant
+   <code>−1</code>, FALSE → I8 constant <code>3</code>) → one input of a <strong><code>Min</code></strong> (Comparison →
+   Max &amp; Min, use the min output).</li>
+<li><strong>Splice into the warnings input:</strong> delete the segment of the wire feeding
+   the StateMachine's <code>STATE LIMITATION FROM WARNINGS</code> terminal (from the DIAG
+   VI — or the front-panel control if that input turns out to be unwired, per
+   <code>docs/shadow-findings.md</code>); wire that source into the <code>Min</code>'s other input,
+   and the <code>Min</code> output into the StateMachine terminal. Net effect: warnings
+   path unchanged in normal operation; a PC stall clamps the state to SAFE via
+   the exact mechanism every other limit uses.</li>
+<li><strong>DECIDED (2026-07-07, ICD §7.5): the UI toggles <code>PC_HB</code> too</strong>, so the
+   clamp is armed in <strong>both</strong> modes — no source gating. Threshold: 5 s
+   (= ceil(5 s / TS-loop period) iterations). Implementation of the UI toggle
+   is in B3.c step 4; <strong>sequencing note:</strong> if B0's clamp wiring lands before
+   the UI toggle does, gate the Select on <code>CommandSource = PYTHON</code> temporarily
+   and remove the gate in the same change-set as B3.c (otherwise a frozen
+   <code>PC_HB</code> under source=UI would trip immediately).</li>
+<li><strong>Recommended while in the diagram</strong> (from <code>docs/shadow-findings.md</code>): the
+   WarningIntegration VI's <code>9049 not responding</code> / <code>9056 FPGA not responding</code>
+   booleans are indicator-only. Two more <code>Select</code>(−1:3) → include in the same
+   <code>Min</code> (Min accepts only 2 inputs — chain two Mins, or Build Array → Array
+   Max &amp; Min). That closes the same detection-without-response gap for the
+   engine controller.</li>
+<li>Deploy and verify. Note <em>(updated 2026-07-19 — the original "no RT-EXE
+   build specs" observation is superseded)</em>: the project now builds startup
+   <code>.rtexe</code>s via the <strong><code>APC_9049_RT</code>/<code>APC_9049_RT SIM</code>/<code>APC_9056_RT</code></strong> specs
+   (autonomous deployment, <code>docs/deployed-bringup.md</code>), so "redeploy" =
+   rebuild the spec + set as startup. Bench check:
+   stop toggling <code>PC_HB</code> (or kill Python once B2's commander is driving) ⇒
+   telemetry shows <code>warnings_limit = −1</code> and <code>system_state → −1</code> within ~5 s.</li>
+</ol>
+<p><strong>Definition of done (B0):</strong> the sentence "if <code>PC_ControlSettings</code> goes stale
+for N seconds, the 9056 does X" is true, written down in
+<code>docs/migration-seam.md</code>, and N and X are chosen deliberately.</p>
+<hr />
+<h2 id="b1-icd-v02-command-semantics-design-then-freeze">B1 — ICD v0.2: command semantics (design, then freeze)</h2>
+<p><em>Owner: Claude drafts; joint review before anything is built on it.</em></p>
+<p>Extend <code>docs/icd.md</code> to v0.2 with:</p>
+<ol>
+<li><strong>One atomic command:</strong>
+   <code>json
+   {"type":"command","id":7,"name":"set_control_settings",
+    "params":{"settings":{ …LabVIEW-label flatten of the full PC_ControlSettings… }}}</code>
+   Serialized by <code>control_settings_to_labview()</code> so the gateway can
+   <code>Unflatten From JSON</code> directly into the typedef — zero key-mapping in
+   LabVIEW, mirroring telemetry.</li>
+<li><strong>Whole-cluster, 1 Hz, idempotent.</strong> While in command, Python sends its
+   complete intent every tick (not deltas, not on-change). Consequences: no
+   partial-update races, a lost frame heals on the next tick, and the stream
+   itself is the liveness signal.</li>
+<li><strong><code>pc_hb</code> toggling:</strong> Python flips <code>pid_control_references.pc_hb</code> on every
+   send. This is what the existing 9056 watchdog stall-counts, so the
+   <em>original</em> safety mechanism supervises Python directly. <code>mtr_hb</code> passes
+   through from last telemetry unchanged.</li>
+<li><strong>ACK/NACK = validation only</strong> (parse OK, in-range, rate OK, source is
+   PYTHON). Effect confirmation = watching <code>limited_settings</code> / <code>system_state</code>
+   in telemetry. NACK carries a machine-readable reason string.</li>
+<li><strong>Single-writer + source-select:</strong> exactly one writer of
+   <code>PC_ControlSettings</code>. Gateway holds a <code>CommandSource</code> switch
+   (<code>UI</code> | <code>PYTHON</code>, default <code>UI</code>, operator-owned — on the HMI, not settable
+   by Python), echoed in every telemetry frame (<code>command_source</code> field).
+   Commands received while source=UI are NACKed with reason
+   <code>"source is UI"</code>. <strong>Bumpless handover:</strong> before requesting the switch,
+   Python initializes its intent from the last telemetry frame, so the first
+   Python frame equals the UI's last one.</li>
+<li><strong>E-stop precedence:</strong> e-stop TRUE from <em>any</em> source (three UI panels or a
+   Python command) latches; Python <strong>cannot</strong> clear it — <code>clear_emergency_stop</code>
+   from Python is NACKed (<code>"operator only"</code>). Encode in the gateway validation.</li>
+<li><strong>Failure matrix</strong> (each row gets defined behavior + a B4 drill): Python
+   crash mid-command · process frozen (stream continues? no — pc_hb stops
+   toggling) · TCP drop · malformed JSON · out-of-range values · command flood
+   (&gt;5 Hz ⇒ NACK rate-limit) · source flip mid-stream · stale telemetry on the
+   Python side (Python must stop commanding per ICD staleness rule).</li>
+</ol>
+<p><strong>Definition of done (B1):</strong> v0.2 section merged into <code>docs/icd.md</code> after joint
+review; the source-select UX decision recorded.
+<em>Status: </em><em>FROZEN 2026-07-07</em><em> (docs/icd.md §7). Decisions: 5 s threshold;
+option (a) — UI toggles <code>PC_HB</code> (clamp ungated once B3.c lands);
+<code>UI_HeartBeat</code> follow-on specified. Remaining soft default: the
+<code>CommandSource</code> switch lives on the HMI System screen unless the team
+objects during B3.</em></p>
+<hr />
+<h2 id="b2-python-command-side">B2 — Python command side</h2>
+<p><em>Owner: Claude. No LabVIEW dependency (built against the sim).</em></p>
+<ol>
+<li><code>supervisory/monarch/commander.py</code> — <code>MonarchCommander</code>:
+   - holds the current <code>ControlSettings</code> intent (initialized from telemetry);
+   - <code>tick()</code>: toggle <code>pc_hb</code>, serialize via <code>control_settings_to_labview()</code>,
+     emit the <code>set_control_settings</code> request; respect staleness (no telemetry
+     3 s ⇒ stop sending, re-init from telemetry on recovery);
+   - tracks ACK/NACK, surfaces NACK reasons, alarms on effect-mismatch
+     (commanded vs next <code>limited_settings</code>, beyond what the A1 limiter
+     predicts).</li>
+<li>Extend <code>simserver_monarch.py</code>: accept <code>set_control_settings</code>, validate like
+   the gateway will (incl. source-select + e-stop rules), run the <strong>A1-ported
+   limiter</strong> against it, reflect results in telemetry, implement a
+   <code>PCnotResponding</code>-equivalent (stop toggling pc_hb ⇒ sim drops to SAFE).</li>
+<li>Tests: full loop against the sim — command → ack → telemetry effect;
+   every failure-matrix row simulated (kill commander, freeze pc_hb, garbage,
+   flood, source=UI NACK, e-stop precedence).</li>
+</ol>
+<p><strong>Definition of done (B2):</strong> all failure-matrix rows pass against the sim.
+<em>Status: DONE (2026-07-06) — <code>supervisory/monarch/commander.py</code> +
+<code>simserver_monarch.py</code> rebuilt around <code>MonarchGatewaySim</code> (runs the real
+A1-ported <code>state_machine.decide</code>, ICD v0.2 validation, pc_hb stall→SAFE);
+<code>tests/test_monarch_commander.py</code> covers drills 1/2/4/5/6/7/8/9; TCP
+end-to-end verified.</em></p>
+<hr />
+<h2 id="b3-labview-gateway-write-path">B3 — LabVIEW gateway write path</h2>
+<p><em>Owner: you, with node-level guidance. Prereq: B0 outcome (✅ done) + B1 frozen
+(✅ 2026-07-07).</em></p>
+<p><strong>What exists before B3:</strong> the gateway is read-only — it flattens
+<code>PC_ControlSettings</code> + extras into the 1 Hz telemetry envelope, and its receive
+path answers any <code>"type":"command"</code> line with a hardcoded ack constant (the
+hello build). <strong>What exists after B3:</strong> validated Python commands write
+<code>PC_ControlSettings</code>; the UI's writes redirect by source; telemetry carries
+<code>command_source</code> and <code>operator_requests</code>. The finished data flow:</p>
+<pre><code>                       source = UI                 source = PYTHON
+UI_Main write  ──────► PC_ControlSettings          PC_OperatorRequests
+Python command ──────► NACK &quot;source is UI&quot;         validate → PC_ControlSettings
+9056 consumes  ──────► PC_ControlSettings (unchanged either way)
+</code></pre>
+<p>Single-writer matrix — the invariant B3 must end with (exactly one writer per
+variable per mode):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Writer while source=UI</th>
+<th>Writer while source=PYTHON</th>
+<th>Readers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PC_ControlSettings</code></td>
+<td><code>UI_Main</code> (as today)</td>
+<td>gateway (validated commands only)</td>
+<td>9056 SM, gateway telemetry</td>
+</tr>
+<tr>
+<td><code>PC_OperatorRequests</code></td>
+<td><code>UI_Main</code> (every iteration, unconditional)</td>
+<td><code>UI_Main</code> (same — unconditional)</td>
+<td>gateway telemetry → Python mirror</td>
+</tr>
+<tr>
+<td><code>CommandSource_IsPython</code></td>
+<td>operator's HMI switch — <strong>only</strong></td>
+<td>operator — <strong>only</strong></td>
+<td>gateway validation, <code>UI_Main</code> gate, telemetry echo</td>
+</tr>
+</tbody>
+</table></div>
+<p>Work in this order: <strong>B3.0 → B3.a → B3.b → B3.c → B3.d</strong> — variables first,
+because every later step drags them onto a diagram.</p>
+<h3 id="b30-create-and-deploy-the-two-shared-variables-10-min">B3.0 — Create and deploy the two shared variables (~10 min)</h3>
+<ol>
+<li>Project Explorer → <code>cRIO-9049</code> target → <code>APC_SharedVars.lvlib</code> (the library
+   lives under the 9049 target — same place the A2.1 variables went) →
+   right-click → <em>New → Variable</em>:
+   - <strong><code>PC_OperatorRequests</code></strong> — Variable Type <em>Network-Published</em>; Data Type
+     <em>From Custom Control…</em> → <code>APC_ControlSettings.ctl</code>. Configure identically
+     to <code>PC_ControlSettings</code> (no buffering, no RT FIFO).
+   - <strong><code>CommandSource_IsPython</code></strong> — Network-Published, <strong>Boolean</strong>. Polarity:
+     <strong>FALSE = UI (the default), TRUE = PYTHON.</strong> A Boolean beats a
+     string/enum: the deploy-time default is automatically the safe mode (UI),
+     nothing can be typo'd, and telemetry turns it into the ICD's
+     <code>"UI"</code>/<code>"PYTHON"</code> string with one <code>Select</code>.</li>
+<li>Right-click the library → <em>Deploy All</em>. Nothing on the cRIOs consumes
+   either variable (the B0 clamp is ungated), so no cRIO redeploy — this is a
+   variable-engine update only.</li>
+<li><strong>The unwritten-variable NaN trap (you hit this at A2.1 with
+   <code>Limited_ControlSettings</code>):</strong> a freshly deployed cluster variable that has
+   never been written can flatten with <code>NaN</code> in DBL fields — invalid JSON, and
+   the Python observer discards every frame. (<code>PC_ControlSettings</code> never had
+   this problem because <code>UI_Main</code>'s main loop writes it every iteration from
+   startup; <code>Limited_ControlSettings</code> NaN'd because its writer — the 9056
+   StateMachine — wasn't running yet.) The B3.c redirect design eliminates the
+   trap by construction: <code>UI_Main</code> writes <code>PC_OperatorRequests</code>
+   <strong>unconditionally every loop iteration</strong> (see B3.c step 2), so it is
+   written milliseconds after the UI starts. Just do B3.c's write wiring
+   before (or together with) B3.a step 6's envelope addition. If frames go
+   malformed anyway, diagnose with <code>python tools/capture_line.py</code>.</li>
+</ol>
+<h3 id="b3a-apc_pc_pythongatewayvi-the-command-branch-node-by-node">B3.a — <code>APC_PC_PythonGateway.vi</code>: the command branch, node by node</h3>
+<p><strong>Where you are.</strong> In the session loop you built for hello-vi, the received
+line (from <code>TCP Read</code>, CRLF mode) already passes the empty-line gate and the
+<code>Match Pattern</code> <code>"type":"command"</code> → <code>≥ 0</code> → Case structure. <strong>Everything
+below goes inside that True case</strong>, replacing the hardcoded ack string
+constant. Delete the constant; keep the <code>TCP Write</code> — step 5 re-feeds it.
+Keep the <code>Match Pattern</code> gate itself: it's a cheap pre-filter, and lines
+without <code>"type":"command"</code> should keep being ignored exactly as today.</p>
+<p>The finished branch, left to right:</p>
+<pre><code>                 ┌─ Unflatten(name)  ──────────────► bad-name?  ──┐
+received line ───┼─ Unflatten(id)    ──► reply id                 │ Build Array (6 bools,
+                 └─ Unflatten(params.settings, typedef) ─► parse? ┼ priority order)
+                        │                          range?, clear? ┘   │
+                        │                                    Search 1D Array for TRUE
+                        │                                             │ index (−1 = pass)
+                        ▼                                             ▼
+                 [Case: accepted] ─► PC_ControlSettings write   accepted?, reason
+                                                                      │
+                 Format Into String {&quot;type&quot;:&quot;command_ack&quot;,…} ─► existing TCP Write
+</code></pre>
+<p><strong>Step 1 — parse three things from the line (three <code>Unflatten From JSON</code>
+nodes).</strong> Palette: <em>Programming → String → Flatten/Unflatten String →
+Unflatten From JSON</em>. Drop three; wire the received line to each node's
+<em>JSON string</em> input. On each, the <em>path</em> input selects which JSON element to
+extract, and the <em>type/defaults</em> input sets the output type:</p>
+<ol>
+<li><strong>name</strong> — right-click <em>path</em> → <em>Create → Constant</em>; it's a string
+      array: type <code>name</code> into element 0. Right-click <em>type/defaults</em> →
+      <em>Create → Constant</em> → leave it an <strong>empty string</strong>. The <em>value</em> output
+      is the command-name string.</li>
+<li><strong>id</strong> — the node, then the fallback that makes garbage harmless:<ol>
+<li>Second <code>Unflatten From JSON</code> (Ctrl-drag the first one to copy it, or
+     drop a fresh one). Branch the received-line wire to its <em>JSON
+     string</em> input.</li>
+<li><em>path</em>: right-click → <em>Create → Constant</em> → type <code>id</code> into
+     element 0 (a 1-element string array, like the name node's).</li>
+<li><em>type/defaults</em>: drop a <em>Numeric Constant</em>, right-click →
+     <em>Representation → I32</em>, leave the value <code>0</code>, wire it in. <strong>Don't
+     trust the value output on error</strong> — when the parse fails, the node
+     returns this default, and <code>0</code> looks exactly like a legitimate id.
+     That's why the reply id comes from the <em>error status</em>, next.</li>
+<li>Unbundle the status: this node's <em>error out</em> → <code>Unbundle By Name</code>
+     (Cluster, Class &amp; Variant palette) → select <code>status</code> (Boolean:
+     TRUE = the id couldn't be read).</li>
+<li>The fallback: drop a <strong><code>Select</code></strong> (Comparison palette). Its three
+     inputs, top to bottom: <strong>t</strong> = an I32 constant <code>−1</code>; <strong>s</strong> (the
+     selector, middle) = the <code>status</code> Boolean; <strong>f</strong> = the id node's
+     <em>value</em> output. Output = the <strong>reply id</strong> — label the wire. So a
+     readable id echoes back in the ack, and a line whose id can't be
+     read is NACKed with id <strong>−1</strong> per ICD §7.3 instead of killing
+     anything. (Quick check when running: send valid JSON → the ack
+     carries your id; send garbage after <code>"type":"command"</code> → the NACK
+     carries <code>-1</code>.)</li>
+</ol>
+</li>
+<li><strong>settings</strong> — <em>path</em> = a <strong>2-element</strong> string array: element 0
+      <code>params</code>, element 1 <code>settings</code>. <em>type/defaults</em> = an
+      <strong><code>APC_ControlSettings.ctl</code> constant</strong>: open the <code>.ctl</code> from the
+      Project Explorer and <strong>drag the control from the typedef's window onto
+      the gateway diagram</strong> — it lands as a cluster constant. Right-click it
+      and confirm <em>Auto-Update from Type Def.</em> is checked. <strong>Do not edit any
+      field labels</strong> — several contain embedded line-feeds; the flatten keys
+      must match character-for-character (this node exactly inverts the
+      telemetry <code>Flatten To JSON</code>; no key renaming on the LabVIEW side,
+      ever). Leave <em>enable strict validation?</em> unwired (default = tolerant:
+      extra JSON fields must not error; B3.d step 2 tests this). Capture this
+      node's error: unbundle <code>status</code> from <em>error out</em> → that Boolean is
+      <strong><code>parse failed</code></strong>.</li>
+</ol>
+<p><strong>Error-wire hygiene — run the three nodes in PARALLEL, not chained.</strong>
+   Standard LabVIEW nodes skip execution when <em>error in</em> is already set — so
+   if you daisy-chained line → name-node → id-node → settings-node, a line
+   missing its <code>name</code> key would error at the first node and the id and
+   settings would never even be attempted (the NACK would then carry id −1
+   when the line had a perfectly readable id). Instead:
+   - Leave each node's <em>error in</em> <strong>unwired</strong>; feed all three from branches
+     of the same received-line wire, side by side. Each attempts its own
+     parse independently; each failure is handled by its own consumer (name →
+     the empty-string default into check 2.1; id → the <code>Select</code> fallback in
+     1.2; settings → the <code>parse failed</code> status in 1.3).
+   - Collect the three <em>error out</em>s with <strong><code>Merge Errors</code></strong> (Dialog &amp; User
+     Interface palette) → <strong><code>Clear Errors</code></strong> → <strong>dead-end the output there</strong>
+     (built as-such, verified in the 2026-07-08 gateway export). The cleared
+     wire carries "no error" always — nobody needs it; its job is
+     <strong>containment, not communication</strong>. The unbundled <code>status</code> Booleans are
+     taken <em>before</em> the merge, so clearing loses nothing. Optional debug tap:
+     a parse-error counter or last-error indicator <em>between</em> Merge and Clear.
+   - Why the firebreak matters: the session's own error line is
+     <strong>interpreted</strong> — its codes drive the keep-alive/exit logic (56 = read
+     timeout → keep going; 66 = disconnect → end session). If Unflatten JSON
+     error codes leaked onto that line, one malformed byte from Python could
+     tear down the whole session — exactly what drill B4-4 forbids. Parse
+     errors are born in the case, consumed as Booleans, destroyed in place.
+   - (Distinct from the <em>session-level</em> <code>Clear Errors</code> near <code>TCP Close</code> from
+     the hello build — that one resets the line after a session ends so the
+     next <code>TCP Wait On Listener</code> starts clean. Keep both.)</p>
+<p><strong>Step 2 — compute the six check Booleans</strong> (each TRUE = that check fails).
+Summary first — the strings and the order are compared against the sim
+(<code>simserver_monarch.py handle_command</code>) by the Python tests and the B4
+drills, so both are load-bearing:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Boolean</th>
+<th>NACK reason (verbatim)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>bad name</td>
+<td><code>unknown command '&lt;name&gt;'</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>rate</td>
+<td><code>rate</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>source</td>
+<td><code>source is UI</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>parse</td>
+<td><code>parse</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>range</td>
+<td><code>range: Speed ref &lt;value&gt;</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>clear e-stop</td>
+<td><code>operator only</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Layout tip: build the six as a tidy vertical column between the step-1
+   parse nodes and the step-3 <code>Build Array</code>, and label each wire (double-click
+   the wire → type the name) — the diagram then reads like the table.</p>
+<p><strong>2.1 — bad name.</strong> <code>Not Equal?</code> (Comparison palette). Top input: the
+   <em>value</em> output of the name node (step 1.1). Bottom input: right-click →
+   <em>Create → Constant</em> → type <code>set_control_settings</code> (exactly — no quotes,
+   no whitespace). Output TRUE = fail. (If the name couldn't be parsed at
+   all, the step-1 default — empty string — lands here and fails as
+   <code>unknown command ''</code>; that's fine, ICD §7.3 allows NACK for garbage.)</p>
+<p><strong>2.2 — rate.</strong> <em>Goal:</em> enforce ICD §7.3's flood guard — NACK anything
+   beyond <strong>5 commands per rolling second</strong>. Healthy Python sends 1/s and
+   never comes near it; this exists so a <em>malfunctioning</em> Python (runaway
+   retry loop, stuck sequence, wrong script on the port) degrades into
+   rejected requests instead of churning the gateway/SV engine — the same
+   invariant as the rest of the ladder. Mechanism: remember the timestamps
+   of recent commands (the shift register), forget those older than 1000 ms
+   (the filter), reject when more than 5 remain (the size test) — a rolling
+   window, because a per-second counter would let a 10-command burst
+   straddle a second boundary. The full recipe:
+   1. <strong>Shift register:</strong> right-click the <strong>session loop's</strong> border → <em>Add
+      Shift Register</em>. Initialize the <em>left</em> terminal from outside the loop
+      with an <strong>empty U32 array</strong>: drop an <em>Array Constant</em> (Array palette),
+      drag a <em>Numeric Constant</em> into it, right-click the numeric →
+      <em>Representation → U32</em>, leave the array with <strong>no elements filled in</strong>,
+      wire it to the left terminal.
+   2. <strong>Pass-through everywhere else.</strong> The array has to travel from the left
+      shift-register terminal, <em>through</em> the receive path's Case structures,
+      to the right shift-register terminal — and survive unchanged on every
+      iteration where no command arrives (which is most of them: the 100 ms
+      <code>TCP Read</code> timeout means the loop spins many times between commands).</p>
+<pre><code>  *Why this matters:* a Case structure's output tunnel emits, per
+  iteration, whatever the **currently executing case** wired into it. If
+  a case leaves it unwired and you silence the broken arrow with
+  *Use Default If Unwired*, that case emits the type's default — for an
+  array, an **empty array**. Every non-command iteration would then wipe
+  the timestamp history, and the rate limiter would simply never trip.
+  No error, no broken wire — it just silently doesn't work. (Drill B4-6
+  is the catch: 6 rapid sends must NACK `rate` on the 6th.)
+
+  *The wiring, click by click.* The rate logic sits inside **two** nested
+  structures from the hello build — the empty-line gate Case and the
+  `"type":"command"` match Case — so the array crosses two borders each
+  way:
+
+  ```
+  [SR]──▪──▪── append→filter ──▪──▪──[SR]     command case (True/True)
+         ▪──▪───────────────────▪──▪          every other case: straight through
+  [SR] = shift register terminal   ▪ = tunnel, must be SOLID in every case
+  ```
+
+  1. Wire from the **left shift-register terminal** into the gate Case
+     and on into the command Case — LabVIEW creates an **input tunnel**
+     (a small border square) automatically at each border crossing.
+  2. Inside the command case, run the wire through the append + filter
+     nodes (recipe steps 3–4) and continue to the right border → an
+     **output tunnel** appears; keep wiring out through the gate Case's
+     right border to the **right shift-register terminal**.
+  3. The run arrow now breaks — "Tunnel: missing assignment" — because
+     the *other* cases haven't wired those output tunnels. **Do not tick
+     *Use Default If Unwired*.** Instead, the fast fix: right-click each
+     output tunnel → **Linked Input Tunnel → Create &amp; Wire Unwired
+     Cases** → click the matching input tunnel. LabVIEW draws the
+     straight pass-through wire in every other case for you, and keeps
+     the pair linked if cases are added later.
+  4. (Manual equivalent, if you prefer: click through each other case —
+     the gate's empty-line case, the match Case's False case — and wire
+     the input tunnel straight across to the output tunnel.)
+  5. **Verify:** every tunnel square on both structures is **solid**
+     (filled), not hollow; right-click each output tunnel and confirm
+     *Use Default If Unwired* is unchecked. Same discipline as the error
+     wire — any stateful wire crossing a Case must be wired in *every*
+     case.
+</code></pre>
+<ol start="3">
+<li><strong>Inside the command branch:</strong> <code>Tick Count (ms)</code> (Timing palette) =
+      <code>now</code>. <code>Build Array</code> (Array palette): input 1 = the array from the
+      shift register, input 2 = <code>now</code> (with a scalar second input it
+      appends — no mode change needed). This appends on <strong>every received
+      command, accepted or not</strong> — same as the sim.</li>
+<li><strong>Filter to the last second:</strong> wire the appended array into a <strong>For
+      Loop</strong> border (it auto-indexes: the tunnel shows brackets). Inside:
+      <code>now</code> <code>−</code> element → <code>Less Than or Equal?</code> vs a U32 constant <code>1000</code>.
+      Wire the element to an output tunnel; right-click that tunnel →
+      <em>Tunnel Mode → Conditional</em>; wire the comparison Boolean to the small
+      <code>?</code> terminal that appears. The output is the array of timestamps from
+      the last 1000 ms.</li>
+<li><strong>Close the loop and test:</strong> the filtered array → the <em>right</em> shift
+      register terminal, <strong>and</strong> → <code>Array Size</code> → <code>Greater Than?</code> vs I32
+      constant <code>5</code> → TRUE = rate-fail. (&gt;5 in a rolling second, i.e. the
+      6th command trips — matches <code>RATE_LIMIT_PER_S = 5</code>.)</li>
+<li>U32 tick rollover is ~49 days; worst case is one harmless false NACK —
+      ignore it.</li>
+</ol>
+<p><strong>2.3 — source.</strong> Drag <code>CommandSource_IsPython</code> from the Project Explorer
+   into the command branch (it drops as a shared-variable node, default
+   <em>Access Mode → Read</em>) → its value output → <code>Not</code> (Boolean palette).
+   Output TRUE = fail (source is UI).</p>
+<p><strong>2.4 — parse.</strong> Already built in step 1.3: the <code>status</code> Boolean
+   unbundled from the settings node's <em>error out</em>. TRUE = fail.</p>
+<p><strong>2.5 — range.</strong> <code>Unbundle By Name</code> (Cluster, Class &amp; Variant palette) on
+   the settings node's <em>value</em> output; click the element label → select
+   <strong><code>Speed ref</code></strong> (top-level field). Branch it two ways: <code>Less Than?</code> vs a
+   <strong>DBL</strong> constant <code>0</code>, and <code>Greater Than?</code> vs a <strong>DBL</strong> constant <code>3000</code> →
+   both into an <code>Or</code>. Output TRUE = fail. Watch for coercion dots on the
+   comparisons — the constants must be DBL. <strong>Keep a third branch of the
+   <code>Speed ref</code> wire</strong> — step 3 needs it for the <code>range: Speed ref %g</code>
+   reason string. <strong>Reject, don't coerce</strong> — no <code>In Range and Coerce</code>
+   feeding the write; the StateMachine limiter stays the real clamp. (On a
+   failed parse this evaluates the defaults cluster — harmless, parse
+   outranks it in step 3's priority order.)</p>
+<p><strong>2.6 — clear e-stop.</strong> Grow the same <code>Unbundle By Name</code> (drag its bottom
+   border down one row) → select <strong><code>CLEAR EMERGENCY STOP</code></strong>. That Boolean
+   <em>is</em> the fail flag — no comparison needed (TRUE = operator-only request =
+   fail).</p>
+<p><strong>Step 3 — pick the first failure. No nested cases</strong> — one array pass:
+   - <code>Build Array</code> of the six Booleans <strong>in exactly the table's order</strong>
+     (order = priority).
+   - <strong>First-TRUE finder — use the Boolean-native idiom</strong> (palette friction
+     found 2026-07-08: the <em>Search Sorted/Unsorted 1D Array</em> .vims reject
+     Boolean arrays, and <code>Search 1D Array PtByPt.vi</code> is the WRONG tool — the
+     Point-by-Point streaming library keeps internal state between calls):
+     <strong><code>Boolean To (0,1)</code></strong> (Numeric → Conversion; polymorphic — the Boolean
+     array in, an integer array of 0s/1s out) → <strong><code>Array Max &amp; Min</code></strong> (Array
+     palette). <em>max value</em> = 1 if any check failed, 0 if all passed;
+     <em>max index</em> = the index of the <strong>first</strong> 1 (first occurrence of the max
+     is guaranteed) — the priority pick for free.
+   - <strong><code>accepted</code></strong> = <em>max value</em> <code>Equal?</code> <code>0</code>. (No −1 sentinel needed.)
+   - <strong><code>reason</code></strong>: <code>Build Array</code> of six strings in the same order — element 0
+     from <code>Format Into String</code> <code>unknown command '%s'</code> ← name; element 4 from
+     <code>Format Into String</code> <code>range: Speed ref %g</code> ← the unbundled <code>Speed ref</code>;
+     elements 1/2/3/5 are the plain constants <code>rate</code>, <code>source is UI</code>,
+     <code>parse</code>, <code>operator only</code>. → <code>Index Array</code> with <em>max index</em> →
+     <code>Select</code>(accepted → empty-string constant, else → the indexed reason).
+     (When all pass, <em>max index</em> reads 0 — irrelevant; the <code>Select</code> discards
+     the indexed value.)
+   - (The classic <code>Search 1D Array</code> primitive — Programming → Array, via
+     Quick Drop if the palette hides it — also works on Boolean arrays
+     (element = TRUE, −1 = all passed). Either idiom is fine; Max &amp; Min
+     avoids the palette hunt.)</p>
+<p><strong>Step 4 — the gated write. One Case structure</strong>, selector = <code>accepted</code>:
+   - <strong>True case:</strong> the parsed cluster wire → a <strong><code>PC_ControlSettings</code>
+     shared-variable write</strong> (drag the variable from the Project Explorer
+     into the case; right-click → <em>Access Mode → Write</em>). Write it
+     <strong>unmodified</strong>: don't touch <code>PC_HB</code> (Python toggles it — the 9056
+     watchdog must see <em>Python's</em> toggling; that's the point), don't re-clamp
+     anything (the 9056 limiter does that).
+   - <strong>False case:</strong> empty; wire the error line straight through.</p>
+<p><strong>Step 5 — the reply.</strong> <strong>Placement rule first (this got miswired once):
+the reply is NOT gated on <code>accepted</code></strong> — it sits <em>after</em> step 4's Case (still
+inside the Line Arrived? True case), so <strong>every received command gets exactly
+one reply</strong>, ACK or NACK. <code>accepted</code> is <em>data inside</em> the reply, never a gate
+on sending it. A silent reject is indistinguishable from a dead link on the
+Python side (rejected vs. never-arrived need opposite responses), the
+commander consumes NACK reasons (<code>last_nack</code>), and drills B4-4…8 pass by
+<em>reading</em> them. Only the <code>PC_ControlSettings</code> write is gated; the reply
+always goes out (error chain: write-case error out → <code>TCP Write</code> error in,
+which also sequences reply-after-write; route the connection ID to the new
+<code>TCP Write</code> position). The node (feeds the <code>TCP Write</code> the old constant
+used): <code>Format Into String</code>, format string with right-click →
+<em>'\' Codes Display</em>:</p>
+<p><code>{"type":"command_ack","id":%d,"accepted":%s,"reason":"%s"}\r\n</code></p>
+<p>Wiring the node: drag its bottom border down (or right-click → <em>Add
+   Parameter</em>) until it has <strong>three parameter inputs</strong>. The constant goes to
+   the <strong>format string</strong> terminal (top-left input — NOT a parameter input);
+   params top to bottom: <strong>reply id</strong> (step 1.2), <strong>accepted</strong> →
+   <code>Select</code>(string constants <code>true</code> / <code>false</code> — JSON booleans, lowercase, no
+   quotes), <strong>reason</strong> (step 3; empty on accept — all reasons are fixed ASCII
+   plus a number, nothing needs JSON escaping). Same <code>\r\n</code> terminator as the
+   telemetry writer (the Python side accepts <code>\n</code> too).</p>
+<p><strong>Symptom table (each of these was hit on the bench 2026-07-08 — the
+   observer's malformed-message log names the mistake):</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Observer shows</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>the raw format string with <code>%d</code>/<code>%s</code> unsubstituted</td>
+<td>constant wired to a <em>parameter</em> input (or straight to <code>TCP Write</code>) instead of the <strong>format string</strong> terminal</td>
+</tr>
+<tr>
+<td>values space-joined (<code>-1 false …</code>) with no braces</td>
+<td>the <strong>format string</strong> terminal left unwired — Format Into String default-joins its params</td>
+</tr>
+<tr>
+<td>reply debris <strong>glued to a telemetry frame</strong> on one line (both discarded)</td>
+<td>reply string missing its <code>\r\n</code> terminator</td>
+</tr>
+<tr>
+<td>ack lines appearing ~1/s <strong>with no client sending commands</strong></td>
+<td>reply chain placed outside the command-matched case — it must sit inside it, after the gated-write Case</td>
+</tr>
+<tr>
+<td>reason reads <code>… command '%s'</code> literally</td>
+<td>reason array element 0 is the bare constant — it must come from the small <code>Format Into String</code> that substitutes the name</td>
+</tr>
+<tr>
+<td><code>ack id=-1 accepted=False</code> exactly once per second while an observer is connected</td>
+<td>the chain is gated on "a line arrived" instead of on the <code>"type":"command"</code> match — it's NACKing the observer's 1 Hz <strong>heartbeats</strong>. Nest everything (parse, checks, rate append, write gate, reply) inside the <code>"type":"command"</code> True case; non-command types are ignored silently per ICD §3. Side effect of the miswiring: heartbeats also pollute the rate window</td>
+</tr>
+<tr>
+<td>a <strong>well-formed</strong> command gets NO reply, ever (but garbage does)</td>
+<td>the sender's JSON has a space after the colon (<code>"type": "command"</code>, <code>json.dumps</code> default) — the <code>Match Pattern</code> gate is <strong>literal</strong> and never matches, so the line is silently ignored. Send compact JSON (<code>separators=(",", ":")</code>); the commander (pydantic) is compact already. Same total-silence symptom if lines end in bare <code>\n</code>: CRLF-mode <code>TCP Read</code> never terminates on it — terminate with <code>\r\n</code></td>
+</tr>
+<tr>
+<td>NACK reason reads <code>…'%s'bogus</code> — value appended, <code>%s</code> intact</td>
+<td>on the small reason <code>Format Into String</code>, the constant is wired to <strong><em>initial string</em></strong> instead of the <strong><em>format string</em></strong> terminal</td>
+</tr>
+<tr>
+<td><strong>Step 6 — telemetry envelope additions</strong> (in the telemetry loop's</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Format Into String</code>, same pattern as the <code>limited_settings</code> addition from</td>
+<td></td>
+</tr>
+<tr>
+<td>A2.1 — two more <code>%s</code> in the format string, two more inputs):</td>
+<td></td>
+</tr>
+<tr>
+<td>- <code>,"command_source":"%s"</code> — <strong>with quotes</strong> (JSON string);</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CommandSource_IsPython</code> → <code>Select</code>(string constants <code>PYTHON</code>/<code>UI</code>).</td>
+<td></td>
+</tr>
+<tr>
+<td>- <code>,"operator_requests":%s</code> — <strong>no quotes</strong> (JSON object); a</td>
+<td></td>
+</tr>
+<tr>
+<td><code>PC_OperatorRequests</code> <strong>read</strong> → <code>Flatten To JSON</code> → the <code>%s</code>.</td>
+<td></td>
+</tr>
+<tr>
+<td>Python already decodes both fields — no Python change needed.</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Step 7 —</strong> B3.a is testable before touching the UI: do B3.d steps 1–3 now.</p>
+<h3 id="b3b-the-commandsource-operator-switch-click-by-click">B3.b — the <code>CommandSource</code> operator switch, click by click</h3>
+<blockquote>
+<p><strong>AS BUILT (2026-07-08, verified from the <code>UI_Main</code> print):</strong> switch + LED
+live on <strong><code>APC_PC_UI_Main.vi</code></strong>, not the System screen — a fine (arguably
+better) placement: it's the screen the operator actually works. The
+load-bearing details are correct: switch terminal → variable <strong>write</strong>;
+LED ← a separate variable <strong>read</strong> (effective value, not the switch
+position). Proven across all B4-7 flips (echo ≤2 s).</p>
+</blockquote>
+<p>Where: <strong><code>APC_PC_UI_System.vi</code></strong> (soft default from the B1 review — it's an
+operating-mode control and belongs on the System screen, next to e-stop).</p>
+<ol>
+<li><strong>Front panel — the switch:</strong> drop a toggle (palette <em>Modern → Boolean →
+   Vertical Toggle Switch</em>), label it <strong><code>Python in command</code></strong>. Right-click →
+   <em>Mechanical Action</em> → <strong>Switch When Pressed</strong> — it must be a <em>Switch…</em>
+   action, not a <em>Latch…</em> one (latch actions snap back after one read; wrong
+   for a mode selector).</li>
+<li><strong>Front panel — the read-back:</strong> drop a <em>Round LED</em>, label
+   <strong><code>PYTHON (effective)</code></strong>.</li>
+<li><strong>Diagram — the write:</strong> inside <code>UI_System</code>'s <strong>main loop</strong> (the one with
+   your <code>PC_HB</code> toggle): the switch's terminal → a <strong><code>CommandSource_IsPython</code>
+   shared-variable write</strong> (drag the variable from the Project Explorer;
+   right-click → <em>Access Mode → Write</em>). Unconditional, every iteration.</li>
+<li><strong>Diagram — the LED:</strong> a separate <strong><code>CommandSource_IsPython</code> read</strong> node →
+   the LED terminal. Deliberately from the <em>variable</em>, not a local of the
+   switch — the LED then shows the <strong>effective</strong> value, and goes stale/off if
+   the variable engine has a problem (this doubles as the C0 visibility item).</li>
+<li><strong>Restart semantics — deliberate and fail-safe:</strong> the switch's default is
+   OFF (with the switch off: right-click → <em>Data Operations → Make Current
+   Value Default</em>, then save). Consequence: <strong>a UI restart writes FALSE and
+   reverts the plant to UI command</strong> — Python's next send NACKs and it goes
+   silent. That is the intended direction (a restarted UI should never
+   silently re-grant Python authority); it goes in the C3 handover text.</li>
+<li><strong>Operator-owned, absolutely:</strong> nothing in the gateway, the command path,
+   or Python ever writes this variable — deliberately, there isn't even an
+   ICD command for it. The switch is the only writer.</li>
+</ol>
+<p>Flip semantics need nothing extra: the Python commander seeds its intent from
+telemetry before its first send (bumpless) and goes silent the moment the
+echo says <code>UI</code>. Drill B4-7 proves both directions.</p>
+<h3 id="b3c-apc_pc_ui_mainvi-the-single-writer-redirect">B3.c — <code>APC_PC_UI_Main.vi</code>: the single-writer redirect</h3>
+<blockquote>
+<p><strong>AS BUILT (2026-07-08, verified from export + live recording) — a cleaner
+variant than the steps below, kept as-is:</strong> the bundle output writes
+<strong><code>PC_OperatorRequests</code> unconditionally</strong>, and <code>PC_ControlSettings</code> is
+written by a <strong>copy chain inside a Case on a <code>CommandSource_IsPython</code>
+read</strong> — False (UI) case: <code>PC_OperatorRequests</code> <em>read</em> →
+<code>PC_ControlSettings</code> <em>write</em>; True (PYTHON) case: empty. The requests
+variable is the single source of truth; "UI mode" = requests granted
+directly. Single-writer holds; the empty True case is proven empirically
+(flipping to PYTHON with no commander freezes <code>pc_hb</code> → watchdog → SAFE
+in 5.0 s, observed 3×). Footnotes: the relay adds ≤1 loop-iteration of
+panel→plant lag (irrelevant at UI rates); confirm the original direct
+write node was deleted (right-click the variable → Find). The steps below
+describe the originally-specified direct-gate variant; both satisfy
+ICD §7.7.</p>
+</blockquote>
+<ol>
+<li><strong>The write point (located, 2026-07-07, from the <code>UI_Main</code> per-frame
+   export):</strong> inside <code>UI_Main</code>'s <strong>main While loop</strong> there is one big
+   <code>Bundle By Name</code> (≈20 fields: <code>EMERGENCY STOP</code> … <code>Requested mode</code>,
+   <code>PID control references</code>) whose output feeds the <strong><code>PC_ControlSettings</code>
+   shared-variable write node</strong> (right of the bundle, near the
+   <code>Listbox</code>/<code>PC_Global_ListboxVarBroadcast</code> nodes). It runs <strong>every loop
+   iteration</strong> — which is why <code>pc_hb</code> alternates in telemetry, and why this
+   variable never had the NaN problem. Sanity-check it's the only writer:
+   Project Explorer → right-click the variable → <em>Find → Search Scope:
+   project</em> (<code>UI_System</code>/<code>_Errors</code> don't reference it; they feed <code>UI_Main</code>
+   through globals — the redirect goes at this final write, not at the
+   globals).
+   - <strong>Build-spec caveat (verified in <code>MONARCH.lvproj</code>):</strong> <code>APC_PC_UI_Main.vi</code>
+     is the source of the <strong><code>APC_Monarch</code> EXE</strong> build spec. If the control room
+     runs the built executable rather than the VI in the dev environment, this
+     change requires <strong>rebuilding and redeploying <code>APC_Monarch</code></strong> — decide
+     which mode operations uses and keep it consistent through Phase B/C.</li>
+<li><strong>The redirect — fan the bundle to two nodes (ICD §7.7).</strong> Take the
+   <code>Bundle By Name</code> output wire and branch it:
+   - <strong><code>PC_OperatorRequests</code> write — unconditional</strong>, every iteration, next to
+     the existing write (drag the B3.0 variable in, <em>Access Mode → Write</em>).
+     Always-on: this kills the NaN trap by construction, matches the sim
+     exactly (<code>ui_write()</code> updates <code>operator_requests</code> regardless of source),
+     and gives Python a live view of the operator panel even in UI mode
+     (harmless — the mirror only acts while commanding; it just makes
+     handovers smoother).
+   - <strong><code>PC_ControlSettings</code> write — inside a Case structure</strong> on a
+     <code>CommandSource_IsPython</code> read. The clicks: drop a <em>Case Structure</em>
+     (palette <em>Programming → Structures</em>) next to the write node; wire a
+     <code>CommandSource_IsPython</code> <strong>read</strong> to the <code>?</code> selector terminal; click the
+     case label ring so the <strong>False</strong> case is showing; <code>Ctrl-X</code> the existing
+     write node → paste it inside the False case; re-wire the cluster branch
+     and the error line to it through input tunnels. <strong>FALSE (UI) case</strong> = the
+     existing write, untouched — the fallback path stays direct and never
+     depends on Python or the gateway. <strong>TRUE (PYTHON) case</strong> = empty; wire
+     the error line straight across (both cases must wire the error output
+     tunnel — no <em>Use Default If Unwired</em>).
+   Net effect: the operator's inputs flow in both modes; while Python
+   commands they arrive in telemetry as <code>operator_requests</code> and
+   <code>supervisory/monarch/operator_mirror.py</code> mirrors them into Python's intent
+   (safety inputs always; everything else when no sequence is running). Keep
+   it visually obvious — one case around one write node, nothing clever.</li>
+<li><strong>Displays are untouched.</strong> All UI <em>reads</em> stay as they are — while
+   source=PYTHON the operator keeps seeing live values; only the write target
+   changes. Handback note for C3: on flip-back to UI the panel's current
+   control values win again, so controls should match telemetry before
+   handing back (with the mirror active they normally will — Python has been
+   following the operator's requests all along).</li>
+<li><strong>UI heartbeat toggle</strong> ✅ <strong>done (2026-07-07)</strong> — implemented in
+   <strong><code>APC_PC_UI_System.vi</code></strong> (verified in the per-frame export): feedback node
+   → NOT → <code>PC_HB</code> in the PID-references bundle, once per System-loop
+   iteration, relayed via the <code>PC_GlobalVariables_PIDsyst2main</code> global through
+   <code>UI_Main</code> into the <code>PC_ControlSettings</code> shared variable. Placement bonus:
+   the flag only reaches the 9056 changing if the System loop, the global
+   relay, AND <code>UI_Main</code>'s write loop are all alive — it supervises the whole
+   UI application. Residual check: confirm <code>UI_Main</code> forwards the cluster
+   continuously (watch <code>settings…pc_hb</code> alternate in <code>monarch_listen</code>
+   frames); if it's on-change-only, the toggle stalls between operator
+   actions and will false-trip. Consequence: the B0 clamp can be armed
+   <strong>ungated</strong> (no interim source=PYTHON gate needed).</li>
+<li><strong>Follow-on, response TBD (ICD §7.5): <code>UI_HeartBeat</code></strong> — a fifth heartbeat
+   so a dead UI is detectable <strong>while Python holds authority</strong> (the one case
+   <code>PC_HB</code> can't cover). Build, click by click:</li>
+<li>Variable: <code>APC_SharedVars.lvlib</code> (9049 target) → <em>New → Variable</em> →
+      <strong><code>UI_HeartBeat</code></strong>, Boolean, Network-Published (house pattern, like
+      <code>9049_HeartBeat</code>). <em>Deploy All</em>.</li>
+<li>Toggle: in <code>UI_System</code>'s main loop, duplicate the exact three-node
+      pattern you built for <code>PC_HB</code> — <strong>Feedback Node → <code>Not</code> → a
+      <code>UI_HeartBeat</code> shared-variable write</strong> — but <em>outside</em> any case, so it
+      toggles regardless of source, every iteration.</li>
+<li>Detection: in <code>APC_9056_WatchDog.vi</code>, add a fifth channel by copying an
+      existing one — select a whole channel block (SV read → changed? →
+      counter case → <code>&gt;</code> threshold → Boolean out), copy-paste, re-point the
+      read at <code>UI_HeartBeat</code>, add a <code>UIwatchdogThreshold</code> input (same
+      <code>5000 / Iteration Time</code> feed as the others) and a <code>UInotResponding</code>
+      output.</li>
+<li>Response: <strong>stop here until the team decides.</strong> Phase-in: front-panel
+      lamp + a Python temporal rule first; the LabVIEW clamp value (add
+      another <code>Select</code>(−1:3) into the B0 <code>Min</code> chain) is a commissioning
+      decision — conservative default SAFE while the plant is unproven.</li>
+</ol>
+<h3 id="b3d-verify-as-you-build-each-step-has-a-ready-made-python-check">B3.d — Verify as you build (each step has a ready-made Python check)</h3>
+<ol>
+<li><strong>After B3.0 + B3.a step 6 (envelope):</strong> run <code>python examples/monarch_listen.py</code>
+   — frames must keep decoding (no "malformed message"; if malformed, it's the
+   NaN trap — B3.0 step 3), and each frame should now show
+   <code>command_source="UI"</code>. <code>python tools/capture_line.py</code> pinpoints any framing
+   or JSON problem to the character.</li>
+<li><strong>NACK ladder, one reason at a time</strong> — use the repo probe (plain Python,
+   works on Windows CMD; verified against the sim rung-for-rung):</li>
+</ol>
+<p><code>python tools\send_command.py unknown       -&gt;  unknown command 'bogus'
+   python tools\send_command.py rate          -&gt;  7 fast sends; 6th+ answer "rate"
+   python tools\send_command.py valid         -&gt;  "source is UI"   (while source=UI)
+   python tools\send_command.py garbage       -&gt;  trash discarded, then id=99 answered
+                                                  = the session survived (drill B4-4)</code></p>
+<p>Order note (gateway and sim both check source <em>before</em> parse/range/estop):
+   while source=UI, the <code>parse</code> / <code>range</code> / <code>estop-clear</code> rungs all answer
+   <code>source is UI</code> — run those three (plus <code>valid</code> → a real ACK) <strong>after
+   flipping to PYTHON</strong> in B3.d step 3. With no commander running the plant
+   will clamp to SAFE ~5 s after the flip (the watchdog — expected on the
+   bench; it steps back up on flip-back).
+3. <strong>Flip to PYTHON (B3.b done):</strong> telemetry echo flips to
+   <code>command_source="PYTHON"</code> within a frame. Now the real client:
+   <code>python examples/monarch_operate.py</code> → <code>status</code> shows <code>commanding=True</code> →
+   <code>mode motoring</code> → watch <code>system_state</code> step up in telemetry. Repeat the
+   step-2 rungs that should still NACK (<code>operator only</code>, <code>range: Speed ref</code>,
+   <code>rate</code>).
+4. <strong>After B3.c (redirect):</strong> with source=PYTHON, move a control on the HMI —
+   <code>PC_ControlSettings</code> must NOT change directly (no bypass), but telemetry's
+   <code>operator_requests</code> shows the new value and, with <code>monarch_operate</code>
+   running, the mirror carries it into Python's next command — the value
+   arrives in <code>PC_ControlSettings</code> <em>via Python</em>, one tick later. Flip back to
+   UI: direct writes resume, Python goes silent (its sends NACK
+   <code>source is UI</code>).
+5. Then run the full <strong>B4 drill table</strong> — B4-1/2 are already banked from the
+   B0 live verification.</p>
+<p><strong>Definition of done (B3):</strong> with source=UI, Python commands are NACKed and
+nothing changes; with source=PYTHON, a command round-trips to a telemetry
+effect on the real system; with the redirect in place, the single-writer
+matrix at the top of this section is true — verified per B3.d.</p>
+<hr />
+<h2 id="b4-bench-failure-drills-the-authority-gate">B4 — Bench failure drills (the authority gate)</h2>
+<p><em>Owner: joint. Scripted, repeated, logged. Rig unpowered / pre-commissioning.</em></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Drill</th>
+<th>Expected outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Kill Python mid-command (<code>taskkill</code>)</td>
+<td>pc_hb freezes → <code>PCnotResponding</code> trips within N s → B0 response (state→SAFE clamp) → LabVIEW keeps running; Python restart re-inits from telemetry, no glitch</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Freeze Python (suspend process)</td>
+<td>same as 1 (stream stops)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Pull network / kill TCP</td>
+<td>gateway session ends cleanly (error-66 path), listener re-accepts; same watchdog response</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Garbage bytes / malformed JSON ×20</td>
+<td>NACK or discard each; session survives; no state change</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Out-of-range command</td>
+<td>NACK with reason; no write</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Command flood (50 Hz)</td>
+<td>rate-limit NACKs; gateway loop timing unaffected (telemetry still 1 Hz)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Source flip UI→PYTHON→UI mid-stream</td>
+<td>bumpless both ways; frames show <code>command_source</code> flipping; no setpoint jump</td>
+</tr>
+<tr>
+<td>8</td>
+<td>E-stop from UI while source=PYTHON</td>
+<td>state → SAFE regardless; Python clear attempt NACKed; operator clear works</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Python-side telemetry staleness (block inbound only)</td>
+<td>Python stops commanding within 3 s (its own rule)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each drill: run 3×, record the <code>monarch.jsonl</code> + gateway log, tick the row.</p>
+<blockquote>
+<p><strong>Status (2026-07-08): drills 1–6 PASSED 3/3, machine-run</strong> by
+<code>tools/run_drills.py</code> against the live gateway — log:
+<code>docs/drill-logs/2026-07-08-b4-machine.md</code> + <code>b4_drill_log.jsonl</code>.
+(Drill 2 as implemented is the <em>stronger</em> freeze: session and heartbeats
+stay alive, only commands stop. Drill 9's "block inbound only" variant is
+approximated by the gateway-stall script below, which also exercises the
+Python reconnect path.)</p>
+<p><strong>Operator drills verified from <code>operate_traffic.jsonl</code> (2026-07-08):</strong>
+<strong>B4-7 PASS 3/3</strong> (three UI↔PYTHON round-trips, echo ≤2 s, bumpless).
+<strong>B4-9 PASS 5/5</strong> (every gateway stall: commands stopped ≤3 s — zero sent
+after grace in all 7 telemetry gaps — auto-reconnect + re-engage each
+time). <strong>B4-8: 2/3 clean</strong> (set ≤1 s at FIRING and MOTORING, latch on
+release, recovery by demotion; bonus: a panel CLEAR under PYTHON cleared
+the plant for exactly one frame before Python re-latched — the latch
+semantics live). <strong>Drill catch:</strong> a third press ran under a mirror-less
+session — the panel e-stop showed in <code>operator_requests</code> for 4 s while a
+commander sent <code>estop=False</code>. Fixed same day: the mirror is now ALWAYS in
+the operate stack; <code>--no-mirror</code> reduces it to <strong>safety-only</strong> (e-stop
+set + force overrides always flow) — the floor no configuration may go
+below. <strong>Remaining for the gate: one more clean B4-8 round</strong> (any panel
+station) with the fixed CLI, and the <code>UI_Main</code> Find-check.</p>
+</blockquote>
+<p><strong>Operator scripts for the remaining three (each 3×; keep <code>monarch_operate</code>
+running throughout — its <code>operate_traffic.jsonl</code> is the recording):</strong></p>
+<p><em>B4-7 — source flip mid-stream.</em>
+1. <code>python examples\monarch_operate.py</code> (mirror on), switch to PYTHON,
+   drive a state from the panel (e.g. request MOTORING), see it follow.
+2. Mid-stream, flip the switch to UI. Verify: CLI <code>status</code> shows
+   <code>commanding=False</code> within ~2 s; the panel drives the plant <em>directly</em>
+   again immediately; <strong>no state/setpoint jump at the flip instant</strong>.
+3. Flip back to PYTHON. Verify: <code>commanding=True</code> within ~2 s; again no
+   jump (the commander re-seeds from telemetry — bumpless).</p>
+<p><em>B4-8 — e-stop precedence under Python authority.</em>
+1. Source=PYTHON, plant in a raised state. Press the panel e-stop:
+   state → −1 within a tick (the set-path mirrors instantly).
+2. Release the button: verify the plant <strong>stays</strong> in SAFE (the e-stop is
+   latched in Python's intent — set-only mirror).
+3. Recover by demotion: flip to UI → clear on the panel → state steps up →
+   flip back to PYTHON. (Python's own clear attempt is already proven
+   NACKed <code>operator only</code> — machine-run.)
+4. If multiple e-stop stations exist, one round per station.</p>
+<p><em>B4-9 — gateway stall (stale telemetry, Python side).</em>
+1. Source=PYTHON, <code>monarch_operate</code> commanding. <strong>Stop the gateway VI</strong>
+   (abort button) and count ~10 s.
+2. Verify: CLI <code>status</code> shows <code>stale=True</code> and <code>commanding=False</code> within
+   ~3 s (Python's own staleness rule — it stops sending). The plant, with
+   nothing writing to it, watchdog-parks in SAFE — correct on both sides.
+3. Restart the gateway VI. Verify: the CLI reconnects by itself (backoff),
+   re-engages when telemetry resumes, and the plant recovers step-by-1.</p>
+<p><strong>Phase exit gate:</strong> all 9 drills pass 3/3; B0 statement holds under drills
+1–3; ICD v0.2 published; only then may Phase C grant authority.</p>
+<blockquote>
+<h2 id="phase-b-exit-gate-passed-2026-07-09">✅ PHASE B EXIT GATE PASSED — 2026-07-09</h2>
+<ul>
+<li><strong>Drills 1–6:</strong> machine-run 3/3 each (<code>tools/run_drills.py</code>,
+  <code>docs/drill-logs/2026-07-08-b4-machine.md</code>).</li>
+<li><strong>Drill 7:</strong> 3/3 (round-trip flips, echo ≤2 s, bumpless).</li>
+<li><strong>Drill 8:</strong> 4 clean rounds (2× incl. from FIRING; final 2× with the
+  safety-floored mirror relaying the panel button in the same second) —
+  plus one drill catch fixed same-day (safety-only mirror floor).</li>
+<li><strong>Drill 9:</strong> 5/5 (stall → stop commanding ≤3 s, auto-reconnect,
+  re-engage, recovery).</li>
+<li><strong>B0 statement</strong> held under drills 1–3 every round: stale
+  <code>PC_ControlSettings</code> ⇒ SAFE in 5 s, step-by-1 recovery.</li>
+<li><strong>ICD v0.2</strong> frozen and bench-corrected (CRLF/compact-JSON/finite
+  numbers).</li>
+<li><strong>Single-writer redirect proven empirically</strong>: during the mirror-less
+  anomaly, panel inputs could NOT reach <code>PC_ControlSettings</code> under
+  source=PYTHON — no direct UI write path survives.</li>
+</ul>
+<p>Phase C may grant bench authority. Evidence: <code>b4_drill_log.jsonl</code>,
+<code>operate_traffic.jsonl</code>, <code>docs/drill-logs/</code>.</p>
+</blockquote></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/phases/phase-b-command-path.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

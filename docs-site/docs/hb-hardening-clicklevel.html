@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heartbeat hardening — click-level build instructions — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/hb-hardening-clicklevel.md</span></div>
+<main><h1 id="heartbeat-hardening-click-level-build-instructions">Heartbeat hardening — click-level build instructions</h1>
+<p><em>Created 2026-07-17. Closes the holes found by the 2026-07-16 kill-9056 test
+(<code>docs/command-path-asbuilt.md</code> §6a) and the inert-mirror suspicion. Three tasks on
+three targets, independent of each other — do A first (protection), then B
+(observability), then C (mirror). Heartbeat-map recap: the 9056 watches everyone
+(including itself); the 9049 watches nobody cross-chassis; the PC computes nothing.</em></p>
+<p><strong>Stop the running system before any edit (you cannot edit a running VI); log
+build/deploy times in the commissioning book. Every task ends with its own
+verification — do not skip them.</strong></p>
+<h2 id="heartbeat-flow-schematic">Heartbeat flow schematic</h2>
+<p>Solid = exists · dashed = to add (Tasks A/B + <code>UI_HeartBeat</code>).</p>
+<div class="mermaid">flowchart LR
+
+  PC[&quot;PC&quot;]
+  S56[&quot;cRIO-9056&lt;br/&gt;WatchDog + StateMachine&lt;br/&gt;(the ONLY watcher)&quot;]
+  S49[&quot;cRIO-9049&lt;br/&gt;spark/DI gate&quot;]
+  MTR[&quot;MTR PLC&quot;]
+
+  PC --&gt;|&quot;PC_HB&quot;| S56
+  S49 --&gt;|&quot;9049_HB&quot;| S56
+  MTR --&gt;|&quot;MTR HB (no SAFE clamp)&quot;| S56
+  S56 --&gt;|&quot;9056_HB — self-check,&lt;br/&gt;dies with the chassis&quot;| S56
+  S56 ==&gt;|&quot;state relay — freezes if 9056 dies:&lt;br/&gt;gate stays open&quot;| S49
+  S56 --&gt;|&quot;relayed verdict LEDs&lt;br/&gt;freeze green too&quot;| PC
+
+  S49 -. &quot;Task B: PC computes its own&lt;br/&gt;9049/9056/MTR LEDs&quot; .-&gt; PC
+  S49 -. &quot;Task A: relay frozen &gt;5 s&lt;br/&gt;→ clamp SAFE&quot; .-&gt; S49
+  PC -. &quot;UI_HeartBeat (ICD §7.5, unbuilt):&lt;br/&gt;catches dead UI in PYTHON mode&quot; .-&gt; S56
+
+  classDef watcher fill:#fdf6e3,stroke:#9A6E1F,stroke-width:2px;
+  class S56 watcher;
+  linkStyle 6,7,8 stroke:#3C8B57,stroke-width:2px;
+</div><details><summary>diagram source (offline fallback)</summary><pre><code>flowchart LR
+
+  PC[&quot;PC&quot;]
+  S56[&quot;cRIO-9056&lt;br/&gt;WatchDog + StateMachine&lt;br/&gt;(the ONLY watcher)&quot;]
+  S49[&quot;cRIO-9049&lt;br/&gt;spark/DI gate&quot;]
+  MTR[&quot;MTR PLC&quot;]
+
+  PC --&gt;|&quot;PC_HB&quot;| S56
+  S49 --&gt;|&quot;9049_HB&quot;| S56
+  MTR --&gt;|&quot;MTR HB (no SAFE clamp)&quot;| S56
+  S56 --&gt;|&quot;9056_HB — self-check,&lt;br/&gt;dies with the chassis&quot;| S56
+  S56 ==&gt;|&quot;state relay — freezes if 9056 dies:&lt;br/&gt;gate stays open&quot;| S49
+  S56 --&gt;|&quot;relayed verdict LEDs&lt;br/&gt;freeze green too&quot;| PC
+
+  S49 -. &quot;Task B: PC computes its own&lt;br/&gt;9049/9056/MTR LEDs&quot; .-&gt; PC
+  S49 -. &quot;Task A: relay frozen &gt;5 s&lt;br/&gt;→ clamp SAFE&quot; .-&gt; S49
+  PC -. &quot;UI_HeartBeat (ICD §7.5, unbuilt):&lt;br/&gt;catches dead UI in PYTHON mode&quot; .-&gt; S56
+
+  classDef watcher fill:#fdf6e3,stroke:#9A6E1F,stroke-width:2px;
+  class S56 watcher;
+  linkStyle 6,7,8 stroke:#3C8B57,stroke-width:2px;
+</code></pre></details>
+<p><strong>The point:</strong> every solid watching-arrow ends at one chassis — the watcher has no
+watcher (proven by the 2026-07-16 kill-9056 test: LEDs froze green, the 9049 kept
+gating on stale state).</p>
+<h2 id="task-a-9049-stalenesssafe-clamp-on-the-state-relay-apc_9049_cas_loopvi">Task A — 9049 staleness→SAFE clamp on the state relay (<code>APC_9049_CAS_loop.vi</code>)</h2>
+<h3 id="built-verified-2026-07-17-kill-9056-at-firing-sparkdi-blocked-h1h2-closed">✅ BUILT + VERIFIED 2026-07-17 (kill-9056 at FIRING → spark/DI blocked; H1/H2 closed)</h3>
+<p><strong>Closes:</strong> 9056 dies at state ≥ 2 → <code>9049_Global_SYSTEMSTATE</code> freezes → spark/DI gate
+stays open on stale state (observed live 2026-07-16 → <strong>no longer true as of this build</strong>).
+Side-observation from the verify: <code>UI_Main</code> still displayed FIRING throughout (frozen
+<code>SystemState_SM</code>) → drove Task B step 6.</p>
+<ol>
+<li>In the project (RT target context) open <strong><code>APC_9049_CAS_loop.vi</code></strong> → block diagram.</li>
+<li>Find the <strong><code>APC_9049_9056SharedVarPolling</code></strong> subVI call (it returns the 9056 IO
+   array + <strong>timestamp</strong> + <code>SystemState</code>) and follow the <code>SystemState</code> wire to where
+   the loop <strong>writes <code>9049_Global_SYSTEMSTATE</code></strong>.</li>
+<li>Build the staleness detector — <strong>time-based, not cycle-based</strong> (CAS iterates once
+   per engine cycle, so a cycle counter would scale with rpm; ms don't):
+   a. Drop a <strong>Tick Count (ms)</strong> primitive in the loop.
+   b. Wire the polling VI's <strong>timestamp</strong> into a <strong>Feedback Node</strong>; compare current vs
+      previous (<strong>Not Equal?</strong>).
+   c. <strong>Select</strong> node: timestamp changed → store the current Tick Count ("last-fresh
+      time", second Feedback Node); unchanged → keep the stored value.
+   d. <strong>Subtract</strong>: now − last-fresh → <strong>&gt; 5000</strong> (ms, diagram constant with a comment:
+      "9056 staleness threshold — matches the WatchDog ~5 s convention").</li>
+<li>Feed the resulting <code>9056 stale?</code> boolean into a <strong>Select</strong> on the state wire:
+   TRUE → <strong>DBL constant −1</strong> (not I8 — as-built <code>9049_Global_SYSTEMSTATE</code> is a
+   <strong>DBL</strong>, and matching it avoids a coercion dot on a safety-path wire), FALSE →
+   the relayed <code>SystemState</code> (also DBL, out of the <code>9056_MeasAndCalc</code> DBL array) →
+   into the <code>9049_Global_SYSTEMSTATE</code> write. No coercion dots anywhere on the Select.</li>
+<li>Surface the boolean: front-panel indicator <strong><code>9056 stale (relay clamped)</code></strong> on
+   CAS_loop, so interactive sessions can see the clamp acting.</li>
+<li>Save. <strong>This is a state-path change, not display-only</strong> — regression required
+   (below). Rebuild <strong>both</strong> rtexe specs (<code>APC_9049_RT</code> and <code>APC_9049_RT SIM</code>) when
+   done; log both on the deployment sheet.</li>
+</ol>
+<p><em>Verify:</em> interactive, sim crank + sim pressure, state = 2, gate LEDs lit → <strong>kill the
+9056</strong> → within ~5 s: <code>9056 stale</code> TRUE, <code>9049_Global_SYSTEMSTATE</code> = −1 (DSM), <strong>gate
+LEDs dark, <code>NumberOfActiveIGN_DI</code> collapses</strong>. Restart the 9056 (reboot-order rules)
+→ relay resumes, state recoverable. <em>Regression:</em> re-run the state-gate checks
+(4d LEDs on/off with state) and drill 5i; the warnings matrix is untouched by this
+edit — no matrix re-run needed.</p>
+<p><em>Known residual (pre-existing, unchanged):</em> if CAS_loop itself dies, the echo freezes
+— TS10ms still gates on the last value. The FPGA watchdog covers a full RT stall;
+a CAS-only death remains uncovered (documented gotcha #5 in the codebase README).</p>
+<hr />
+<h2 id="task-b-pc-computed-watchdog-leds-apc_pc_ui_mainvi">Task B — PC-computed watchdog LEDs (<code>APC_PC_UI_Main.vi</code>)</h2>
+<p><strong>Closes:</strong> the UI's liveness LEDs are relayed 9056 verdicts that freeze green when
+the 9056 dies (operator decision 2026-07-16: compute liveness on the PC).</p>
+<ol>
+<li>Open <strong><code>APC_PC_UI_Main.vi</code></strong> → block diagram; find the main polling loop (the one
+   that reads shared variables for display) and note its <strong>loop period</strong> (needed for
+   the threshold; if it's ~100 ms, the 5 s threshold = 50 iterations — but prefer the
+   same Tick-Count-ms pattern as Task A, immune to period changes).</li>
+<li>Add SV reads of <strong><code>9049_HeartBeat</code></strong> and <strong><code>9056_HeartBeat</code></strong> (they live in the
+   9049-hosted <code>APC_SharedVars</code> — no new deployment needed).</li>
+<li>Per channel, the stall detector (same as Task A steps 3–4): Feedback Node on the
+   value → changed? → refresh last-fresh Tick Count → (now − last-fresh) &gt; 5000 ms →
+   boolean → new front-panel LED. Labels: <strong><code>9049 not responding (PC view)</code></strong>,
+   <strong><code>9056 not responding (PC view)</code></strong>.</li>
+<li><strong>MTR LED from first-hand knowledge:</strong> the PC is the Modbus master — in the Modbus
+   loop, the comms-loss branch (the wait-5 s-and-retry case) sets a boolean → LED
+   <strong><code>MTR link down (PC view)</code></strong>. (Alternative: stall-count the MTR HB register with
+   the same pattern.)</li>
+<li><strong>Keep</strong> the existing <code>9056_PCnotResponding</code> LED, relabeled <strong><code>PC HB fault (9056
+   view)</code></strong> — it is the only external check on the PC's own heartbeat path. Remove or
+   demote the old relayed <code>9056_9049notResponding</code> / <code>9056_MTRnotResponding</code> LEDs to
+   avoid two sources of truth on one panel. Group the new LEDs under a header:
+   <strong>"LIVENESS (computed on this PC)"</strong>.</li>
+<li><strong>State display honesty</strong> (added after the 2026-07-17 Task-A test: with the 9056
+   dead, <code>UI_Main</code> kept showing FIRING while the engine was really clamped at −1).
+   As-built source (confirmed 2026-07-17): the displayed state is the <code>SystemState</code>
+   element of <strong><code>APC_PC_VariableMapping</code></strong>'s output cluster, filled <strong>by name from
+   <code>9056_MeasAndCalc</code></strong> (9056 wins name collisions) — so it freezes with the chassis,
+   <strong>as does every other 9056-sourced value the router serves to the panel</strong>:
+   a. <strong>Displayed state = Min(mapped <code>SystemState</code>, <code>9049_Global_SYSTEMSTATE</code>)</strong>
+      (operator design, 2026-07-17): where <code>UI_Main</code> unbundles <code>SystemState</code> from the
+      VariableMapping / <code>APC_VisualizationCluster_v2</code> output, add a direct SV read of
+      <code>9049_Global_SYSTEMSTATE</code> (both DBL) → <strong>Min</strong> → the state indicator. The
+      effective state IS the min of the two (9049 gates on the echo, 9056 controllers
+      on the SM state), so this shows the most restrictive truth with no liveness
+      plumbing: 9056 dies → echo self-clamps (Task A) → display drops to −1
+      automatically. <strong>Depends on Task A being deployed</strong> — pre-clamp, both sources
+      froze together and Min would display stale FIRING too.
+   b. <strong>The "why" banner:</strong> Min shows −1 without saying whether it's a commanded SAFE
+      or a dead 9056 — the step-3 <code>9056 not responding (PC view)</code> LED drives a
+      panel-level red <strong>"9056 DOWN — data stale"</strong> banner (one banner, not
+      per-indicator gating: with the 9056 dead, <em>every</em> VariableMapping-served value
+      on the panel is frozen — temps, flows, rasters).
+   c. <strong>Mismatch alarm — now essential, not optional:</strong> Min deliberately hides
+      divergence (it always shows the lower source), so a sustained mismatch is the
+      only reveal for a relay stuck low, a CAS-only death, or a future regression
+      (README gotcha #5's recommendation). Build, in the same display loop as 6a
+      (both values are already on the diagram there):<ol>
+<li><strong>Compare:</strong> Subtract the two DBLs (mapped <code>SystemState</code> −
+     <code>9049_Global_SYSTEMSTATE</code>) → <strong>Absolute Value</strong> → <strong>&gt; 0.5</strong> → <code>mismatch?</code>
+     boolean. (Don't use Equal? on DBLs — the values are integral −1..3 today,
+     but |Δ| &gt; 0.5 is immune to any float fuzz forever.)</li>
+<li><strong>"Last time they agreed" memory:</strong> drop a <strong>Tick Count (ms)</strong>; wire a
+     <strong>Select</strong>: <code>mismatch?</code> FALSE → current Tick Count, TRUE → the stored value
+     from a <strong>Feedback Node</strong> whose output loops back into the Select's TRUE
+     input (the classic sample-and-hold).</li>
+<li><strong>Initialize the Feedback Node</strong> (its ▸ initializer terminal) from a <strong>Tick
+     Count (ms) placed OUTSIDE the loop</strong> — otherwise it inits to 0 and a boot
+     transient where the states briefly differ fires a false alarm (now − 0 is
+     huge).</li>
+<li><strong>Sustained test:</strong> current Tick Count − stored "last-agreed" → <strong>&gt; 3000</strong>
+     (ms, diagram constant, comment: "sustained SM≠echo — README gotcha #5") →
+     amber LED <strong><code>STATE MISMATCH (SM ≠ 9049 echo)</code></strong>, placed in the "LIVENESS
+     (computed on this PC)" group.</li>
+<li><strong>Non-latching by design</strong> — it's a live condition, not an event log; it
+     clears itself when the sources re-agree. (If a latched record is ever
+     wanted, OR it into a feedback latch with a manual reset — not now.)
+  <em>Verify both directions:</em> (pass) climb the ladder normally — the ~1-cycle relay
+  lag must NOT light it (133 ms ≪ 3 s); (fire) with Task A deployed, kill the
+  9056 at state ≥ 2 → after ~5 s the echo clamps to −1 while the mapped value
+  stays frozen high → ~3 s later the LED lights, alongside the banner. That
+  kill-test now exercises banner, Min display, and mismatch LED in one shot —
+  the drill-5i photograph.
+   d. <strong>Fold the liveness verdicts into the Min</strong> (added after the 2026-07-17 Task-B
+  test: killing the <strong>9049</strong> at FIRING lit the <code>9049 not responding</code> LED but the
+  display stayed at 3 — the 9049 is the <strong>SV host</strong>, so on its death <em>every</em> SV
+  freezes: echo stuck at 3, <code>9056_MeasAndCalc</code> stuck too, Min(3,3)=3; the PC's
+  own stall detectors are the only first-hand data left). Extend the display:</li>
+<li><code>9049 not responding (PC view)</code> (step 3) → <strong>Select</strong>: TRUE → <strong>DBL −1</strong>,
+     FALSE → <strong>DBL 3</strong> (3 = the state ceiling, neutral inside a Min).</li>
+<li>Same for <code>9056 not responding (PC view)</code> (belt-and-suspenders — the display
+     then doesn't depend on Task A for the 9056 case).</li>
+<li>Chain the two into the 6a Min (two more Min nodes, or Build Array → Array
+     Max &amp; Min → min output): <strong>displayed = Min(mapped, echo, sel49, sel56)</strong>.</li>
+<li>The <code>9049 DOWN</code> case also gets a panel banner like 6b's — arguably the
+     bigger one: <strong>"9049 DOWN — ALL panel data stale"</strong> (the SV host is gone;
+     every value on screen is frozen). Reality is safe when it fires — no RT
+     toggling ⇒ the FPGA watchdog has killed spark/DI in hardware — the banner
+     is about the screen, not the engine.
+  <em>Verify:</em> kill the 9049 just after reaching state 3 → within ~5 s: LED red,
+  <strong>displayed state −1</strong>, banner up (everything else on the panel visibly
+  frozen). Restart per reboot-order rules (9049 first — it hosts the SVs).</li>
+</ol>
+</li>
+<li>Save; <strong>rebuild the PC EXE</strong> (PC apps run as EXEs only — deployed-bringup rule #1);
+   log the build.</li>
+</ol>
+<p><em>Verify:</em> run everything → kill the 9056 → <code>9056 not responding (PC view)</code> red within
+~5 s <strong>while the old-style relayed values freeze</strong> (photograph: this is the drill-5i
+before/after evidence). Restart; repeat once for the 9049 (expect the 9049 LED red +
+UI SVs stale — the SV host is the 9049, so much of the panel dies with it; note what
+the LED adds anyway: an explicit verdict instead of quietly frozen numbers).</p>
+<blockquote>
+<p>✅ <strong>Task B BUILT + VERIFIED 2026-07-17/18</strong> incl. step 6 (Min display + banners +
+mismatch alarm + liveness-folded Min): kill-9056 and kill-9049 both show honest
+LEDs, displayed state −1, banner. <strong>Threshold tuning (open):</strong> 5 s felt long to the
+operator; before dropping to 1 s, MEASURE first — add a temporary max-gap indicator
+(<code>Max(now − last-change)</code> feedback) per heartbeat, run ~30 min incl. network abuse
+(deploy, DSM open, file copy to cRIO), then set <strong>threshold = worst gap × 3–5</strong>.
+Split by SIGNAL RATE, not just cost (corrected 2026-07-18 after the kill-at-12 test
+showed 5 s of continued spark/DI scheduling — <strong>there is NO local protection against
+loss-of-supervisor</strong>; CylPressError/FPGA-watchdog/sync-loss only cover combustion,
+RT-death, and encoder hazards):
+- <strong>Task A</strong> input = the <code>9056_MeasAndCalc</code> timestamp, updating every TS_loop pass
+  (~20–50 ms) — measure ITS worst gap; if ≤ ~200–300 ms, <strong>~1 s threshold is sound</strong>
+  (3–5× worst gap, 20–50× update period) and cuts the unsupervised-firing tail 5×.
+- <strong>Task B</strong> LEDs watch ~2 Hz heartbeats — their floor is higher (~2 s realistic);
+  a false trip is only a banner, but a threshold below a few toggle periods flickers.
+Rule either way: threshold = worst measured gap × 3–5. Context: 9056 WatchDog ~5 s,
+Python staleness 3 s. Fueled-scenario mitigation during any residual window: the
+9056's own FPGA RT-stall safe-hold closes plant outputs (incl. gas feeds) in ~1 s,
+so continued spark burns down a dying charge, not a sustained supply.</p>
+</blockquote>
+<hr />
+<h2 id="task-c-gateway-operator_requests-make-the-safety-mirror-real">Task C — gateway <code>operator_requests</code> (make the safety mirror real)</h2>
+<p><strong>Closes:</strong> the Python safety-only mirror is inert if telemetry lacks
+<code>operator_requests</code> (the mirror returns early on <code>None</code>) — panel FORCE buttons then
+have <strong>no</strong> Python-mode path. The Python side is already built: <code>monarch_parser</code> maps
+an <code>operator_requests</code> flatten via <code>control_settings_from_labview</code> — the gateway just
+has to send it.</p>
+<ol start="0">
+<li><strong>Verify it's actually missing first</strong> (2 min): open <code>operate_traffic.jsonl</code> on the
+   control PC → any telemetry line → is there an <code>"operator_requests"</code> key? If present
+   and non-null, Task C is already done — skip to Verify.</li>
+<li>Open <strong><code>APC_PC_PythonGateway.vi</code></strong> → the 1000 ms telemetry frame section (where
+   <code>settings</code> / <code>limited_settings</code> are built from <code>Flatten To JSON</code> of
+   <code>PC_ControlSettings</code> + the <code>Limited_ControlSettings</code> tap).</li>
+<li>Add an SV read of <strong><code>PC_OperatorRequests</code></strong> → <strong>Flatten To JSON</strong> (same instance
+   pattern as <code>PC_ControlSettings</code>) → insert into the telemetry JSON as field
+   <strong><code>operator_requests</code></strong> (exact key, snake_case).</li>
+<li>Save; rebuild/redeploy the gateway EXE; log it.</li>
+</ol>
+<p><em>Verify (the mirror test, PYTHON mode + <code>--safety-only-mirror</code>):</em>
+1. <code>operate_traffic.jsonl</code> now shows <code>operator_requests</code> populated each second.
+2. Press <strong>FORCE MOTORING</strong> on the panel → state clamps to ≤1 within a tick or two →
+   release → ladder climbs again. That is the panel-force safety floor working through
+   Python for the first time. Record in the book (it upgrades the 4c e-stop-only
+   verification to the full safety floor).</p>
+<hr />
+<h2 id="order-custody-and-where-this-reports">Order, custody, and where this reports</h2>
+<ul>
+<li>Recommended order: <strong>A → B → C</strong>; re-run <strong>drill 5i</strong> after A+B for the
+  before/after evidence page.</li>
+<li>Builds touched: 9049 rtexe ×2 specs (A), PC UI EXE (B), gateway EXE (C) — one
+  deployment-sheet line each, SIM/safe-defaults distinction maintained.</li>
+<li>On completion update: <code>docs/command-path-asbuilt.md</code> §6a (mark tasks built),
+  the heartbeat-map holes list, and <code>docs/session-handoff-2026-07-11.md</code>.</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/hb-hardening-clicklevel.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

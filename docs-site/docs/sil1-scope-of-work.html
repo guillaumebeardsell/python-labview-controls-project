@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIL-1 — Scope of Work (click-level) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/sil1-scope-of-work.md</span></div>
+<main><h1 id="sil-1-scope-of-work-click-level">SIL-1 — Scope of Work (click-level)</h1>
+<p><strong>What SIL-1 is:</strong> run the <strong>real 9049</strong> (<code>APC_9049_RT_main.vi</code>) on a bench with a
+<strong>virtual crankshaft</strong> from the EPT internal pattern simulator — <strong>HV and fuel physically
+absent</strong>. It proves, on-target, the whole chain the desktop SIL-0 harness can't touch:
+crank <strong>sync</strong>, <strong>CAS acquisition</strong>, the <code>Pcyl_Diag → CombCluster2Array →
+9049_Global_CylPressError</code> <strong>latch/veto</strong>, <strong>state-gated spark/DI scheduling</strong>, and the
+operational <strong>drills</strong> (watchdog, sync-loss, state-gate, clear-warnings, echo, recording).</p>
+<p><strong>What SIL-1 is NOT:</strong>
+- <strong>Not</strong> the encoder input path — the sim injects <em>at the EPT input</em>, so the NI-9401
+  wiring, deglitch filters, and ½-Z synthetic-cam logic are <strong>not</strong> exercised → that's <strong>SIL-2</strong>.
+- <strong>Not</strong> real actuation — spark coils / DI drivers into real loads is <strong>SIL-3</strong>.
+- <strong>Not</strong> a fueled run — F1/F5 provisions (<code>Override</code>, <code>SimEnable</code>, <code>UsePcylDatabase</code>) are
+  <strong>used</strong> here but must be <strong>OFF</strong> before fuel (pre-fuel checklist, audit §8).</p>
+<p><strong>Depends on SIL-0:</strong> the <strong>motoring</strong> <code>9049_WarningLevels</code> profile must already be derived
+and loaded on the 9049 (<code>docs/sil0-scope-of-work.md</code> Step 3). SIL-1 validates that profile
+on-target and resolves the open questions SIL-0 couldn't (Trig0-follows-sim, echo bitmask F4,
+watchdog recovery).</p>
+<p>Derived from <code>docs/9049-openloop-audit.md</code> §7 (SIL-1) + §4 (F1–F9) + §8 (pre-fuel checklist).
+Signal/gate detail lives there; this doc is the click-level procedure.</p>
+<hr />
+<h2 id="safety-preconditions-verify-before-every-sil-1-session">⚠ Safety preconditions (verify before every SIL-1 session)</h2>
+<ul>
+<li><strong>HV supply OFF and locked out; no fuel; injectors and coils disconnected</strong> (or into
+  dummy loads only — energizing real actuation is SIL-3). Spark/DI <em>scheduling</em> is exercised
+  here, so treat the Mod4/5/6 connector outputs as <strong>electrically live</strong> — scope/dummy only.</li>
+<li><strong>Key interlock:</strong> the NI-9751 drivers must be powered+enabled for <em>any</em> spark to appear;
+  keep them <strong>de-energized</strong> unless a specific scope step needs them. Confirm <code>Fault1</code>/<code>Fault2</code>
+  = 0 live (F9 resolved 2026-07-16 — the 126 was a stale saved panel); decode any nonzero
+  fault that appears at first HV energize.</li>
+<li><strong>E-stop reachable</strong> and the e-stop path itself is a drill item (Step 5f).</li>
+<li><strong>Override is a bench aid, not a shortcut (F1):</strong> <code>Override PC settings = TRUE</code> bypasses
+  <strong>both</strong> the <code>SYSTEMSTATE ≥ 2</code> and <code>¬CylPressError</code> gates. Use it only for isolated
+  bench steps, log every use, and confirm it is <strong>FALSE</strong> at session end.</li>
+</ul>
+<hr />
+<h2 id="step-0-bench-tooling-setup">Step 0 — Bench + tooling setup</h2>
+<ol>
+<li>cRIO-9049 on the bench, powered, on the control network; note its IP (<code>10.1.10.171</code>).</li>
+<li>Dev PC with <code>MONARCH.lvproj</code> open; connect to the 9049 RT target.</li>
+<li>Confirm the <strong>motoring warning XML</strong> is on the target (<code>docs/crio-file-access.md</code> →
+   <code>cat /home/lvuser/natinst/bin/CylWarningLevels.xml</code>). If absent, do SIL-0 Step 3 first.</li>
+<li>Python command path ready (for the SA/SOI sweep in Step 4): gateway with <code>source=PYTHON</code>,
+   <code>examples/monarch_operate.py</code> / <code>tools/send_command.py</code> — see <code>docs/command-path-asbuilt.md</code>.</li>
+<li><strong>Run <code>APC_9049_RT_main.vi</code></strong> — its <em>own</em> panel is just the title screen; the live
+   controls/indicators are on its parallel <strong>loop sub-VIs</strong>. Open each one's front panel to
+   interact (double-click the subVI in the RT_main block diagram while it runs, or open it from
+   the project). Where things live:
+   - <strong><code>APC_9049_TS10ms_loop.vi</code></strong> — the <strong><code>EPTControl</code></strong> cluster (<code>SimEnable</code>, <code>SimPeriod</code>,
+     <code>SyncEnable</code>, <code>WatchdogIn</code>, <code>NumberOfCrankTeeth</code>, <code>MissedCrankFlagClr</code>/<code>MissedCamFlagClr</code>),
+     the <strong><code>EPTData</code></strong> indicator cluster (<code>CrankStalled</code>, <code>SyncStopped</code>, <code>MissedCrankFlag</code>,
+     <code>MissedCamFlag</code>, <code>CrankCount</code>, <code>CurrentPosition</code>, <code>Period</code>, <code>CrankSigOS</code>), top-level
+     <strong><code>Speed (RPM)</code></strong>, <code>Override PC settings</code> + <code>manual spark/injection enable</code> + <code>manual SA</code>,
+     the <code>InjectionEnable</code>/<code>SparkEnable</code> 6-LED arrays, <code>Manual Clear Sync Errors</code>,
+     <code>Must Use Cam &amp; Z</code> / <code>1/2 Z pulse</code>, <code>PFI0 mode</code>, and the <code>DIControl</code> / <code>DI_Data_Mod5/6</code>
+     clusters.
+   - <strong><code>APC_9049_CAS_loop.vi</code></strong> — the <strong><code>Graph time</code></strong> cycle chart (0…7200), <strong><code>rpm from DAQ</code></strong>,
+     <strong><code>Enque?</code></strong>, <strong><code>ForceReSync</code></strong>, <code>error in</code> / <code>CAS DAQmx error</code>.
+   - ~~<code>APC_9049_FPGA_IGNDI_supervisor.vi</code>~~ — <strong>do NOT read this panel: it is an FPGA
+     subVI, its panel shows saved defaults, never live data</strong> (the stale <code>Fault1=126</code>
+     came from it). <code>NumberOfActiveIGN_DI</code> / <code>Number of inactive sparks/injections</code> are
+     live only if surfaced to RT — see 4e.1 step 0.
+   <em>(Deployed/headless, none of these panels are visible and controls take their compiled
+   defaults — F6; interactive SIL-1 is the only place you drive them by hand.)</em></li>
+</ol>
+<p><em>Accept:</em> target reachable; motoring XML present; command path answers a no-op.</p>
+<hr />
+<h2 id="step-1-start-rt_main-virtual-crankshaft-confirm-sync">Step 1 — Start RT_main + virtual crankshaft, confirm sync</h2>
+<ol>
+<li><strong>Run <code>APC_9049_RT_main.vi</code></strong> (dev environment, or a bench build). Open the
+   <strong><code>APC_9049_TS10ms_loop.vi</code></strong> panel.</li>
+<li>On that panel, expand the <strong><code>EPTControl</code></strong> cluster and set <strong><code>SimEnable = TRUE</code></strong>;
+   set <strong><code>SimPeriod</code></strong> for the target rpm — <code>SimPeriod = 60·4e7 / (rpm·3600)</code> → <strong>741 ≈ 900 rpm</strong>,
+   <strong>370 ≈ 1800 rpm</strong> (saved default is 500 ≈ 1333 rpm; or use the vendor <code>speed2ticks.vi</code>).
+   Leave <strong><code>SyncEnable = TRUE</code></strong> and <strong><code>NumberOfCrankTeeth = 3600</code></strong>. Confirm
+   <code>Must Use Cam &amp; Z</code> / <code>1/2 Z pulse</code> match the engine's actual sensor set (F6).</li>
+<li><strong>Confirm the sim is alive:</strong> in <strong><code>EPTData</code></strong>, <code>CrankSigOS</code> shows activity and the sync
+   fields below start moving. <em>Caveat:</em> the raw crank is a <strong>3600-line encoder →
+   54 kHz A @ 900 rpm</strong> (108 kHz @ 1800), far above panel-eyeball rate, so an indicator only
+   tells you alive-vs-dead — read the real <strong>pass</strong> off the sync fields, not a "toggle."</li>
+</ol>
+<p><em>Accept (sync acquired) — in <code>EPTData</code> + top-level <code>Speed (RPM)</code>:</em> <code>CrankStalled</code> <strong>OFF</strong>,
+<code>SyncStopped</code> <strong>OFF</strong>, <code>MissedCrankFlag</code>/<code>MissedCamFlag</code> <strong>OFF</strong>; <code>CrankCount</code> and
+<code>CurrentPosition</code> <strong>incrementing/rolling</strong>; <code>Speed (RPM)</code> ≈ the rpm you dialed. If
+<code>SyncStopped</code> stays TRUE, click <strong><code>Manual Clear Sync Errors</code></strong> (and <code>MissedCrankFlagClr</code> +
+<code>MissedCamFlagClr</code>) once and re-check — persistent = cam/Z config mismatch (chase before Step 2).</p>
+<blockquote>
+<p><strong>Scoping the sim (optional raw check — replaces the earlier "missing-tooth" description,
+which does not apply: this is an incremental encoder, no missing tooth).</strong> In sim mode the
+physical encoder inputs are internally replaced, so the sim crank/cam live <em>inside the FPGA</em>
+— scopeable only if the bitfile routes them to a module pin (check the FPGA I/O node /
+[EPT-UM] for a monitor terminal). If routed: scope (or better, a logic analyzer for the
+encoder rate) DC-coupled, 0–5 V, timebase ~2 µs/div to resolve 54 kHz <strong>A</strong>; <strong>trigger on the
+Z index</strong> (once/rev) to stabilize, and confirm one <strong>cam</strong> pulse per two revs. Verify the
+A-rate tracks rpm. If it isn't routed out, don't chase it — the <code>EPTData</code> sync fields are the
+real proof, and raw-encoder scoping is properly a <strong>SIL-2</strong> task (there you generate A/B/Z/cam
+yourself and scope them at the source).</p>
+</blockquote>
+<hr />
+<h2 id="step-2-does-trig0-follow-the-sim-cas-acquisition-open-question-bench-decides">Step 2 — Does Trig0 follow the sim? (CAS acquisition) — <em>open question, bench-decides</em></h2>
+<p>The FPGA export shows the CAS sample clock <code>cRIO_Trig0</code> wired from EPT's <code>CrankSigOut</code>, which
+carries the simulated signal in sim mode — so with sync acquired (Step 1) CAS <strong>should</strong> clock.
+Confirm on the CAS panel:
+1. Open the <strong><code>APC_9049_CAS_loop.vi</code></strong> front panel.
+2. Watch the <strong><code>Graph time</code></strong> chart (X = 0…7200 samples): with sync it should <strong>fill with a
+   full 7200-sample trace once per engine cycle</strong>; before sync it's flat/stale and the loop
+   sits in its ~1 Hz DAQ-timeout retry.
+3. Read <strong><code>rpm from DAQ</code></strong> — it should be ≈ your dialed rpm. Because it's derived from the
+   Trig0/encoder clock, a correct value <strong>is</strong> the confirmation that Trig0 follows the sim.
+   Cross-check against <code>Speed (RPM)</code> on the TS10ms panel.
+4. Confirm <strong>no DAQ error</strong> — <code>error in</code> and <code>CAS DAQmx error</code> clusters read code <strong>0</strong>.
+5. If it won't clock, click <strong><code>ForceReSync</code></strong> once and re-check.</p>
+<p><em>Accept:</em> <code>Graph time</code> delivers full 7200-sample cycles at the simulated cycle rate (<strong>133 ms
+@ 900 rpm</strong>), <code>rpm from DAQ</code> ≈ setpoint, DAQ error 0. <strong>Record the answer</strong> to the Trig0-in-sim
+open question (audit §9). If it never clocks, Trig0 does <strong>not</strong> follow the sim → CAS-acquisition
+testing needs SIL-2's real encoder into Mod3 DIO0–3 — note and escalate.</p>
+<blockquote>
+<p><strong>Result (2026-07-14): ✅ Step 2 CLOSED — Trig0 follows the sim.</strong> <code>rpm from DAQ</code> = the rpm set
+on TS10ms, <code>Graph time</code> delivers full 7200-sample cycles, and the DAQ error clusters read 0.
+CAS acquisition clocks in sim mode on the real 9049; <strong>no SIL-2 encoder needed for acquisition
+testing</strong>, and the CAS → analytics → <code>Pcyl_Diag</code> chain is now exercisable in sim (Steps 3–6).</p>
+</blockquote>
+<hr />
+<h2 id="step-3-verify-the-motoring-profile-on-target-clear-cylpresserror-false-f3">Step 3 — Verify the motoring profile on-target: CLEAR → <code>CylPressError = FALSE</code> (F3)</h2>
+<p>Pressure inputs are floating 9222 terminals, so the diagnostics can false-trip on startup
+garbage (first-cycle zero-pad, motored-CA50 noise, Expected-IMEP-0 trap — F3).
+1. With sync + CAS running (Steps 1–2) and the motoring XML loaded, let CAS deliver a few
+   cycles (watch <code>Graph time</code> fill).
+2. On the PC, open <strong><code>APC_PC_UI_Errors.vi</code></strong> → <strong>SIGNAL WARNINGS / CYLINDER</strong> area → click
+   <strong>CLEAR WARNINGS</strong> (drives <code>APC_MASTER_ClearWarnings</code> → 9049 relay <code>APC_SLAVE_ClearWarnings</code>,
+   which resets the per-category <strong>Error</strong> feedback-latches).
+3. Read <strong><code>9049_Global_CylPressError</code></strong> — in NI <strong>Distributed System Manager</strong> (<code>10.1.10.171</code>
+   → <code>APC_SharedVars</code> → <code>9049_Global_CylPressError</code>), or via the UI's error LEDs.</p>
+<p><em>Accept:</em> after CLEAR, <code>CylPressError = FALSE</code> and <strong>stays</strong> FALSE under steady sim motoring.
+If it re-latches, note <em>which</em> category tripped from the harness <code>PcylDiagWarningsAndErrors</code>
+flags (max-pressure / cyclic-variability / misfire-from-IMEP / self-reg / cyl-to-cyl / knock /
+late-combustion) and widen that one threshold per SIL-0 Step 3 — or drive the channel (Step 6).
+This is the on-hardware version of the SIL-0 CLEAR gate.</p>
+<hr />
+<h2 id="step-4-state-gated-sparkdi-scheduling">Step 4 — State-gated spark/DI scheduling</h2>
+<p>Per-cylinder enable = <code>¬CylPressError ∧ ActivateCylinder ∧ UI-enable ∧ (SYSTEMSTATE ≥ 2)</code>,
+spark and DI separately (the confirmed TS10ms gate — README "TS10ms section C", Deck p.12).
+Step 4 proves three things at once: the FPGA scheduler produces edges at the commanded crank
+angles, Python moves them over the <strong>real command path</strong>, and the observables (LED arrays,
+<code>NumberOfActiveIGN_DI</code>, scope) that drills 5c/5d depend on all work.</p>
+<h3 id="4a-bench-footprint-the-state-relay-chain-read-before-wiring-anything">4a — Bench footprint + the state-relay chain (read before wiring anything)</h3>
+<blockquote>
+<p><strong>Architecture decision — DECIDED 2026-07-16</strong> (<code>docs/engine-only-9056-tradeoff.md</code>):
+engine-only testing <strong>runs the 9056 alongside the 9049</strong> — the dyno command
+(<code>DynoControl → DYNO-REF</code>, a 9056 AO) and all engine-health reads (oil P/T, coolant/
+exhaust temps, torque, fuel) live on the 9056. This step's as-built three-tier chain is
+therefore the <strong>final</strong> configuration, not an interim. Conditions from the memo that land
+in this SOW: verify the 9056 RT app starts clean with plant modules missing (−200088-class),
+plant loops commanded to mode 0 and holding it, drills 5a/5b/5f run on this exact
+two-chassis config. (The 9049-local PC_HB watchdog remains roadmap work for Python command
+authority — if it is ever built, the matrix + gate drills re-run on the modified build.)</p>
+</blockquote>
+<p>The gate input <code>9049_Global_SYSTEMSTATE</code> is <strong>not a knob you can set on the 9049</strong> — it is
+the tail of a relay chain, so this is the first SIL-1 step that needs <strong>all three tiers
+running simultaneously</strong>:</p>
+<pre><code>mode request (HMI or Python) ─► PC_ControlSettings ─► 9056 TS_loop StateMachine
+  ─► Min(requested, watchdog clamp: notResponding? −1 : 3) ─► SYSTEM STATE
+  ─► 9056_MeasAndCalc (SV) ─► 9049 CAS_loop polls + echoes ─► 9049_Global_SYSTEMSTATE
+  ─► TS10ms gate C
+</code></pre>
+<p>Running config for all of Step 4 (and Step 5):
+1. <strong>9049</strong>: <code>RT_main</code> with sim crank + CAS delivering cycles (Steps 1–3 green). Best: keep
+   the 6a sim branch playing <strong><code>baseline_motored</code></strong> — real finite traces hold
+   <code>CylPressError = FALSE</code> (the drill XML must NOT be loaded; motoring profile only).
+2. <strong>9056</strong>: its RT app running (the real relay — no shortcut; see below). First time on
+   this bench: confirm it starts clean with the plant disconnected — no −200088-class DAQ
+   startup race, loops iterating, <code>9056_HeartBeat</code> toggling in DSM — and that the plant
+   controllers sit at <strong>mode 0 and hold it</strong> as the state rises (tradeoff-memo conditions
+   1–2).
+3. <strong>PC</strong>: <code>UI_System</code> + <code>UI_Main</code> (+ the gateway if commanding from Python). The PC <strong>must
+   stay alive</strong>: a frozen <code>PC_HB</code> trips <code>PCnotResponding</code> → the loss-of-PC clamp Selects −1
+   → SAFE, in either mode (<code>docs/command-path-asbuilt.md</code> §5).</p>
+<p>As-built facts that matter here:
+- <strong>The state limiter has TWO live inputs — the watchdog clamp AND the warnings clamp.</strong>
+  ~~W5 (warnings limit computed but unconsumed)~~ was <strong>refuted live 2026-07-16</strong>: a
+  latched severity-3 warning drove <code>warn_lim=1</code> in <code>status</code> and pinned the state at
+  MOTORING in both UI and PYTHON modes until CLEAR WARNINGS. So when the state won't
+  rise, the diagnostic order is: <strong>(1) <code>status</code> → <code>warn_lim</code></strong> (3 = no warnings limit;
+  2/1/−1 = a severity 2/3/4 condition is latched — go to <code>UI_Errors</code>, <strong>photograph the
+  lit lamps before clearing</strong>, then CLEAR WARNINGS); <strong>(2) the watchdog flags</strong> —
+  <code>UI_Main</code> shows two of the three OR inputs as LEDs (<code>9056_PCnotResponding</code>,
+  <code>9056_9049notResponding</code> — panel names carry a <code>9056_</code> prefix; there is no plain
+  <code>PCnotResponding</code> LED); the third, <code>9056notResponding</code> (the 9056's self-check), has
+  <strong>no LED</strong> — check it in DSM. Remember raster severities <strong>max-latch</strong> (a passing trip
+  persists across state drops until cleared), and rasters arm only at MOTORING+ (W1) —
+  so the first climb to 1 can itself latch the warning that then blocks 2.
+- <strong>Floating/disconnected 9056 plant channels CAN clamp the state</strong> (consequence of the
+  live warnings clamp) — managing the 9056 plant warning limits/masks is a real
+  precondition of this two-chassis bench, not a future-W5 concern
+  (<code>docs/engine-only-9056-tradeoff.md</code>).
+- <strong>DSM injection of <code>9049_Global_SYSTEMSTATE</code> is a trap</strong>: CAS_loop re-writes it from the
+  polled 9056 value every cycle (~133 ms @ 900 rpm), so a hand-written value is clobbered
+  almost immediately (watch it snap back in DSM). Use the real chain.
+- <code>Override PC settings = TRUE</code> + <code>manual spark/injection enable</code> + <code>manual SA</code> (TS10ms)
+  bypasses <strong>both</strong> gates (F1) — it proves Mod4/5/6 <strong>wiring only</strong>, never the gate. Log every
+  use; FALSE immediately after.</p>
+<h3 id="4b-di-module-health-fault-register-check-f9-resolved-before-anything-touches-the-9751s">4b — DI-module health + fault-register check (F9 — resolved) — before anything touches the 9751s</h3>
+<p>Spark is <strong>interlocked on the DI drivers</strong>: the FPGA's DI supervisor emits the <strong><code>Key</code></strong> that
+unlocks the spark output block (FPGA_main section E). No healthy/powered NI-9751 ⇒ no spark
+edges, regardless of the gate — so this sub-step comes first even for a spark-only session.
+1. On TS10ms <code>DIControl</code>, set <strong><code>ModuleEnable = TRUE</code> only</strong> (leave <code>HVEnable</code> /
+   <code>InjectEnable</code> FALSE for now).
+2. Read <strong><code>DI_Data_Mod5</code></strong> and <strong><code>DI_Data_Mod6</code></strong>: <code>ModulePresent</code> TRUE on both; record
+   <code>Fault1</code>/<code>Fault2</code> exactly as displayed.
+3. <strong>Decode any nonzero <code>Fault1</code>/<code>Fault2</code> against the NI-9751 manual</strong> (bitfields — write
+   down the meaning of every set bit in the commissioning book; audit §9/F9). A
+   missing-HV-supply fault is <em>expected</em> on this bench (HV locked out) — record it and move
+   on; anything pointing at the module or driver channels themselves must be chased before
+   trusting any DI observable.</p>
+<blockquote>
+<p><strong>✅ 4b ACCEPTED 2026-07-16</strong> (<code>screenshots/DIControl_before-state.png</code> +
+<code>DIControl_enabled-state.png</code>): <code>ModulePresent</code> TRUE on both Mod5/Mod6;
+<strong><code>Fault1 = 0</code>, <code>Fault2 = 0</code> on both, with all enables FALSE and with
+<code>ModuleEnable = TRUE</code></strong> — the historical <code>Fault1 = 126</code> (F9) was a stale saved-panel
+snapshot, not a live fault. Reads proven live (TempSense 26→27 under enable,
+LVSense 85⇄84). Senses consistent with LV-powered / HV-locked-out modules: LVSense
+84–85, HVSense 15 / HVSense2 1 (HVTarget 100 V), HW rev 70 / FW rev 5.
+<strong>Residuals for 4e (first HV energize):</strong> a supply fault can only appear when HV is
+expected — decode any nonzero fault then; and confirm the <strong>LVSense scaling</strong> in the
+NI-9751 manual (84–85 raw — verify units before trusting LV-supply margin).
+4. Energize the 9751s / Key <strong>only</strong> for the scope sub-steps in 4e that need them, per the
+   bench plan; de-energize after.</p>
+</blockquote>
+<h3 id="4c-raise-the-state-over-the-real-command-path">4c — Raise the state over the real command path</h3>
+<ol>
+<li>Start all three tiers (4a). On <code>UI_Main</code> (left edge, verified against the 07-14 panel
+   print) the three watchdog LEDs are the <strong>9056's verdicts about the other tiers</strong>:
+   <code>9056_PCnotResponding</code> and <code>9056_9049notResponding</code> <strong>off</strong>; <code>9056_MTRnotResponding</code>
+   will be <strong>ON with the membrane PLC absent — expected and harmless</strong> (MTR is not in the
+   SAFE-clamp OR). There is <strong>no 9056-liveness LED</strong> — the 9056 cannot report itself dead
+   (a dead 9056 just freezes these LEDs at their last value). Confirm 9056 liveness from
+   <code>9056_HeartBeat</code> toggling in DSM, or the <code>9056_MeasAndCalc</code> array / <code>SystemState</code>
+   display updating on the panel. E-stop clear.</li>
+<li>Choose the command source. For the Python sweep: flip the HMI source switch to <strong>PYTHON</strong>
+   (the <code>PYTHON (effective)</code> LED confirms), then on the PC:
+   <code>python examples/monarch_operate.py --safety-only-mirror</code>
+   <strong><code>--safety-only-mirror</code> matters</strong>: without it the HMI panel's own requests mirror through
+   Python and re-assert within a tick — the panel and your CLI fight over the intent. With it,
+   panel e-stop + force overrides still flow (the safety floor), but mode/set belong to the CLI.<blockquote>
+<p>⚠ <strong>Operator caution (observed live 2026-07-16):</strong> in PYTHON mode the panel's state
+slider is <strong>inert — including at −1</strong>. Requesting "emergency" via the slider is a mode
+request, not an e-stop, and the safety-only mirror drops it by design. The panel's live
+safety controls in this mode are <strong>EMERGENCY STOP &amp; VENT</strong> and the two <strong>FORCE</strong> buttons
+only. To reach −1: panel E-STOP button (mirrored — <strong>✅ VERIFIED live 2026-07-16: pressed
+in PYTHON + safety-only-mirror mode, state clamped to −1</strong>), CLI <code>estop</code> (settable,
+<strong>never clearable, from the CLI — HMI clears only</strong>), or the
+physical e-stop. CLI <code>mode safe</code> also lowers the state but does not declare an e-stop.</p>
+</blockquote>
+</li>
+<li><code>status</code> → expect <code>connected=True stale=False commanding=True state=0 source=PYTHON</code>.</li>
+<li><strong>Step up the ladder one state per request</strong> — the StateMachine rate-limits upward
+   moves to <strong>+1 per step</strong> (as-built, pixel-verified; observed live 2026-07-16: <code>mode
+   idling</code> from STAND_BY lands at MOTORING first). This is a deliberate safety feature —
+   keep it. So: <code>mode motoring</code> → confirm <code>state=1</code> in <code>status</code>, then <code>mode idling</code> →
+   <code>state=2</code>. (Downward moves are immediate — no stepping needed to descend.) Confirm the
+   echo end-to-end: DSM (<code>10.1.10.171</code> → <code>APC_SharedVars</code>) → <code>9049_Global_SYSTEMSTATE</code> =
+   <strong>2</strong>. The CLI now <strong>refuses &gt;+1 upward requests</strong> with the step to request instead
+   (<code>ladder_refusal</code> in <code>examples/monarch_operate.py</code>; downward is unrestricted).<blockquote>
+<p>✅ <strong>RESOLVED (2026-07-16):</strong> the stuck-at-MOTORING episode was a <strong>latched
+severity-3 warning</strong> — <code>status</code> showed <code>warn_lim=1</code> (severity 3 → limit MOTORING),
+the state pinned at <code>min(requested, 1)</code> in both modes, and clearing warnings
+restored <code>warn_lim=3</code> and full ladder operation. This observation is also the W5
+refutation (the warnings→state clamp is live — see 4a). Lesson for this step: check
+<code>warn_lim</code> in <code>status</code> FIRST whenever the state won't rise. Source of the trip was
+not captured before clearing — next occurrence, photograph <code>UI_Errors</code> first.</p>
+</blockquote>
+</li>
+<li>If the state won't rise: re-check the watchdog flags (<code>9056_PCnotResponding</code> /
+   <code>9056_9049notResponding</code> LEDs, plus <code>9056notResponding</code> in DSM — the clamp is the only
+   wired limiter, 4a), the e-stop, and <code>command_source</code>; a NACK reason appears in
+   <code>status</code> as <code>last_nack=…</code>.</li>
+</ol>
+<h3 id="4d-enable-sparkdi-watch-the-counters-passed-2026-07-16">4d — Enable spark/DI, watch the counters — ✅ PASSED 2026-07-16</h3>
+<p>(operator-run; timing set + masters + per-cylinder enables over the Python command path,
+<code>SparkEnable</code>/<code>InjectionEnable</code> LED arrays as expected). Counter observable initially
+skipped — <code>FPGA_IGNDI_supervisor</code> is an FPGA subVI whose own panel is never live (saved
+defaults only, the F3b trap; the <code>Fault1=126</code> snapshot came from exactly this) — then
+<strong>closed same day</strong> after the counters were surfaced into TS10ms (4e.1 step 0):
+<strong><code>NumberOfActiveIGN_DI</code> = 12 confirmed with all six cylinders activated.</strong> Implication
+recorded: 12 includes the six SI channels ⇒ the 9751s' <strong><code>Key</code> is present</strong> and spark
+command edges are being scheduled — Mod4 should show pulses on the scope in 4e.2.
+<strong>Still owed:</strong> the 4d.3 truth test against the counter
+(<code>set activate_cylinder [false,true,false,false,false,false]</code> → count = <strong>2</strong>) — folded
+into 4e.1 step 3.</p>
+<p><strong>Set timing before enables</strong> — the gateway range-checks <code>Speed ref</code> <strong>only</strong>; SA/DI values
+pass through <strong>unvalidated</strong> (<code>docs/command-path-asbuilt.md</code> §3), so type carefully. Bench
+values (JSON, <strong>no spaces</strong> inside a value — the CLI splits on whitespace). The CLI
+validates each value against the field's declared type <strong>before</strong> it touches the intent
+(added after the 2026-07-16 incident where <code>set ign_enable FALSE</code> landed a string in a
+bool field and every subsequent 1 Hz emit NACKed <code>parse</code> until restart) — so
+<code>TRUE</code>/<code>False</code>/<code>1</code>/<code>0</code> all coerce fine, and garbage is REFUSED locally with the intent
+untouched. If you ever do see a <code>parse</code>-NACK loop: restart the CLI — the intent re-seeds
+clean from the telemetry echo.</p>
+<pre><code>set spark_advance_cadbtdc 20
+set di_advance_cadbtdc 60
+set di_duration_ms 2.5
+</code></pre>
+<p>Then the enables:</p>
+<pre><code>set activate_cylinder [true,true,true,true,true,true]
+set ign_enable true
+set di_enable true
+</code></pre>
+<p>Observe, in order:
+1. TS10ms — the <strong><code>SparkEnable</code></strong> and <strong><code>InjectionEnable</code></strong> 6-LED arrays all light (the
+   gate output, post-<code>SYSTEMSTATE</code>/<code>CylPressError</code>).
+2. <strong><code>FPGA_IGNDI_supervisor</code> counters</strong> (read via the RT indicator from 4e.1 step 0 —
+   never from the subVI's own panel) — <code>NumberOfActiveIGN_DI</code> = <strong>12</strong> (6 SI + 6 DI), <code>SI1–6</code> +
+   <code>DI1–6</code> LEDs on, <code>Number of inactive sparks/injections</code> = 0. <em>Caveat:</em> SI channels only
+   count with the <code>Key</code> present (4b) — DI = 6 but SI = 0 with everything enabled points at
+   Key/9751 power, not the gate.
+3. <strong>Per-cylinder truth test</strong>: <code>set activate_cylinder [false,true,false,false,false,false]</code>
+   → exactly <code>SI2</code> + <code>DI2</code> active (count = <strong>2</strong>). Restore all six. (This also stages the 5e
+   bitmask capture.)</p>
+<h3 id="4e-scope-the-edges-sweep-sasoi-from-python">4e — Scope the edges + sweep SA/SOI from Python</h3>
+<p><strong>Preconditions (all from earlier steps — verify, don't assume):</strong> state = 2 over the real
+command path (<code>status</code> → <code>state=2</code>, <code>warn_lim=3</code>); baseline_motored playing, <code>CylPressError
+= FALSE</code>; 4d gate LEDs lit (all 12); <code>DIControl.ModuleEnable = TRUE</code>, faults 0/0 (4b).</p>
+<p><strong>4e.1 — Energize the 9751s (spark needs the Key — nothing on Mod4 moves without it):</strong>
+0. <strong>First, surface the supervisor counters into TS10ms (one-time dev-mode edit, carried
+   over from 4d).</strong> ✅ Confirmed 2026-07-16: <code>NumberOfActiveIGN_DI</code> <strong>does</strong> reach a
+   top-level FPGA indicator on <code>APC_9049_FPGA_main</code> — so no recompile is needed; the
+   Read/Write Control route below works as-is. Click-level:
+   1. <strong>Stop the running system first</strong> (you cannot edit a running VI): stop <code>RT_main</code>
+      cleanly, note the time in the book.
+   2. In the project (RT target context), open <strong><code>APC_9049_TS10ms_loop.vi</code></strong> → block
+      diagram (Ctrl+E).
+   3. Find the existing FPGA read of <strong><code>DI_Data_Mod5</code>/<code>DI_Data_Mod6</code></strong> — an <strong>FPGA
+      Read/Write Control</strong> node sitting on the FPGA reference wire (section D of the
+      diagram, where EPTControl/DI_Control are written).
+   4. <strong>Grow that same node instead of adding a new one</strong> (one node per tick is the
+      idiomatic/cheap way): hover its bottom edge → drag down to add one element (or
+      right-click → <em>Add Element</em>).
+   5. Click the new element's name → the dropdown lists every top-level control/indicator
+      in the referenced FPGA VI → select <strong><code>NumberOfActiveIGN_DI</code></strong>. (While you're there,
+      add <strong><code>Number of inactive sparks</code></strong> and <strong><code>Number of inactive injections</code></strong> too —
+      two more elements, same node — they make 4e failures self-explaining.)
+   6. Right-click each new element's output terminal → <strong>Create → Indicator</strong>. Arrange the
+      three indicators on the TS10ms front panel next to the <code>DI_Data_Mod5/6</code> clusters,
+      and label the group "IGNDI supervisor (live)".
+   7. Save. <strong>Sanity-check the edit is read-only:</strong> the diff (Ctrl+Shift+D against the
+      previous version, or visual) must show ONLY the grown read node + three indicators —
+      no gate logic touched. This is a display-only change, so the full matrix regression
+      is not triggered; the one-look check after restart is that the 4d gate LEDs still
+      behave (masters off → dark, on → lit).
+   8. Re-run <code>RT_main</code> interactively. The three indicators now update every 10 ms tick —
+      <strong>watch <code>NumberOfActiveIGN_DI</code> actually change</strong> before trusting it (the campaign
+      rule: only trust a number you've watched change). Expected right now, pre-Key:
+      DI-side counts only.
+   9. <strong>Deployed-build note (deployed-bringup rule #3):</strong> the deployed rtexe is now stale
+      against this VI — rebuild it before the next headless session, or record "TS10ms
+      edited 2026-07-16, rtexe stale" on the deployment sheet.
+   - Never read the counters off <code>APC_9049_FPGA_IGNDI_supervisor.vi</code>'s own panel — it is
+     an FPGA subVI; its panel shows saved defaults, not live data.
+1. Per the bench plan, energize the 9751 <strong>low-voltage supply only</strong> (HV stays locked out
+   until 4e.3). Treat every output connector as live from this point.
+2. Re-read <code>DI_Data_Mod5/6</code>: <code>ModulePresent</code> still TRUE; <strong>record <code>Fault1</code>/<code>Fault2</code></strong> — this
+   is the F9 residual check (a supply-related bit appearing <em>now</em> is meaningful — decode it
+   against the NI-9751 manual before continuing). Also note <code>LVSense</code> and settle its
+   <strong>scaling</strong> against the manual (84–85 raw, units unconfirmed — 4b residual).
+3. On the counter indicator surfaced in step 0 (if available): <code>NumberOfActiveIGN_DI</code>
+   should now read <strong>12</strong> (SI channels join once the Key is present). If DI = 6 / SI = 0
+   persists → Key/9751 supply, not the gate; stop and chase. Also re-run the 4d.3
+   truth test against it once (<code>activate_cylinder [false,true,false,false,false,false]</code>
+   → count = <strong>2</strong>), closing 4d's skipped observable.</p>
+<blockquote>
+<p>✅ <strong>Verified on the DEPLOYED SIM build (2026-07-16/17,</strong> <code>APC_9049_RT SIM</code> rtexe:
+SimEnable=TRUE, SIM pressure?=TRUE/baseline_fired, debugging on): headless boot →
+<code>NumberOfActiveIGN_DI = 12</code> <strong>only at state ≥ 2 (idling/firing) with IGN/DI enables
+ON</strong> — the counter-level state-gate proof (drill 5c's core observation, scope leg
+still owed). <strong>Confirmed from BOTH writers</strong> (<code>Python in command</code> TRUE and FALSE):
+CLI and UI_Main panel each drive the full chain to <code>NumberOfActiveIGN_DI = 12</code> —
+4f's enable leg done early; only the timing sweeps (4e.4 Python, 4f SA/SOI from the
+panel) remain to be proven at the pins. Implication: the compiled <code>DIControl.ModuleEnable</code> = TRUE (Key present
+deployed) — <strong>this build schedules real coil/DI commands whenever state ≥ 2</strong>; the
+never-fuel custody marker on this build spec is load-bearing. Record the full
+defaults row on the build description + deployment sheet.</p>
+</blockquote>
+<p><strong>4e.2 — Scope hookup + one static cycle picture (spark only, no HV needed):</strong>
+1. Probe <strong>Mod4 <code>DIO0</code></strong> (cyl-1 spark command) on CH1, scope ground per the bench plan
+   (10× probe, DC coupling). CH2 → a second spark channel (<code>DIO4</code> = cyl 5, the next in
+   firing order) <em>or</em> a cycle-locked trigger if one is routed out (FPGA <strong>Trig1</strong>, or the
+   9751's internal scope via <code>DIControl → DI Scope Trigger Event</code> — already set to
+   INJECTION PULSE from 4b).
+2. Timebase <strong>20 ms/div</strong>, trigger on CH1 rising edge. At 900 rpm one engine cycle
+   (720°) = <strong>133.3 ms</strong>, so <strong>1° = 0.185 ms</strong>.
+3. Verify the static picture before sweeping anything: cyl-1 pulses repeat every 133.3 ms;
+   CH2 (cyl 5) leads/lags by <strong>120° = 22.2 ms</strong> (TDC offsets 0/480/240/600/120/360, firing
+   order 1-5-3-6-2-4); zoom to <strong>1 ms/div</strong> and confirm spark <strong>dwell = 4 ms</strong> (hard-coded
+   in <code>SparkSettings</code>; ≈ 21.6° at 900 rpm). Photograph both views.</p>
+<p><strong>4e.3 — (Only if scoping DI current) HV up, per bench plan:</strong>
+1. Dummy loads on the Mod5/6 injector outputs confirmed wired; nobody's hands near them.
+2. <code>DIControl</code>: <code>HVEnable → TRUE</code> (HVTarget is already 100 V). Watch <code>HVSense</code> climb toward
+   ~100; record where it settles. Re-read <code>Fault1/2</code> once more (HV-present is the last new
+   condition that can raise a bit).
+3. <code>InjectEnable → TRUE</code>. The 9751's internal scope (<code>DI Scope Trigger Event</code> = INJECTION
+   PULSE, <code>DI Scope Channel 2</code> = INTERNAL HIGH) now gives you the drive waveform without
+   extra probes; an external current probe on a dummy-load lead is the independent check.
+4. <strong>De-energize order at the end of the session:</strong> <code>InjectEnable</code> FALSE → <code>HVEnable</code> FALSE
+   → wait for <code>HVSense</code> to decay → LV supply off. Log the times.</p>
+<p><strong>4e.4 — The Python sweep (record commanded vs measured for every point):</strong>
+Reference method: keep DI SOI <strong>fixed</strong> and use its edge as the angular reference while
+sweeping SA (or CH2's cyl-5 spark if DI isn't up) — you're measuring <em>relative</em> shifts, so
+any cycle-locked edge works as the ruler.
+1. <code>set spark_advance_cadbtdc 10</code>
+   → cursor-measure the CH1 edge against the reference. Then <code>20</code>, then <code>30</code>: each +10°
+   step moves the spark edge <strong>1.85 ms earlier</strong>. The TS10ms <code>SA [CADBTDC]</code> indicator must
+   follow each step (that's the echo; the scope is the truth).
+2. <code>set di_advance_cadbtdc 40</code>
+   then <code>60</code>: SOI edge moves <strong>3.7 ms</strong> earlier. Then
+   <code>set di_duration_ms 1.5</code>
+   then <code>3</code>: pulse <strong>width</strong> changes by 1.5 ms, edges' <em>start</em> unmoved.
+3. <em>If DI edges refuse to move:</em> the DI window limits are <strong>diagram constants</strong>
+   (<code>Window_Start/End</code> printed as 90/−30 DBTDC; the GDoc says 200/0) — an SOI outside the
+   window may simply not schedule. Check the window before suspecting the command path.
+4. Speed scaling: <code>set speed_ref 1800</code> (gateway range-checks this one), let the sim crank
+   settle, repeat ONE spark point — at 1800 rpm 1° = <strong>0.093 ms</strong>, so the same 10° step
+   now moves the edge 0.93 ms. Same angle, half the milliseconds = the scheduler is truly
+   angle-domain. Return to 900.
+5. Tolerance: measured Δt within <strong>±0.2 ms</strong> of predicted (≈ ±1° at 900 rpm) per point;
+   log every (commanded, predicted, measured) triple in the commissioning book.</p>
+<h3 id="4f-same-sweep-from-the-hmi-ui-mode-the-other-writer">4f — Same sweep from the HMI (UI mode) — the other writer</h3>
+<p>The GUI is the <em>second</em> legitimate writer of <code>PC_ControlSettings</code> (B3.c promote,
+<code>docs/command-path-asbuilt.md</code> §2), and the F3b lesson applies to its controls too: a panel
+knob can display a value that never reaches the cluster field it claims to set. Prove each
+control at the pins, once. Scope setup unchanged from 4e.</p>
+<ol>
+<li><strong>Switch writers:</strong> on <code>UI_Main</code> flip <strong><code>Python in command</code></strong> to OFF (top-left toggle;
+   the <strong><code>PYTHON (effective)</code></strong> LED below it goes dark). Sanity check the handover both
+   ways: in the CLI, <code>set spark_advance_cadbtdc 15</code> must now come back
+   <code>REFUSED: not commanding (command_source=UI)</code> — expected, note it in the book.</li>
+<li><strong>Spark advance:</strong> on <code>UI_Main</code>, in the numeric box next to <strong><code>SA [CADBTDC]</code></strong> (beside
+   the IGN enable switch), type <strong>25</strong> and press Enter. Watch: (a) the TS10ms
+   <code>SA [CADBTDC]</code> indicator follows within a tick, (b) the scope edge lands <strong>1.85 ms ×
+   (25−last_SA)/10°</strong> from where 4e left it. Use <em>different</em> values than the 4e sweep
+   (25 here vs 10/20/30 there) so a stale echo can't masquerade as a pass.</li>
+<li><strong>DI advance:</strong> same procedure in the <strong><code>DI advance [CADBTDC]</code></strong> box (the one that
+   showed 160 on the panel print) → type <strong>50</strong>, Enter → SOI edge moves the predicted ms.</li>
+<li><strong>DI duration:</strong> <strong><code>DI duration [ms]</code></strong> box → type <strong>2</strong>, Enter → pulse width 2 ms on
+   the scope, leading edge unmoved.</li>
+<li><strong>A control whose edge does NOT move is a UI-wiring defect</strong> — record which one and
+   chase it in <code>UI_Main</code>'s cluster-assembly diagram (the <code>APCControlSettings</code> bundle);
+   don't work around it silently.</li>
+<li><strong>Enables from the panel, once:</strong> toggle <strong><code>IGN enable switch</code></strong> and <strong><code>DI enable
+   switch</code></strong> OFF→ON, and the six <strong>Activate cylinder</strong> checkboxes — the same twelve TS10ms
+   gate LEDs from 4d must respond identically to the panel as they did to Python.</li>
+<li><strong>Restore:</strong> set the panel values back to the 4e bench values, flip <code>Python in command</code>
+   back ON if the next step commands from the CLI, and confirm <code>status</code> shows
+   <code>commanding=True</code> again.</li>
+</ol>
+<p><em>Accept:</em> outputs appear <strong>only</strong> with <code>SYSTEMSTATE ≥ 2</code> and <code>CylPressError</code> FALSE;
+<code>NumberOfActiveIGN_DI</code> = 12 (and = 2 in the single-cylinder test); SA/SOI/duration move the
+scheduled edges by the predicted ms at both rpm <strong>from both writers — Python (4e) and the
+UI_Main panel (4f)</strong>. Override-forced outputs prove wiring only — the gate test is step-5c.</p>
+<hr />
+<h2 id="step-5-drills-the-operational-proof-and-f-hazard-resolution">Step 5 — Drills (the operational proof, and F-hazard resolution)</h2>
+<p><strong>Prerequisite:</strong> the full Step-4 running config (all three tiers, state raised over the real
+command path, outputs on the scope, <code>baseline_motored</code> playing, <strong>motoring XML loaded — not
+the drill XML</strong>). For every drill record in the commissioning book: timestamp, what was
+observed (with latencies where asked), and the <strong>recovery path</strong> back to a running system.
+Run 5a/5b (destructive to the session) <strong>last</strong> if you want to chain the others in one sitting.</p>
+<ul>
+<li>
+<p><strong>5c — State-gate walk</strong> <em>(do this one first — it certifies the Step-4 observables).</em>
+  With <code>Override PC settings = FALSE</code>:
+  1. From Python, step the mode <strong>up</strong>: <code>mode standby</code> (0) → <code>mode motoring</code> (1) →
+     <code>mode idling</code> (2) → <code>mode firing</code> (3). Dwell ≥ 10 s per state.
+  2. At each state record: <code>NumberOfActiveIGN_DI</code> (expected <strong>0, 0, 12, 12</strong>), the
+     <code>SparkEnable</code>/<code>InjectionEnable</code> LED arrays, the DSM <code>9049_Global_SYSTEMSTATE</code> echo
+     (must track within a cycle or two), and whether edges are present on the scope.
+  3. Walk <strong>down</strong> too: <code>mode firing</code> → <code>mode motoring</code> must kill the outputs — the gate is
+     level-sensitive, not latched; a count that stays 12 below state 2 is a FAIL.
+  <em>Accept:</em> outputs exist in exactly {2, 3}, both directions.</p>
+</li>
+<li>
+<p><strong>5d — <code>CylPressError</code> veto + clear.</strong> The Step-6 matrix already proved trip+latch+clear on
+  the lamps; the <strong>new content here is the veto leg</strong> — the outputs actually dying. Use the 6a
+  sim branch (not a function generator — it can't clear all six channels anyway):
+  1. State ≥ 2, outputs on the scope, <code>baseline_motored</code> playing, <strong>drill XML</strong> loaded for
+     this drill only (6b custody rules: swap in, and restore the motoring XML immediately
+     after).
+  2. Point <code>Sim folder</code> at the <strong><code>overpressure</code></strong> set → within ~2 cycles the max-pressure
+     ERROR latches ×6 → <code>9049_Global_CylPressError</code> TRUE → <strong><code>NumberOfActiveIGN_DI</code> 12 → 0,
+     scope goes quiet</strong>. Record the trip→veto latency in cycles.
+  3. Point back at <code>baseline_motored</code>, let a few clean cycles pass, PC <strong>CLEAR WARNINGS</strong> →
+     error releases → count returns to 12, edges return. Record clear→restore latency.
+  4. Restore the motoring XML (Reload INI 9049 or app restart per 6b) and re-verify all-green.
+  <em>Accept:</em> veto and restore both observed at the pins, not just the lamps.</p>
+</li>
+<li>
+<p><strong>5e — Echo live-capture (F4).</strong> Decides the bitmask-vs-boolean question in
+  <code>9049_ControlSettings</code> and fixes the Python model. <strong>Not in Override mode</strong> — the raster
+  taps the pre-Override wires (F4), so an Override capture lies.
+  1. All six cylinders enabled (4d): in DSM read the <code>9049_ControlSettings</code> SGL array —
+     is <strong>[1] InjectionEnable</strong> / <strong>[5] SparkEnable</strong> = <strong>63</strong> (Boolean-array-to-number
+     bitmask) or <strong>1</strong> (plain boolean)?
+  2. Discriminator capture: <code>set activate_cylinder [false,true,false,false,false,false]</code> →
+     [1]/[5] read <strong>2</strong> if bitmask, <strong>1</strong> if boolean. (The all-six capture alone can't
+     distinguish 1-vs-1 for a single low cylinder — this one can.)
+  3. Confirm <strong>[0] = the <code>PFI0 mode</code> panel value (0), not system state</strong>, [3]/[4] =
+     duration/SOI as commanded, [7] = Speed (RPM).
+  4. Reconcile → <strong>fix <code>supervisory/monarch/settings_9049.py</code></strong> (<code>from_array</code>/<code>to_array</code> and
+     the module docstring) + its tests; note the answer in <code>docs/9049-openloop-audit.md</code> §9.
+  <em>Accept:</em> both captures decoded; <code>settings_9049.py</code> matches reality; <code>pytest</code> green.</p>
+</li>
+<li>
+<p><strong>5b — Sync-loss.</strong> With outputs on the scope:
+  1. Set <code>EPTControl.SimEnable = FALSE</code> mid-run → <code>EPTData.SyncStopped</code> TRUE
+     (<code>MissedCrankFlag</code>/<code>MissedCamFlag</code> may set), <code>CrankCount</code>/<code>CurrentPosition</code> → 0,
+     CAS <code>Graph time</code> stalls into its ~1 Hz DAQ-timeout retry, IGNDI count → 0 (the
+     supervisor factors <code>CrankStalled</code>/<code>SyncStopped</code>), <strong>edges cease</strong>.
+  2. Restore <code>SimEnable = TRUE</code> → click <code>Manual Clear Sync Errors</code>
+     (+ <code>MissedCrankFlagClr</code>/<code>MissedCamFlagClr</code>) → re-check the Step-1 accept; <code>ForceReSync</code>
+     on CAS if the read doesn't resume.
+  3. <strong>Check the diagnostics' wake</strong>: the first cycles after resync can be garbage
+     (zero-pad, F3) — record whether any error latched during the outage and CLEAR it.
+  <em>Accept:</em> outputs gate off on sync loss and the documented click sequence recovers sync;
+  post-recovery latches identified and cleared.</p>
+</li>
+<li>
+<p><strong>5a — Watchdog.</strong> The hardware safe-hold anchor (&gt;4 Hz <code>WatchdogIn</code> or the FPGA kills
+  engine-sync outputs). Baseline first: <code>WatchdogIn</code> toggling on TS10ms, <code>FPGA Heartbeat</code>
+  blinking, count = 12, edges on the scope.
+  1. <strong>Kill the RT side</strong>: abort <code>RT_main</code> (this kills all three RT loops at once).
+  2. Expected within ≲ 250 ms: EPT shuts down position tracking → spark/DI edges cease.
+     Distinguish the layers: the <strong>FPGA <code>Heartbeat</code> LED keeps blinking</strong> (FPGA alive, RT
+     dead) — that's the correct safe-hold picture, not a fault.
+  3. Restart <code>RT_main</code>. <strong>Panel controls revert to saved defaults</strong> — expect to redo Step 1
+     (<code>SimEnable</code> TRUE, <code>SimPeriod</code>) before sync returns.
+  4. <strong>Document the audit-§9 question</strong>: after restart, do sync and outputs return on their
+     own once the panels are re-set, or is a manual re-arm needed (<code>Manual Clear Sync
+     Errors</code>? re-toggle enables? CLEAR WARNINGS for first-cycle garbage?) — write down the
+     exact minimal recovery sequence; it becomes the operations-manual procedure.
+  <em>Accept:</em> outputs dead ≲ 250 ms after RT stop with the FPGA still alive; recovery sequence
+  documented step-by-step.</p>
+</li>
+<li>
+<p><strong>5f — E-stop.</strong> End-to-end with the physical button, not simulated: 9049 in the loop,
+  state ≥ 2, outputs live on the scope.
+  1. Trip the e-stop → record what dies and in what order (edges, state echo, which tier
+     reacted), and what latches.
+  2. Recovery: <strong>CLEAR EMERGENCY STOP is operator-only at the HMI</strong> — the gateway NACKs it
+     from Python (<code>operator only</code>, ICD §7.4). Verifying that NACK once
+     (<code>tools/send_command.py</code>) is a worthwhile bonus check.
+  3. Walk the state back up (5c) to prove the recovery path.
+  <em>Accept:</em> e-stop kills outputs end-to-end; recovery path documented; Python cannot clear it.</p>
+</li>
+<li>
+<p><strong>5g — Recording (F6).</strong> On CAS_loop set <strong><code>Enque? = TRUE</code></strong>; start a REC via the UI's data
+  save (DataSaveControl) while a sim set plays → confirm <strong>TDMS</strong> files land on the cRIO
+  (naming <code>APC_CRIO9049_DATE_HOUR_TESTCODE_ID_*</code> per <code>FilesPathFormation</code>), pull them per
+  <code>docs/crio-file-access.md</code>, and open one (npTDMS or the Excel importer): full 7200-sample
+  traces matching the sim set being played. <strong>Record the intended compiled default of
+  <code>Enque?</code></strong> for the deployment sheet (F6) — it silently decides whether a deployed system
+  logs at all.</p>
+</li>
+<li>
+<p><strong>5h — Loss-of-PC clamp, UI-mode leg</strong> <em>(optional but cheap here — closes the
+  "confirm once on hardware" caveat in <code>docs/command-path-asbuilt.md</code> §5).</em> In <strong>UI mode</strong>,
+  with state ≥ 2: kill the UI apps (PC_HB stops toggling) → within ~5 s (250 counts)
+  <code>PCnotResponding</code> → the 9056 clamp Selects −1 → SAFE; the 9049 echo follows and outputs
+  die. Restart the UI, clear, recover. The PYTHON-mode leg is already covered (drills
+  B4-1/2). <strong>Update the caveat note in <code>docs/command-path-asbuilt.md</code> when done.</strong></p>
+</li>
+<li>
+<p><strong>5i — Loss-of-9056</strong> <em>(first run informally 2026-07-16: force-stopped <code>APC_9056_RT</code>
+  mid-run → </em><em>no warning anywhere, state requests dead, every 9056-published SV frozen
+  at its last value</em><em> — the gap documented in <code>docs/command-path-asbuilt.md</code> §6a).</em>
+  Formal drill, bench-safe (HV locked out, dummy loads):
+  1. Two-chassis config at state ≥ 2, gate LEDs lit (4d), sim pressure playing.
+  2. Kill <code>APC_9056_RT</code> → record: the three <code>9056_*notResponding</code> LEDs stay green
+     (frozen), <code>9049_Global_SYSTEMSTATE</code> freezes at 2, and the TS10ms <strong>gate LEDs stay
+     lit on stale state</strong> — photograph it; that image is the case for the fix.
+  3. Confirm the survivors: physical e-stop still kills outputs; FPGA watchdog intact.
+  4. Restart the 9056 (reboot-order rules, <code>docs/deployed-bringup.md</code>), clear, recover.
+  <em>Accept:</em> behaviour recorded; re-run <strong>with hb-hardening Tasks A+B (BUILT + VERIFIED
+  2026-07-17/18)</strong> deployed, showing the PC-view LEDs go red, the displayed state drops
+  to −1, and the gate closes — the informal 07-16 result stands as the before-image.</p>
+</li>
+</ul>
+<p><em>Accept:</em> all drills pass; F4 echo reconciled and <code>settings_9049.py</code> updated; watchdog,
+sync-loss, and e-stop recovery sequences documented click-by-click (they become the
+operations manual); 5h closes the command-path §5 caveat if run.</p>
+<hr />
+<h2 id="step-6-false-trip-latch-matrix-feeding-synthetic-pressure-under-simenable">Step 6 — False-trip / latch matrix (feeding synthetic pressure under SimEnable)</h2>
+<p><strong>Why a pressure source at all:</strong> with a floating 9222 the pressure is flat, the MFB
+normalization divides by ~0, and <strong>CA50 comes out non-finite — it beats ANY finite
+threshold, even the 1e6 disarm (F3a, confirmed live 2026-07-14).</strong> And the flags are
+per-cylinder OR'd into <code>CylPressError</code>, so <strong>all six <code>Pcyl</code> channels</strong> need finite signal —
+a function generator on 1–2 channels can never clear the veto. Chosen method: the
+<strong>Seam-A sim-read branch</strong> below (replays <code>gen_cas_traces</code> sets — the only method that can
+drive every fault). <code>UsePcylDatabase</code> remains the one-boolean fallback for a quick
+"veto clears" check only (F5 hazard: VERIFY returned to FALSE afterwards).</p>
+<h3 id="6a-build-the-cas_loop-sim-pressure-branch-one-time-30-min">6a — Build the CAS_loop sim-pressure branch (one-time, ~30 min)</h3>
+<ol>
+<li>Generate the drill suite on the PC: <code>python tools/gen_warning_matrix.py</code>
+   → <code>trace-sets/warning_matrix/&lt;7 sets&gt;/</code> + <code>CylWarningLevels.drill.xml</code> +
+   <code>manifest.md</code> (the expected-trip table) — and optionally
+   <code>--xlsx "docs/cRIO9049 Warning Matrix.xlsx"</code> for the bench record sheet.</li>
+<li>Copy the sets to the cRIO: WinSCP (per <code>docs/crio-file-access.md</code>) →
+   <code>/home/lvuser/sim/&lt;set&gt;/</code> — <strong>copy ONLY the raw <code>cycle_NNNN.csv</code> (9×7200);
+   NEVER the <code>*_phased.csv</code></strong> (6×7200, desktop-harness-only). A <code>cycle_*.csv</code>
+   List-Folder pattern matches both and alphabetical sort interleaves them
+   raw/phased/raw/phased — feeding 6-row pre-phased frames through
+   PPhaseCorrection poisons every metric (IMEP ±45 bar, MAPO ~74, all-red
+   lamps; seen live 2026-07-14). Purge strays with
+   <code>rm /home/lvuser/sim/*/*_phased.csv</code>.</li>
+<li>Open <strong><code>APC_9049_CAS_loop.vi</code></strong> → <strong>Ctrl+E</strong>. Locate <strong><code>DAQmx Read.vi</code></strong>
+   (bottom-center, "Analog 2D DBL NChan NSamp", wired to the <code>7200</code> constant).</li>
+<li>Drop a <strong>Case Structure</strong> (<em>Programming → Structures</em>) beside it. Create a front-panel
+   boolean <strong><code>SIM pressure?</code></strong> (<em>Controls → Boolean</em>) wired to the selector — <strong>saved
+   default FALSE</strong> (Data Operations → Make Current Value Default).</li>
+<li><strong>False case (real):</strong> move <code>DAQmx Read.vi</code> + its constants inside; task/error through
+   the border; data output → an output tunnel.</li>
+<li><strong>True case (sim):</strong>
+   - <em>File I/O → </em><em>Read Delimited Spreadsheet.vi</em><strong> — </strong>format <code>%.5f</code><strong>, </strong>delimiter ","<strong>
+     (string constant; it defaults to tab!).
+   - List Folder pattern: use </strong><code>cycle_????.csv</code><em><em> (<code>?</code> = exactly one character),
+     NOT <code>cycle_*.csv</code> — the <code>*</code> form also matches <code>cycle_NNNN_phased.csv</code> and
+     interleaves the two file kinds (the 2026-07-14 all-red false-trip storm).
+   - Path — a rotating index over the folder's own listing (four nodes, all
+     </em>Programming</em> palette; the set loops forever):<ol>
+<li>Front panel: <em>Modern → String &amp; Path → </em><em>File Path Control</em><strong>, label
+    </strong><code>Sim folder</code>**; wire its terminal into the case (tunnel).</li>
+<li><strong><em>List Folder</em></strong> (<em>File I/O → Advanced File Functions</em>): path ←
+    <code>Sim folder</code>, pattern ← constant <strong><code>cycle_????.csv</code></strong> (never <code>cycle_*.csv</code>
+    — it also matches the <code>_phased.csv</code> files, see the warning above). Its <code>file names</code>
+    output is sorted alphabetically = numerical order (zero-padded names).</li>
+<li><strong><em>Array Size</em></strong> on <code>file names</code> → N; <strong><em>Quotient &amp; Remainder</em></strong>
+    (<em>Numeric</em>): <strong>x</strong> ← the blue <strong><code>[i]</code></strong> iteration terminal of the
+    <strong>INNER While loop — "CAS ACQUISITION and CONTROL LOOP"</strong>, the same loop
+    holding your Case Structure (its <code>[i]</code> sits pinned in that loop's
+    lower-left interior and ticks once per acquired cycle; the OUTER
+    task-restart loop's <code>[i]</code> only ticks per acquisition session — wrong
+    counter. Check: this wire must cross no loop border — if a tunnel
+    square appears, you grabbed the outer <code>i</code>). <strong>y</strong> ← N; use the
+    <strong>remainder</strong> (= <code>i mod N</code>, counts 0…N−1 forever; resets to 0 if the
+    inner loop restarts — the set just replays from cycle_0001, harmless).</li>
+<li><strong><em>Index Array</em></strong>: <code>file names</code> + remainder → this iteration's filename
+    → <strong><em>Build Path</em></strong> (base ← <code>Sim folder</code>, name ← filename) → the
+    <strong>file path</strong> input of Read Delimited Spreadsheet.
+ Indexing the real listing beats <code>Format Into String %04d</code> (no name-format
+ assumption, no +1 off-by-one). Behavior: retargeting <code>Sim folder</code> mid-run
+ takes effect next iteration (List Folder re-runs each cycle — negligible
+ cost); a wrong/empty folder shows as <strong>error 7 (file not found)</strong> on the
+ CAS error indicator every iteration and self-heals once the path is fixed.
+   - Output is [9×7200] = [NChan×NSamp] — same orientation, <strong>no transpose</strong> (verify once
+ on the AI Graph; add <em>Transpose 2D Array</em> only if the shape is wrong).
+   - <strong><em>Wait (ms)</em></strong> = one cycle period, because in sim mode nothing else paces the
+ loop (in real mode the encoder-clocked <code>DAQmx Read</code> <em>blocks</em> one cycle per
+ iteration; the file read returns in ms — without a Wait the loop spins at
+ SD-card speed). <strong>Wait = 120 000 / rpm</strong> (4-stroke, 2 revs/cycle):
+ 300→400 ms · 600→200 ms · <strong>900→133 ms</strong> · 1333 (SimPeriod 500)→90 ms · 1800→67 ms.
+ Build: front-panel numeric <strong><code>Sim rpm</code></strong> (default 900, data-entry min 60) →
+ constant <code>120000</code> → <em>Divide</em> → <em>Wait (ms)</em>; operator sets <code>Sim rpm</code> to match
+ <code>SimPeriod</code> whenever it changes.
+ <strong>Do NOT wire <code>rpm from DAQ</code> into the Wait</strong> — it is stopwatch-derived from
+ the loop's own iteration cadence, which in sim mode IS the Wait: circular
+ (first iteration reads ~0 elapsed → huge rpm → ~0 Wait → spin). It stays
+ valuable as a cross-check <em>indicator</em>: once the Wait is right it should
+ display ≈ <code>Sim rpm</code>. (Mis-pacing never corrupts the diagnostics — they're
+ per-cycle math — it only makes the replay's real-time rate unrealistic.)
+ <em>True auto-pacing, only if sweeping speeds often:</em> publish TS10ms's
+ <code>ticks2speed</code> output (EPT speed — valid under SimEnable, non-circular) via a
+ 9049-local single-process SV and use <code>120000 / max(rpm, 60)</code>.
+ <strong>AS-BUILT (2026-07-14, verified from the reprint):</strong> auto-pacing via the
+ <code>9049_EngineSpeed_RPM</code> SV → <strong>In Range and Coerce (60..3000)</strong> →
+ <code>120000/x</code> → U32 → Wait — guard in place ✓ (Wait bounded 40 ms..2 s);
+ delimiter = <code>","</code> ✓; DAQmx Read intact in the False case ✓.
+ Expected quirk: <code>rpm from DAQ</code> reads <strong>~15–20% below</strong> the set sim rpm
+ (e.g. 1071 vs ~1333) because <code>Wait (ms)</code> ADDS to the file-read/processing
+ time instead of absorbing it — loop period = Wait + overhead. Harmless
+ (diagnostics are per-cycle); for exact pacing swap <em>Wait (ms)</em> for
+ <strong><em>Wait Until Next ms Multiple</em></strong> (same input) so iterations land on the
+ period grid. Still to confirm before any build: <code>SIM pressure?</code> <strong>saved
+ default</strong> = FALSE (the print shows it TRUE at capture — current state and
+ compiled default are indistinguishable in an export; F5/F6).
+   - Error in → error out straight through.
+   - Data output → the <strong>same</strong> output tunnel ("Use Default If Unwired" OFF).
+   - <strong>Sever the DAQ error in sim mode (found 2026-07-14):</strong> do NOT chain the
+ incoming (DAQmx) error into Read Delimited — feed it a fresh no-error
+ constant — and AND the loop's stop condition with <strong>NOT <code>SIM pressure?</code></strong>.
+ Otherwise a failed <code>DAQmx Start Task</code> (the −200088 startup race, known
+ from the 9056 — deployed-bringup #5) makes the inner loop exit every
+ iteration: <code>[i]</code> resets, <strong>only <code>cycle_0001.csv</code> plays, at ~1 Hz</strong>.
+ Fingerprint: <code>rpm from DAQ</code> ≈ 120, IMEP σ = exactly 0, flat trend lines,
+ CAS DAQmx error −200088. Same race now observed on the 9049 after an app
+ restart → <strong>port the 9056 retry-loop fix to 9049 <code>SensorCalibration</code></strong>
+ (real-mode consequence: no acquisition until app restart — not benign).</li>
+</ol>
+</li>
+<li>Wire the tunnel to wherever <code>DAQmx Read.vi</code>'s data originally went. <strong>Ctrl+S.</strong>
+   Note: injected values are <strong>post-scale engineering units (bar)</strong> — the DAQ custom
+   scales (F2) are bypassed, which is exactly what the diagnostics expect.</li>
+</ol>
+<h3 id="6b-run-the-matrix-drill">6b — Run the matrix drill</h3>
+<ol>
+<li><strong>Swap the XML:</strong> copy <code>trace-sets/warning_matrix/CylWarningLevels.drill.xml</code> →
+   cRIO <code>/home/lvuser/natinst/bin/CylWarningLevels.xml</code> (ALL 7 fields armed at
+   drill values); press <strong>Reload INI (9049)</strong> on the UI CYLINDER (Errors) screen
+   (<code>ReloadINI9049 → 9049_LoadWarningsFromINI</code> — no app restart needed, confirmed
+   from the 2026-07-14 <code>UI_Errors</code> export); then <strong>Retrieve</strong> and spot-check one
+   value (e.g. CA50maxError = drill value, not 1e6).</li>
+<li>Per set, <strong>in manifest order</strong> (<code>baseline_motored</code> first). <strong>Amended
+   baseline_motored pass criterion (2026-07-14 live finding):</strong> the six flags
+   OTHER than late-combustion clean and steady, CA50 <em>baseline</em> finite.
+   Late-combustion latches randomly on motored streaming — the CA50 detector is
+   noise-driven with no combustion, clamps at its search-window end (+45 spikes
+   on the trend) and intermittently returns non-finite, beating even the 1e6
+   disarm (F3/F3a as-built; <strong>fix = Step 6c below</strong> — sanitize CA outputs
+   non-finite→−99 in <code>APC_HRL</code>). Consequence for Steps 3–4 (spark/DI gating):
+   stream a <strong>fired</strong> set — fired CA50 is stable (~12.9) so <code>CylPressError</code>
+   stays FALSE. Then:
+   <code>Sim folder</code> → <code>/home/lvuser/sim/&lt;set&gt;</code> · <code>SIM pressure?</code> = TRUE · <code>SimEnable</code> = TRUE
+   → run ≥ 25 cycles → <strong>CLEAR WARNINGS once after the first cycles settle</strong> (first
+   acquired cycle is zero-padded garbage — F3) → compare <code>PcylDiagWarningsAndErrors</code> +
+   <code>9049_Global_CylPressError</code> (DSM on <code>10.1.10.171</code>) against the <strong>manifest table</strong> →
+   on ERROR sets confirm the latch holds, IGNDI <code>NumberOfActiveIGN_DI</code> drops, and PC
+   <strong>CLEAR WARNINGS</strong> releases it.</li>
+<li>Record each set in <code>docs/cRIO9049 Warning Matrix.xlsx</code> (expected vs observed vs
+   latch-cleared).</li>
+<li><strong>Restore:</strong> put the motoring <code>CylWarningLevels.xml</code> back (drill profile is uncapped
+   and drill-sized — never run the engine on it), <code>SIM pressure?</code> = FALSE.</li>
+</ol>
+<p>Deliverable: the completed matrix sheet = the false-trip matrix for the commissioning book.</p>
+<p><strong>✅ MATRIX COMPLETE (2026-07-14, <code>screenshots/SIL-1_results/</code>, record sheet
+filled):</strong> all 7 sets run against the all-armed drill XML.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>set</th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>baseline_motored</td>
+<td>PASS — all 42 green, U64s = 0</td>
+</tr>
+<tr>
+<td>baseline_fired</td>
+<td>PASS — all green (IMEPref green: the check is one-sided low-side, F3d — high IMEP can never trip it; NOT gate evidence)</td>
+</tr>
+<tr>
+<td>overpressure</td>
+<td>PASS — max-pressure ERROR ×6 (281.5 &gt; 231.3), latched, cleared</td>
+</tr>
+<tr>
+<td>late_combustion</td>
+<td>PASS — late ERROR ×6 (CA50≈39 &gt; 22.9) <strong>at state ≥ 2: the 6c re-arm proof</strong></td>
+</tr>
+<tr>
+<td>knock</td>
+<td>PASS — knock ERROR on cyls 2 &amp; 5 ONLY (the injected ones)</td>
+</tr>
+<tr>
+<td>misfire</td>
+<td>PASS — self-reg + cyl-to-cyl + cyclic-var on <strong>cyl 3 only</strong> (the deviations are ONE-SIDED low-side checks, F3d — only the low cylinder can trip)</td>
+</tr>
+<tr>
+<td>variability</td>
+<td>PASS primary — cyclic-var ERROR ×6 <strong>at display row 5 ⇒ F3c RESOLVED (labels correct)</strong>; collateral cyl-to-cyl on 2/4/6 = stitch × q-step mixing on the largest offsets (real measured dev, not a defect)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Two manifest-model corrections (not system defects): all three misfire
+deviations are <strong>one-sided low-side</strong> checks (<code>IMEP ≤ ref − thr</code>, F3d — found
+by the user from the print; the tool's expectations now model this); the
+variability set's per-cycle q steps produce genuine low-side cyl-to-cyl
+deviation through the two-cycle stitch on high-offset cylinders (2/4/6).</p>
+<h3 id="6c-permanent-fix-state-gate-the-late-combustion-check-chosen-approach-click-level">6c — Permanent fix: state-gate the late-combustion check (chosen approach) — click-level</h3>
+<p><strong>Why:</strong> on no-combustion data the CA50 detector is noise — it clamps at its
+search-window end (~+45) and intermittently returns <strong>non-finite</strong>, which
+beats ANY threshold (<code>1e6</code> included — F3a, live 2026-07-14). Late combustion
+is only <em>meaningful</em> when combustion is commanded, i.e. <strong>SYSTEMSTATE ≥ 2</strong>
+(IDLING/FIRING). So gate the check on state instead of fighting it with
+thresholds. This is the F3 root fix ("the chain has no state awareness"),
+kills the finite noise trips too, and lets <code>CA50max</code> stay armed at the fired
+value permanently (no per-mode profile swap for this field).</p>
+<p><strong>Safety self-consistency:</strong> the gate uses the same <code>9049_Global_SYSTEMSTATE</code>
+that already gates spark/DI in TS10ms. Stale-low or NaN state → check off,
+but actuation is off by the same signal (can't be firing while the 9049 sees
+≤1). Stale-high → extra false trips — the safe direction.</p>
+<p><strong>Where:</strong> <code>APC_9049_CombCluster2Array.vi</code> (on the 9049 target) — NOT
+<code>Pcyl_Diag</code>/<code>APC_HRL</code>. Gating here needs <strong>no connector-pane change</strong> to the
+SIL-0-validated VIs (the desktop harness keeps working unmodified), the
+<code>9049_Global_SYSTEMSTATE</code> global is target-local and already read by its
+neighbors, and it sits <strong>before the error latch</strong> — which is essential:
+gating after the latch would not stop the latch from setting.</p>
+<ol>
+<li>Open <code>APC_9049_CombCluster2Array.vi</code> → <strong>Ctrl+E</strong>. Identify the two
+   <code>PcylDiag</code> unbundles: the <strong>Warnings</strong> cluster (simple OR → the
+   <code>WarningsAndErrors</code> indicator) and the <strong>Errors</strong> cluster (each category →
+   a feedback-node <strong>latch</strong> → OR → <code>9049_Global_CylPressError</code>).</li>
+<li>Drop a <strong><code>9049_Global_SYSTEMSTATE</code></strong> global read (copy-paste the node from
+   <code>APC_9049_CAS_loop.vi</code> if quicker). Drop <strong><em>Greater Or Equal?</em></strong>
+   (<em>Comparison</em>) with a constant <strong>2</strong> → one boolean, label it
+   <code>combustion expected</code>.</li>
+<li><strong>Errors path (the one that vetoes fire):</strong> find the <strong><code>late combustion</code></strong>
+   6-element boolean array wire between the Errors unbundle and its feedback
+   latch. Delete that segment; drop an <strong><em>And</em></strong> node; wire the array to one
+   input and <code>combustion expected</code> to the other (And is polymorphic —
+   array·scalar gives element-wise); And output → the latch input. The gate
+   MUST be upstream of the feedback node.</li>
+<li><strong>Warnings path:</strong> same one-And treatment on the <code>late combustion</code> warning
+   array before its OR (keeps the yellow lamps quiet while motoring too).</li>
+<li><em>(Optional, same pattern, 2 more And nodes each)</em>: gate <strong><code>knock</code></strong> and
+   <strong><code>misfire from IMEP</code></strong> the same way — both are equally meaningless below
+   IDLING (no combustion to knock; Expected-IMEP undriven). This shrinks the
+   motoring-vs-fired XML delta to just the numeric levels.</li>
+<li><strong>Ctrl+S</strong>, rebuild/redeploy when convenient.</li>
+</ol>
+<p><strong>AS-BUILT (2026-07-14, verified from the reprint):</strong> gates in place on BOTH
+paths for <strong>late combustion AND misfire-from-IMEP</strong> (the F3 trap gated too —
+good extension); errors-path Ands confirmed <strong>upstream of the feedback
+latches</strong>; <code>≥2</code> compare labeled "Is combustion expected?". Knock left ungated
+(deliberate; XML disarm covers motoring).
+<strong>LIVE-VERIFIED (same day, <code>baseline_fired</code> @ STAND_BY, drill XML):</strong> IMEPref
+green at IMEPn 25.8 vs armed 15.5, late-combustion green at CA50 12.8 —
+gating side proven. <strong>Re-arm half also proven</strong> — the matrix <code>late_combustion</code>
+run tripped late ERROR ×6 at state ≥ 2 (results table above). Both directions
+closed; nothing owed on this edit.
+<strong>Procedure addition:</strong> CLEAR WARNINGS once after <strong>any data-source change</strong>
+(Sim-folder switch, <code>SIM pressure?</code> toggle, acquisition start) — a set switch
+sweeps a large IMEP step through the 20-cycle std window and latches
+cyclic-variability on a cylinder subset (seen live: motored→fired switch,
+27-bar step, cyls 1/3/5/6 latched; flushes in ≤20 cycles).</p>
+<p><strong>Verify — both ✅ DONE (2026-07-14, matrix run):</strong>
+- Stream <code>baseline_motored</code> (state ≤ 1, any CA50max, even armed) →
+  late-combustion stays green indefinitely. THE acceptance for this edit —
+  passed (all 42 green).
+- Re-run the <code>late_combustion</code> fault set <strong>with state raised to ≥ 2</strong> and
+  confirm the flag still trips and latches — passed (late ERROR ×6; recorded
+  in the results table + record sheet). Procedure kept for regression re-runs:
+  request IDLING, or hold state with the 9056 SM's <strong>ManualState = 2</strong> override
+  if latched warnings clamp it below 2.</p>
+<p><strong>Drill implication (matrix):</strong> after this edit the <code>late_combustion</code> set can
+only trip while SYSTEMSTATE ≥ 2 — the manifest/record-sheet row for it now
+implies "state held ≥ 2 during the set".</p>
+<h3 id="6d-warning-thresholds-disconnected-from-the-comparisons-f3b-root-cause-fixed">6d — Warning thresholds disconnected from the comparisons (F3b) — ROOT CAUSE FIXED</h3>
+<p><strong>Resolution (2026-07-14):</strong> probes showed the compares using panel defaults
+(MaxPCylMax 100/1000, CA50max ≈15) while the FGV/UI displayed the loaded XML
+values — because <strong><code>Load INI on startup</code> was saved FALSE</strong>: the running 9049
+had NEVER loaded a warning XML. Fixed: control set <strong>TRUE and saved as
+default</strong>. (Scope was all fields; VI non-reentrant. F3a is most likely
+re-explained: finite +45 CA50 spikes vs the default 15, not non-finite
+values.) <strong>Lesson: the UI threshold display reads the FGV, not the
+comparisons — verify protections by probe/behavior only.</strong></p>
+<p><strong>Residual verifications (each quick):</strong>
+1. <strong>Acceptance: ✅ PASSED (2026-07-14, <code>baseline_motored-1/2.png</code>).</strong> ALL 42
+   lamps green with the <strong>all-armed drill XML</strong> (Pmax 150.8 &lt; 213.5; CA50
+   spikes +45 correctly gated at state ≤ 1; σ 0.02–0.04 &lt; 0.2);
+   <code>CylPresWarnings</code> = <code>CylPresErrors</code> = <strong>0</strong>. The always-yellow row is dead;
+   F3b fix + 6c state gate + clean cyclic traces all verified simultaneously.
+   <strong><code>baseline_fired</code> also ✅ PASSED</strong> (same day, after an app restart cleared
+   the −200088 task race): all green at STAND_BY; healthy run (full 20-cycle
+   rotation, σ ≈ 0.03). Both matrix control rows are banked. <em>(Correction
+   2026-07-15: the green IMEPref row was earlier cited as gate evidence — it
+   is not; the check is one-sided low-side (F3d), so a HIGH IMEP can never
+   trip it regardless of state. The CA50 gate proofs stand: motored +45
+   spikes green at state ≤ 1; late_combustion red at state ≥ 2.)</em>
+2. <strong>F3a settle:</strong> re-test the CA50 1e6 disarm on motored — quiet ⇒ F3a was
+   purely this; still tripping ⇒ the non-finite path is real (state gate
+   covers motoring either way).
+3. <strong>Mid-run reload:</strong> edit one XML value, press UI RELOAD INI, probe a
+   threshold wire. If unchanged, the drill's XML-swap step becomes
+   <strong>"swap XML → restart the 9049 app"</strong> (startup-load now guarantees a
+   correct load). Same check for SET NEW WARNING LEVELS.
+4. <strong>Deployment:</strong> <code>Load INI on startup = TRUE</code> must ride into every build —
+   F6-class compiled default (added to the §8 pre-fuel checklist).
+5. <code>overpressure</code> set + drill XML: warning row yellow &gt; 213.5, red &gt; 231.3 —
+   proves the loaded values now govern the flags end-to-end.</p>
+<p><strong>F3c — ✅ RESOLVED (2026-07-14, matrix <code>variability</code> run):</strong> the single-flag
+injection landed red at display <strong>row 5</strong> ⇒ labels correct, no active
+mislabeling (name-bound nodes). Residual: the Pcyl_Diag-vs-UI typedef order
+alignment stays as rebuild debt (audit F3c).</p>
+<p><strong>Optional hygiene (backlog, not required for SIL):</strong> non-finite CA values
+still flow into <code>9049_CalculatedVariablesRaster</code> telemetry and into
+<code>KnockCA50Control</code>'s CA50 input (inert today, but the future CA50 closed loop
+must never see Inf/NaN — same family as the NaN-at-Unflatten bench bug, F8).
+The earlier per-output coerce (In Range and Coerce ±360 → "In Range?" →
+Select original / <strong>−99</strong>, at the Unbundle inside <code>APC_HRL</code>'s cylinder loop)
+remains the right pattern for that cleanup when the closed loop work starts.</p>
+<hr />
+<h2 id="sil-1-exit-criteria-deliverables">SIL-1 exit criteria / deliverables</h2>
+<ul>
+<li>[x] Sync acquired on-target at ≥1 rpm setpoint; <code>Speed(RPM)</code> correct (2026-07-14).</li>
+<li>[x] <strong>Trig0-follows-sim = YES — Step 2 closed</strong> (2026-07-14 bench: <code>rpm from DAQ</code> = set rpm,
+      <code>Graph time</code> full 7200-sample cycles, DAQ error 0).</li>
+<li>[x] Motoring profile validated on-target — EXCEEDED: all 42 lamps green under the
+      ALL-ARMED drill XML; <code>CylPressError=FALSE</code> holds (2026-07-14).</li>
+<li>[ ] State-gated spark/DI scheduling scoped; SA/SOI/duration sweep confirmed from <strong>both
+      writers</strong> — Python (4e) and the UI_Main panel (4f).</li>
+<li>[ ] Drills 5a–5i passed and documented; <strong>watchdog recovery</strong> + <strong>sync-loss</strong> behaviours
+      recorded (+ optional 5h closes the command-path §5 UI-mode-clamp caveat).</li>
+<li>[ ] <strong>F4 echo reconciled</strong> → <code>supervisory/monarch/settings_9049.py</code> corrected.</li>
+<li>[x] False-trip / latch matrix produced — COMPLETE 7/7 (2026-07-14; record sheet filled;
+      F3a/b/c/d found + dispositioned). ⚠ motoring XML restore still owed at close-out.</li>
+<li>[ ] Pre-fuel checklist items 7–10 (audit §8) provably satisfiable from this bench.</li>
+<li>[ ] <strong>Session close-out:</strong> <code>Override = FALSE</code>, <code>SimEnable = FALSE</code>, <code>UsePcylDatabase = FALSE</code>,
+      <strong><code>SIM pressure?</code> = FALSE</strong>, motoring <code>CylWarningLevels.xml</code> restored — verified on the
+      deployed build before it can ever see fuel (F1/F5).</li>
+</ul>
+<h2 id="then-sil-2-sil-3">Then → SIL-2 / SIL-3</h2>
+<ul>
+<li><strong>SIL-2</strong> — real A(+B)+Z(+cam) TTL into Mod3 DIO0–3 (Arduino emulator or a µC); covers the
+  9401 input path, deglitch, synthetic-cam, quadrature, and speed transients the internal sim
+  can't. (1800 rpm = 108 kHz A / 30 Hz Z, phase-locked.)</li>
+<li><strong>SIL-3</strong> — actuation dry tests: coils on bench plugs, DI into dummy loads; Key interlock;
+  fault registers verified clean pre-HV (F9 resolved 2026-07-16) — re-read at first HV
+  energize. This is where the team's commissioning plan takes over.</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/sil1-scope-of-work.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shadow-Compare Findings Log — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/shadow-findings.md</span></div>
+<main><h1 id="shadow-compare-findings-log">Shadow-Compare Findings Log</h1>
+<p>Dispositions for divergences reported by <code>tools/shadow_compare.py</code> (Phase A2).
+A divergence is a finding, not automatically a Python bug — the LabVIEW logic is
+unvalidated. Every entry needs a disposition before Phase A's exit gate.</p>
+<h2 id="2026-07-06-first-replay-of-monarchjsonl-347-frames-7-sessions">2026-07-06 — first replay of <code>monarch.jsonl</code> (347 frames, 7 sessions)</h2>
+<p><strong>Result: 291/340 agree (85.6%).</strong> Per-session:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Session</th>
+<th>Kind</th>
+<th>Agreement</th>
+<th>Disposition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 (248 frames)</td>
+<td>sim gateway</td>
+<td><strong>247/247 (100%)</strong></td>
+<td>Port reproduces the sim's state walk exactly.</td>
+</tr>
+<tr>
+<td>2–5 (28 frames)</td>
+<td>real gateway, Part A/B bring-up</td>
+<td>12/24</td>
+<td><strong>Not StateMachine output</strong> — <code>system_state</code> was the hand-set shared variable (user set 3/FIRING manually while <code>requested_mode</code> sat at 0). Divergences expected; no port defect.</td>
+</tr>
+<tr>
+<td>6–7 (71 frames)</td>
+<td>real gateway, live Part B</td>
+<td>32/69</td>
+<td>Same: <code>requested_mode</code> toggled 0→1 in the UI but <code>system_state</code> stayed 0 — the 9056 StateMachine was <strong>not running/wired to the shared variable</strong> during these captures. Divergences expected; no port defect.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Net:</strong> zero divergences attributable to the port. The real-session divergences
+carry a useful lesson for Phase A's exit: <strong>bench sweeps only count as
+shadow-compare evidence when the 9056 StateMachine is actually running and
+writing the <code>SystemState</code> shared variable.</strong> Until then, real-gateway captures
+validate the pipeline, not the state logic.</p>
+<p>Also noted in these captures: coverage is reduced (shadow extras not yet
+pre-wired), so warnings/force/manual inputs are assumed inactive.</p>
+<h2 id="2026-07-07-forcestatemanualstate-experiment-resolved-telemetry-state-source">2026-07-07 — ForceState/ManualState experiment: resolved (telemetry state source)</h2>
+<p>Bench experiment: <code>ForceState=TRUE</code>, <code>ManualState</code> walked 0→1→2. Telemetry
+<code>system_state</code> stayed 0 while LabVIEW's <code>limited_settings</code> enabled IGN/DI (a
+state≥2 row) — the two outputs looked internally inconsistent.</p>
+<p><strong>Resolution (user):</strong> telemetry's <code>system_state</code> is sourced from
+<strong><code>9049_Global_SYSTEMSTATE</code>, written by <code>APC_9049_CAS_loop.vi</code></strong> — a 9049-side
+<em>echo</em> of the state — and the 9049 loops weren't running, so it sat frozen at 0.
+<code>limited_settings</code> is tapped directly at the 9056 StateMachine, and it followed
+the override. Conclusions:</p>
+<ul>
+<li><strong>The SM honors ForceState→ManualState absolutely — the A1 port reading and
+  code are correct.</strong> The state "divergences" in this session were a telemetry-
+  source artifact, not logic disagreement.</li>
+<li><strong>Action (LabVIEW):</strong> re-tap telemetry <code>system_state</code> to the <strong>9056
+  StateMachine's <code>SYSTEM STATE</code> output</strong> at the TS_loop call site (same place as
+  the <code>limited_settings</code>/warnings taps) so all compared fields are same-source
+  and same-tick. This also removes any 9049 dependency from Phase-A testing.</li>
+<li><strong>Team finding — state-echo skew:</strong> the 9049's state copy (used in its local
+  spark/DI enable gate, <code>SYSTEMSTATE ≥ 2</code>) can diverge from the SM's actual
+  state when the relay chain (CAS_loop polling) is stale or down. Observed skew
+  here was fail-safe (low copy blocks actuation), and the SM's limited enables
+  provide a second gate — but consider a relay-staleness check during
+  commissioning (e.g. publish both SM state and 9049 echo and alarm on
+  sustained mismatch).</li>
+</ul>
+<h2 id="2026-07-07-b0-loss-of-pc-drill-confirmed-at-250-counts-5-s">2026-07-07 — B0 loss-of-PC drill CONFIRMED at 250 counts (5 s)</h2>
+<p>Captured a full loss-of-PC episode at the final watchdog threshold (250 counts =
+5 s at the ~20 ms loop). <code>pc_hb</code> last toggled at <strong>seq 33</strong>, then froze;
+<code>warnings_limit → −1</code> and <code>system_state → SAFE(−1)</code> at <strong>seq 38</strong> — <strong>~5 frames
+(~5 s) latency</strong>, matching the threshold. The same session shows the round trip:
+SAFE → step-by-1 recovery to FIRING while the heartbeat was alive (seq 21→29),
+then the freeze clamps back to SAFE.</p>
+<p><strong>SYSTEM STATE 50/50 (100%) · Limited 50/50 (100%) · AGREE.</strong> The watchdog <em>logic</em>
+(pc_hb freeze → <code>warnings_limit=−1</code>) is LabVIEW-side and not in the port, but the
+port consumes the resulting <code>warnings_limit=−1</code> and clamps to SAFE identically —
+so the supervisory brain stays consistent with LabVIEW through a loss-of-PC hold.
+This closes B0's exit at the finalized threshold (previously "re-confirm pending").</p>
+<h2 id="2026-07-07-caveat-9056-loop-is-50-hz-so-1-hz-shadow-compare-sees-converged-state">2026-07-07 — CAVEAT: 9056 loop is ~50 Hz, so 1 Hz shadow-compare sees converged state</h2>
+<p>Corrected fact (confirmed with the user): the 9056 control loop (StateMachine +
+limiter) runs at <strong>~20 ms / ~50 Hz</strong> (DAQ-block-paced), not 1 Hz. The 1 Hz
+telemetry is only the PC gateway's sample rate. Consequence for shadow compare:
+<strong>~50 SM ticks happen between two telemetry samples</strong>, so LabVIEW's published
+state has always <strong>converged</strong> to <code>min(inputs)</code> by the time we sample it.</p>
+<p><code>shadow_compare</code> applies the port's <code>decide()</code> <strong>once</strong> per frame (seeding
+<code>current = previous frame's state</code>). That matches LabVIEW whenever the target is
+≤1 state above the previous sample — which is every transition Phase A actually
+exercised (the operator moved <code>requested_mode</code> one step at a time; drops and
+clamps are immediate). <strong>But the 1-per-tick step-up <em>rate limit</em> is invisible at
+1 Hz</strong>: a fast ≥2-step request jump would converge in ~60 ms on the 9056 while
+the single-tick port predicts only +1 → a spurious divergence that is a
+<em>sampling-methodology</em> mismatch, not a port-logic bug.</p>
+<p><strong>Impact on the "Phase A complete" claim:</strong> the min-arbitration, clamps,
+overrides, e-stop, and the full limiter ARE validated. The step-up <em>rate limit</em>
+is <strong>not</strong> validated by 1 Hz sampling (both sides converge between samples).
+Two ways to close it, for Phase B:
+- iterate the port's <code>decide()</code> to a fixed point per frame before comparing (models
+  "inputs held ~1 s → converged state") — makes multi-step climbs agree too; or
+- sample the 9056 at ~its own rate to catch mid-climb states and check +1 directly.
+Neither changes the current 100% result (Phase A had no ≥2-step jumps), but the
+distinction should be stated rather than implied.</p>
+<h2 id="2026-07-07-phase-a-coverage-complete-all-5-states-all-inputs">2026-07-07 — PHASE A COVERAGE COMPLETE: all 5 states, all inputs</h2>
+<p>Warning cleared (<code>warnings_limit</code> 1→3 at seq 86), then a 210-frame full-envelope
+walk reached <strong>every state {−1, 0, 1, 2, 3}</strong> via BOTH paths: requested-mode
+(seq 175–181 walked 1→2→3 to FIRING) and force-override (seq 41–43, ManualState
+1→2→3). E-stop press→SAFE and release→recover. Warning clamp exercised at both
+1 and 3.</p>
+<p><strong>SYSTEM STATE: 208/209 (99.5%) · Limited_ControlSettings: 209/209 (100%).</strong></p>
+<p>The single state miss (<strong>seq 189</strong>) is the two-snapshot skew landing on the
+e-stop press, proven frame-by-frame:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>seq</th>
+<th>input estop</th>
+<th>LabVIEW <em>output</em> estop</th>
+<th>published state</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>188</td>
+<td>False</td>
+<td>False</td>
+<td>0</td>
+</tr>
+<tr>
+<td>189</td>
+<td><strong>True</strong></td>
+<td><strong>False</strong></td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td>190</td>
+<td>True</td>
+<td>True</td>
+<td>−1</td>
+</tr>
+</tbody>
+</table></div>
+<p>LabVIEW is internally consistent — its output-cluster e-stop predicts its state
+exactly (False→0, True→−1) — but the gateway's <code>PC_ControlSettings</code> <em>input</em>
+flatten ran one sample ahead of the StateMachine's consumption, so the port
+(which derives from the input cluster) predicted −1 one frame early. They agree
+at seq 190. <strong>Not a port defect — a gateway snapshot-coherency artifact</strong>, now
+demonstrated on the safety-critical e-stop. Echoed <code>emergency_stop</code> added to
+<code>IGNORED_LEAVES</code> (the state check already validates e-stop).</p>
+<p><strong>Disposition: Phase A logic validation is COMPLETE.</strong> The port reproduces the
+LabVIEW StateMachine across the full input space and all five states; the sole
+residual is a one-frame telemetry-timing artifact with a fully-understood cause.</p>
+<p><strong>Motivates the Phase-B coherent-snapshot publish:</strong> this is the <em>second</em>
+manifestation of the input/output flatten skew (first on limiter fields, now on
+a state transition). Publishing <code>current_state</code> + the SM's actually-consumed
+inputs in one coherent snapshot makes the comparison immune to it — recommended
+before command timing matters in Phase B.</p>
+<h2 id="2026-07-07-requested-mode-walk-e-stop-100100-clamped-at-motoring">2026-07-07 — requested-mode walk + e-stop = 100%/100% (clamped at MOTORING)</h2>
+<p>52-frame session: requested_mode walked −1↔0↔1↔2 and an EMERGENCY STOP press
+(seq 39, <code>state → −1</code>). <strong>SYSTEM STATE 51/51 (100%) · Limited 51/51 (100%) · AGREE.</strong></p>
+<p><strong>Operator note — couldn't get past MOTORING (1):</strong> the whole session ran with
+<code>warnings_limit = 1</code> (a latched level-3 warning), so <code>state = min(requested,
+1, …)</code>. Requesting mode 2 (seq 15, 23) correctly clamped to 1 — <strong>the warning
+clamp working, not a fault</strong>, and the port predicted the same clamp on every
+frame. To reach IDLING(2)/FIRING(3) the latched warning must be cleared first
+(Errors screen: widen the tripped channel's threshold or operator-clear), then
+re-walk. Until then states 2 and 3 are <strong>not yet covered</strong> by shadow evidence.</p>
+<p><strong>e-stop covered:</strong> press → SAFE(−1), release → returns to the requested level;
+port agrees. Step-up-by-one confirmed (0→1 one step per tick).</p>
+<p>One transient limiter diff (seq 23) was the echoed <code>requested_mode</code> lagging one
+frame at a 1→2 step-change — the same input/output snapshot skew as the
+heartbeats and <code>wf_oa_002_ref</code>; added to <code>IGNORED_LEAVES</code>. All four exclusions
+share one root cause (the two clusters flattened at different instants); the
+clean permanent fix is a single coherent gateway snapshot.</p>
+<h2 id="2026-07-07-milestone-forcestatemanualstate-override-sweep-100100">2026-07-07 — MILESTONE: ForceState/ManualState override sweep = 100%/100%</h2>
+<p>After the <code>system_state</code> re-tap (now the 9056 SM's fresh output, before the
+feedback node), a 137-frame session swept the override live: <code>ForceState=TRUE</code>
+with <code>ManualState</code> walked through <strong>2, 1, 0, −1</strong> (every state incl. SAFE), then
+<code>ForceState=FALSE</code> with <code>ManualState=2</code> (correctly <strong>ignored</strong> — state stayed 0).</p>
+<p><strong>SYSTEM STATE: 136/136 (100%) · Limited_ControlSettings: 136/136 (100%) · AGREE</strong></p>
+<p>This validates against live hardware the port's most safety-relevant, previously
+unverifiable behavior: the <strong>absolute ForceState override</strong> — state follows
+ManualState when force is on, and ManualState is inert when force is off. (This
+is the exact experiment that "diverged" on 2026-07-07 when state was tapped from
+the stale 9049 echo; the re-tap resolved it.)</p>
+<p>Limiter divergences before the fix were all <strong>one field</strong>,
+<code>pid_control_references.ng.wf_oa_002_ref</code>: a live-jittering O2-analyzer
+reference the limiter <strong>passes through</strong>. LabVIEW flattens the input
+(<code>PC_ControlSettings</code>) and output (<code>Limited_ControlSettings</code>) clusters a sample
+apart, so a moving passthrough value differs between them — proven: when the
+field holds still, in==out to the last digit; on the 19/137 moving frames,
+LabVIEW's frame-N output equals its frame-N+1 input. Same class as the
+<code>pc_hb</code>/<code>mtr_hb</code> heartbeat skew. <strong>Disposition: not a port bug, not a limiter
+disagreement</strong> — added to <code>IGNORED_LEAVES</code> in <code>shadow_compare.py</code> with a test.
+The real fix (optional) is LabVIEW flattening both clusters from one loop
+iteration; until then the diff is limited to actual clamp decisions.</p>
+<h2 id="2026-07-07-milestone-first-full-envelope-live-session-100-agreement">2026-07-07 — MILESTONE: first full-envelope live session = 100% agreement</h2>
+<p>With the complete A2.1 pre-wire live (WarningIntegration → StateMachine wire made;
+<code>warnings_limit</code> / <code>manual_state</code> / <code>force_state</code> / <code>limited_settings</code> all in the
+envelope; the force_state Select fixed), the newest session compares:</p>
+<p><strong>SYSTEM STATE: 81/81 (100%) · Limited_ControlSettings: 81/81 (100%) · AGREE</strong></p>
+<ul>
+<li>The full input set was live, including a real warnings clamp
+  (<code>warnings_limit = 1</code> — some channel is latched at level 3 with the plant cold,
+  capping the state at MOTORING; identify/clear it before mode-walk sweeps).</li>
+<li>Two comparator artifacts were fixed to get a clean read (not LabVIEW/port
+  disagreements): NaN==NaN now compares equal (LabVIEW emits NaN for some live
+  refs, e.g. <code>WF-OA-002-REF</code>), and the <code>pc_hb</code>/<code>mtr_hb</code> heartbeat bits are
+  excluded from the limiter diff (they toggle between LabVIEW's two cluster
+  flattens — liveness bits, not limited fields).</li>
+<li>Remaining for Phase A exit: bench input sweeps (mode walk, forces, e-stop,
+  warning provocation/clear) — agreement must hold across the swept space.</li>
+</ul>
+<h2 id="2026-07-07-second-replay-now-with-limited_settings-360-frames">2026-07-07 — second replay, now with <code>limited_settings</code> (360 frames)</h2>
+<p>Ran <code>tools/shadow_compare.py monarch.jsonl</code> on a fresh recording that includes the
+<code>limited_settings</code> envelope field. <strong>SYSTEM STATE: 303/352 (86.1%)</strong> — same
+disposition as the first replay (real-session divergences are captures where the
+9056 StateMachine wasn't driving <code>system_state</code>). <strong>Limited_ControlSettings: 0/13</strong>,
+and the diagnosis is definitive:</p>
+<ul>
+<li>LabVIEW's published <code>Limited_ControlSettings</code> is the <strong>unwritten shared-variable
+  default</strong> in all 13 frames: <code>activate_cylinder = []</code> (empty), <code>speed_ref = 0</code>,
+  <code>ca50_setpoint = 0</code>, <code>mtr_modbus_* = []</code>. The real limiter only clamps the
+  mode/enable/vent fields and passes scalars + arrays through (the port does:
+  speed 900, activate_cylinder 6-elem, ca50 22.6). An <strong>empty</strong> array is the
+  signature of a cluster shared variable that was created but never written.</li>
+<li><strong>Port not at fault.</strong> The harness correctly flagged that LabVIEW's limited
+  output isn't reaching telemetry.</li>
+<li><strong>Action (LabVIEW):</strong> at the <code>TS_loop</code> StateMachine call site, confirm the
+  StateMachine's <code>Limited_ControlSettings</code> <strong>output</strong> terminal wires to the new
+  shared variable (not a default constant), and that the 9056 supervisory loop
+  is actually running during the capture. Then the limiter comparison becomes
+  meaningful — and should agree with the port.</li>
+<li>Also observed: <code>warnings_limit</code> / <code>manual_state</code> / <code>force_state</code> /
+  <code>command_source</code> still parse as <code>None</code> in these frames — only <code>limited_settings</code>
+  was added to the envelope so far; the other three A2.1 fields aren't wired yet.</li>
+</ul>
+<h2 id="forcestate-manualstate-are-unbound-dev-controls-2026-07-07"><code>ForceState</code> / <code>ManualState</code> are unbound dev controls (2026-07-07)</h2>
+<p>Where they're defined/changed: <strong>front-panel controls on <code>APC_9056_TS_loop.vi</code></strong>
+(<code>ForceState</code> = Boolean, <code>ManualState</code> = I8), wired directly into the
+StateMachine. They are <strong>not</strong> shared/global variables (a project-wide search
+confirms none exist — shared-var names like <code>PostMortemSave</code>/<code>9056_HeartBeat</code>
+grep fine; these return nothing) and <strong>not</strong> in <code>PC_ControlSettings</code> (that
+carries Force idling/motoring + Requested mode, a different mechanism). Nothing
+on the diagram feeds them.</p>
+<p>Consequence: <code>TS_loop</code> runs <strong>headless on the cRIO-9056</strong> (RT target, no runtime
+front panel), so these controls hold their compiled defaults forever —
+<code>ForceState = False</code>, <code>ManualState = 0</code>. The absolute manual-override path
+(<code>ForceState → SYSTEM STATE = ManualState</code>) is therefore <strong>inert as-built</strong> —
+likely leftover developer/debug controls. Fifth instance of the provisioned-but-
+not-driven pattern.</p>
+<ul>
+<li><strong>For A2.1:</strong> <code>ForceState_SM</code> / <code>ManualState_SM</code> telemetry will read <code>false</code>/<code>0</code>
+  — correct (that's what the StateMachine receives), and shadow mode's
+  <code>force_state=False</code> assumption is validated.</li>
+<li><strong>If a real operator override is wanted:</strong> create <code>ForceState</code>/<code>ManualState</code>
+  network shared variables, have the PC UI write them, and feed the <em>same</em>
+  variables to both the StateMachine inputs and telemetry (one source). Or —
+  cleaner long-term — let Python own the override once it holds authority
+  (<code>decide_state</code> already implements it).</li>
+</ul>
+<h2 id="open-question-is-state-limitation-from-warnings-actually-wired-2026-07-07">Open question — is <code>STATE LIMITATION FROM WARNINGS</code> actually wired? (2026-07-07)</h2>
+<p>Raised by the user: the StateMachine's <code>STATE LIMITATION FROM WARNINGS</code> may be
+running on its <strong>front-panel default</strong> rather than a live <code>WarningIntegration</code>
+output — which, given the WatchDog/heartbeat precedents, is plausible. It is a
+<strong>subVI input terminal</strong>, so the answer lives at the caller (<code>APC_9056_TS_loop</code>),
+not inside the StateMachine. From the TS_loop export the StateMachine has several
+inputs wired and a <code>DIAG</code> VI adjacent that appears to feed it, so it looks
+<em>plausibly</em> wired — but the specific terminal can't be resolved from the export.</p>
+<ul>
+<li><strong>Confirmed disconnected (2026-07-07, user):</strong> the input is not wired to
+  <code>WarningIntegration</code> — it runs on the front-panel default, so the warning→state
+  clamp is inert. <strong>Resolution: wire it</strong> (<code>WarningIntegration</code> output → the
+  StateMachine input, in <code>TS_loop</code>) — a real safety improvement that belongs in
+  LabVIEW and survives into the target architecture as the independent clamp.
+  Once wired, telemetry needs only one <code>warnings_limit</code> variable. Behavior note:
+  active warnings will then actually clamp the state. <strong>Step-by-step wiring recipe:
+  <code>docs/phases/phase-a-shadow-brain.md</code> A2.1 step 0</strong> (incl. the forward note to
+  combine this with the B0 / heartbeat clamps via one <code>Min</code> at the same input).</li>
+<li><strong>Self-answering via telemetry:</strong> the A2.1 pre-wire should publish <strong>both</strong>
+  (a) the value on the StateMachine's warnings input and (b) WarningIntegration's
+  output. Same wire ⇒ one variable; different ⇒ telemetry proves the clamp is
+  disconnected, and shadow compare will show LabVIEW ignoring warnings while the
+  port honors them.</li>
+<li><strong>Port impact: none.</strong> The port consumes <code>warnings_limit</code> as designed; this is
+  an as-built LabVIEW fact for shadow mode to surface.</li>
+</ul>
+<h2 id="2026-07-07-the-wired-watchdog-live-pc-drop-episode-100100">2026-07-07 — the wired watchdog, live PC-drop episode: 100%/100%</h2>
+<p>The B0 consequence is wired (<code>PCnotResponding</code> OR <code>9049notResponding</code> →
+Select(−1:3) → Min → StateMachine warnings input; the UI toggles <code>PC_HB</code> from
+<code>UI_System</code>). A real PC drop was captured: telemetry resumes with
+<code>warnings_limit = −1</code> (watchdog still tripped), clears once the heartbeat
+relay resumes, <code>system_state</code> held at SAFE, then steps up one per tick.
+<code>shadow_compare</code> on the 51-frame episode: <strong>SYSTEM STATE 50/50,
+Limited_ControlSettings 50/50 — RESULT: AGREE.</strong> The port models the new
+safety response exactly; drills B4-1/2 are effectively banked early.</p>
+<h2 id="2026-07-07-full-res-statemachine-re-export-both-port-assumptions-resolved-both-needed-fixes">2026-07-07 — full-res StateMachine re-export: both port ASSUMPTIONs resolved (both needed fixes)</h2>
+<p>A fresh high-resolution export of <code>APC_9056_StateMachine.vi</code> (requested for exactly
+this purpose) made the two previously non-pixel-traceable details legible. <strong>Both
+assumptions were wrong in detail; port + tests corrected, suite green (152).</strong></p>
+<ol>
+<li><strong>Feed-valve rows.</strong> The executed 16-row limiting array's rows 13–15 (the NG/Ar/O2
+   shutoff-valve booleans) are <strong>(0,1,1,1,1)</strong> — vent-style, forced closed only in
+   SAFE — not their feed-controller rows as assumed. Consequence: leaving FIRING for
+   STAND_BY, the VI cuts gas via the feed-controller <strong>modes</strong> (→0 ⇒ flow ref 0), not
+   the valves; the report's "discontinuing combustion cuts NG and O2" invariant is
+   enforced by the controllers, and fully (valves too) only at SAFE. The latent
+   divergence was never visible live because no session requested open valves outside
+   SAFE.</li>
+<li><strong>Post-mortem gate.</strong> <code>PostMortemSave = (CURRENT &gt; new) ∧ ¬ForceState</code> — the
+   comparison direction matched the assumption, but the gate is <strong>¬ForceState</strong> (not
+   the per-state transition-condition case): a manually forced drop does not trigger
+   the post-mortem dump. Not live-visible (shadow compare doesn't compare this output).</li>
+<li><strong>Bonus — doc/array mismatch on the Ar row.</strong> The executed constant has Ar feed =
+   (0,0,<strong>3</strong>,3,3) while the on-diagram doc table (and our previous transcription)
+   says 2s. Ported as executed. <em>(Reinterpreted 2026-07-08 by the controller
+   exports, next entry: 3 = cascade mode, so the executed value permits cascaded Ar
+   control from MOTORING — the doc table's 2 would forbid it. A real difference,
+   not a cosmetic one.)</em></li>
+</ol>
+<h2 id="2026-07-08-controller-exports-decode-the-mode-enums-the-limit-tables-2-cells-are-real-and-o2controls-pv-is-mis-wired">2026-07-08 — controller exports decode the mode enums: the limit table's "&gt;2" cells are real, and O2Control's PV is mis-wired</h2>
+<p>Fresh exports of all six 9056 controller VIs (NG/O2/Ar/Tcoolant/Texh/Toil) were
+read frame-by-frame. Findings:</p>
+<ol>
+<li><strong>Mode enums extend past 2</strong> (each VI's own modes comment): cascade-capable
+   loops (Texh, Toil, Ar) define <strong>3 = closed-loop cascaded control</strong>; NG defines
+   <strong>2 = lambda (default), 4/5/6 = feedback select (lambda/IMEP/torque)</strong>; Tcoolant
+   and O2 are 0/1/2 only. Consequence: the MAX-LEVEL table's "&gt;2" cells are <strong>not
+   typos</strong> — EXH/OIL/Ar caps of 3 permit cascade, NG's FIRING cap of 6 permits all
+   NG feedback modes, and Tcoolant/O2/Dyno/MTR caps of 2 match their maximum
+   meaningful mode. The long-standing "NG=6 suspected typo" disposition is
+   <strong>withdrawn</strong>. (The port already encodes the executed values; only the
+   commentary changed.)</li>
+<li><strong>Mode 0 ("safe") forces the XML-configurable <code>Safe mode control</code> value</strong>, not a
+   hard-coded 0 (all panels currently show 0.00). Per-loop settings persist to
+   <code>…/bin/APC_9056_&lt;X&gt;_Settings.xml</code>.</li>
+<li><strong>DEFECT — <code>APC_9056_O2Control.vi</code>'s PID process variable is wired to
+   <code>EC-TT-001</code> (a coolant temperature)</strong>, a Tcoolant copy-paste leftover; the
+   setpoint is <code>WF-OA-001-O2corr-REF</code> (an O2 concentration). Closed-loop O2 (mode
+   2) as-built would regulate O2 flow against a temperature. Must be re-tagged to
+   the O2/λ measurement before any closed-loop O2 use. (The overview p.64's
+   "red-box logic should not be used" note was not found in the as-built VI; what
+   exists is a switchable <code>compensate NG</code> feed-forward, <code>O2/NG</code> ratio default 3.)</li>
+<li><strong>Mislabels (as-built):</strong> Texh's HL PV <em>indicator</em> is labeled <code>WF-TT-001</code> but the
+   wire is <code>WF-TT-004</code> (real PV is WF-TT-004); Ar's LL manual reference control is
+   labeled <code>SW-FT-001-REF (manual)</code> but the LL loop runs on <code>AR-FT-001</code>.</li>
+<li><strong>Suspicious details for the team:</strong> NG's XML path is Windows-style
+   (<code>home:\…\APC_9056_NG_Settings.xml</code>) while the other five are POSIX
+   (<code>/home/…/bin/…</code>) — NG gain persistence may silently fail on the Linux-RT 9056.
+   Every PID runs with a hard-wired <strong>dt = 0.100 s</strong> while the TS_loop control loop
+   is DAQ-paced at ~20 ms — if the controllers are called every control tick, the
+   integral/derivative action is ~5× faster than the gains imply (design-time
+   assumed 100 ms; verify at tuning time).</li>
+<li><strong>Ar panel notes (author, verbatim):</strong> both cascade PIDs carry a
+   <code>Warning hysteresis!</code> caption; "we need to start the system with lower pressure
+   reference (or connect partial pressure)"; "it is unclear at this moment if a
+   pressure release mechanism <em>must</em> be included in the controller."</li>
+</ol>
+<h2 id="standing-observations-for-the-team-from-the-port-itself">Standing observations for the team (from the port itself)</h2>
+<ul>
+<li><strong><code>ForceState</code> overrides EMERGENCY STOP</strong> (wired directly to the SYSTEM STATE
+  indicator, after the MIN). If e-stop-always-wins is the intent, the VI needs a
+  guard — flagged for review; the port reproduces the as-built behavior.</li>
+<li><strong><code>DisregardWarnings</code> bypasses the entire MAX-LEVEL limiter</strong>, not just the
+  warnings clamp (misleading name). Whatever sets it disables per-state caps.</li>
+<li>~~<strong>NG-feed FIRING cap = 6</strong> in the table — suspected typo for 2~~ <strong>Resolved
+  2026-07-08:</strong> not a typo — NG's mode enum runs to 6 (feedback-select modes);
+  see the controller-exports entry above.</li>
+<li><strong>More detection-without-response</strong> (2026-07-06, from <code>WarningIntegration</code>):
+  the VI stall-detects the <strong>9049</strong> and <strong>9056-FPGA</strong> heartbeats (counter vs
+  threshold 10), but the resulting "not responding" booleans drive front-panel
+  indicators only — they do not feed <code>STATE LIMITATION FROM WARNINGS</code>. Same
+  pattern as the unwired PC watchdog: loss of the 9049 (the engine-synchronous
+  controller!) produces no supervisory reaction. Recommend wiring these into
+  the warnings max alongside the B0 <code>PCnotResponding</code> fix.</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/shadow-findings.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

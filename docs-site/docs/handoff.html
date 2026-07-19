@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handoff — continuing this project without the original assistant — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/handoff.md</span></div>
+<main><h1 id="handoff-continuing-this-project-without-the-original-assistant">Handoff — continuing this project without the original assistant</h1>
+<blockquote>
+<p><strong>Where things are: <code>docs/migration-plan.md</code> (authoritative status, updated
+2026-07-19)</strong> — SIL-0 complete; SIL-1 protection half complete (7/7 matrix) AND
+actuation Steps 4a–4d passed on the deployed SIM build; loss-of-chassis hardening
+built (<code>docs/hb-hardening-clicklevel.md</code>); next = 4e/4f scope session + drills
+5a–5i (<code>docs/sil1-scope-of-work.md</code>). Background detail: the 07-11 session handoff
+(<code>docs/session-handoff-2026-07-11.md</code>, with 07-14→18 update blocks).
+This file is about <em>how to keep working</em>.</p>
+</blockquote>
+<p>Written 2026-07-07 (Python deliverables front-loaded); the frontier has since
+moved to LabVIEW/hardware — see the banner above. This file is about <em>how to
+keep working</em> — with a cheaper/newer AI model, or by hand.</p>
+<h2 id="what-is-done-and-verified-dont-rebuild">What is DONE and verified (don't rebuild)</h2>
+<ul>
+<li><strong>Autonomous deployment (2026-07-11):</strong> both cRIOs boot startup <code>.rtexe</code>s, PC
+  apps as EXEs, Python observes/commands; cold-boot verified. Runbook +
+  symptom→cause table: <code>docs/deployed-bringup.md</code>.</li>
+<li><strong>SIL-0 analytics validated (2026-07-11):</strong> 9049 HRL/IMEP/CA50 vs known truth,
+  425 comparisons all within tol. <code>docs/9049-openloop-audit.md</code> §7; tools
+  <code>gen_cas_traces.py</code> / <code>compare_hrl.py</code> / <code>tune_thresholds.py</code> /
+  <code>gen_warning_matrix.py</code> (the SIL-1 drill-suite generator).</li>
+<li><strong>SIL-1 protection half (2026-07-14):</strong> false-trip/latch matrix 7/7 on the
+  real 9049 via synthetic pressure; F3a–F3d as-built defects found +
+  dispositioned. <code>docs/sil1-scope-of-work.md</code> (Steps 4a–4d since PASSED;
+  4e/4f scope session + drills 5a–5i remain).</li>
+<li>Transport + ICD v0.1, live telemetry pipeline, <code>ControlSettings</code> contract
+  (confirmed vs live flatten), reconnect resilience.</li>
+<li><strong>Phase A code</strong>: StateMachine port (validated LIVE — 100% agreement, all 5
+  states), warning policy port, shadow-compare harness (+ <code>--alarm</code>).</li>
+<li><strong>Phase B Python</strong>: ICD v0.2 draft (§7 of <code>docs/icd.md</code>), MonarchCommander,
+  commandable sim gateway running the real ported logic, failure-matrix tests.</li>
+<li><strong>Phase C Python</strong>: operator CLI (<code>examples/monarch_operate.py</code> — an
+  engineering tool; the HMI stays the operator's console per ICD §7.7),
+  reverse shadow alarm, and the <strong>operator-request mirror</strong>
+  (<code>operator_mirror.py</code>: UI inputs flow to Python as requests while Python
+  holds authority; safety inputs always mirror, sequences own the intent).</li>
+<li><strong>Phase D</strong>: sequencing framework, sim plant model, draft venting/purge/
+  thermal-warmup sequences (closed-loop tested, randomized fault injection).</li>
+<li><strong>Phase E engines</strong>: temporal warning rules, setpoint scheduler (data-driven;
+  values are TBD(team)).</li>
+<li><code>Settings9049</code> model (doc-transcribed; flatten confirmation pending), CI
+  (GitHub Actions, py3.10 + 3.12).</li>
+</ul>
+<h2 id="the-invariants-that-must-never-be-weakened">The invariants that must never be weakened</h2>
+<ol>
+<li><strong>LabVIEW/cRIO/FPGA owns hardware, interlocks, validation, safe fallback.</strong>
+   Python only ever <em>requests</em>. If a change makes Python's absence unsafe, the
+   change is wrong.</li>
+<li><strong>Telemetry is the only truth</strong>; ACK = validated, not done; rebuild from
+   telemetry after reconnect; stale ⇒ stop commanding.</li>
+<li><strong>The suite stays green</strong> (<code>pytest</code>, 202 tests, CI enforces). A red test is
+   a stop-the-line event, not an inconvenience.</li>
+<li><strong>Contract lockstep</strong>: any <code>APC_ControlSettings.ctl</code> change ⇒ re-run
+   <code>tools/compare_flatten.py</code> on a fresh flatten (workflow:
+   <code>docs/monarch-flatten-diff.md</code>).</li>
+<li>E-stop: settable from anywhere, clearable only by the operator.</li>
+</ol>
+<h2 id="working-with-a-smallercheaper-model-task-guidance">Working with a smaller/cheaper model — task guidance</h2>
+<p>Safe to delegate (mechanical, pattern-following — the repo shows the pattern):
+- Filling <code>TBD(team)</code> values into <code>SequenceConfig</code>, rule tables, schedule rows
+  once the team supplies numbers (tests pin the mechanics).
+- New sequences from completed D0 template sheets (copy <code>venting()</code>'s shape;
+  keep <code>abort_change=safe_landing</code>, keep invariants; add a closed-loop test).
+- New telemetry fields (gateway adds a tag → add the optional field to
+  <code>MonarchTelemetry</code> + parse line + a test — mirror <code>plant</code>).
+- New warning channels (<code>ChannelLimits</code> entries), new temporal rules, new
+  schedule rows — data, not logic.
+- Doc/status upkeep; new shadow-compare recordings + dispositions (follow
+  <code>docs/shadow-findings.md</code> format).</p>
+<p>Needs care (do slowly, verify hard, prefer a strong model or human review):
+- Anything in <code>state_machine.py</code> / <code>warning_policy.py</code> semantics — these are
+  <em>fidelity ports</em>; changes must trace to a VI change or a dispositioned
+  divergence, never to taste.
+- Commander/executor authority handling (<code>commanding</code>, staleness, source
+  flips) — the safety posture lives there.
+- ICD changes (both sides must move in lockstep with the LabVIEW gateway).
+- Anything under "The invariants" above.</p>
+<p>Prompting tip: point the model at <code>CLAUDE.md</code>, the relevant <code>docs/phases/</code>
+file, and the nearest existing test file; ask it to follow the established
+pattern and to run <code>pytest</code> before claiming done.</p>
+<h2 id="what-only-humans-can-supply-the-real-remaining-inputs">What only humans can supply (the real remaining inputs)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Unblocks</th>
+<th>Where specified</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>~~B1 joint review~~ <strong>done 2026-07-07</strong>: 5 s threshold; UI toggles <code>PC_HB</code> (option a); <code>UI_HeartBeat</code> follow-on specified. Soft default remaining: <code>CommandSource</code> switch on the HMI System screen</td>
+<td>~~B0 wiring, B3 build~~ unblocked</td>
+<td><code>docs/icd.md</code> §7 (frozen)</td>
+</tr>
+<tr>
+<td>LabVIEW B0 + B3 edits (fully specified, node-level)</td>
+<td>B4 drills → any authority</td>
+<td>phase-B file</td>
+</tr>
+<tr>
+<td>A2.1 remaining gateway pre-wire (warnings/manual/force vars) + sweeps with the 9056 StateMachine running</td>
+<td>Phase A exit</td>
+<td>phase-A file</td>
+</tr>
+<tr>
+<td><strong>D0 operating-procedure sheets</strong> (template at the bottom of phase-D file)</td>
+<td>Real sequences</td>
+<td>phase-D file</td>
+</tr>
+<tr>
+<td>TBD(team) numbers (SequenceConfig, rules, schedules)</td>
+<td>E-layer activation</td>
+<td>in-code markers</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="orientation-for-a-fresh-session">Orientation for a fresh session</h2>
+<ol>
+<li><code>README.md</code> → <code>docs/migration-plan.md</code> (authoritative status) →
+   <code>docs/migration-seam.md</code> (why the boundary is where it is).</li>
+<li><code>pip install -e ".[dev]" &amp;&amp; pytest</code> — 202 tests, sub-5 s.</li>
+<li>Offline demo of everything: terminal 1
+   <code>python -m supervisory.monarch.simserver_monarch --source PYTHON --speedup 5</code>,
+   terminal 2 <code>python examples/monarch_operate.py</code> → <code>status</code>, <code>mode motoring</code>,
+   <code>seq run venting</code>.</li>
+<li>The LabVIEW project lives on the control-room PC; exports for reference are
+   under <code>original-labview-codebase/</code> (per-frame HTML/GIF export is the
+   preferred format — see the phase-A A1.0 notes).</li>
+</ol></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/handoff.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

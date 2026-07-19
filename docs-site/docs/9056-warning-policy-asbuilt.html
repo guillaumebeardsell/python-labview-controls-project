@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>9056 Warning Policy — As-Built (from the 2026-07-14 VI prints) — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/9056-warning-policy-asbuilt.md</span></div>
+<main><h1 id="9056-warning-policy-as-built-from-the-2026-07-14-vi-prints">9056 Warning Policy — As-Built (from the 2026-07-14 VI prints)</h1>
+<p>The ground truth for <strong>Phase A3</strong> (port the warning→state policy). Everything below is read
+off the block-diagram exports under <code>original-labview-codebase/</code> — folder + page cited per
+claim. Companion to <code>docs/command-path-asbuilt.md</code> (same method, different subsystem).</p>
+<p><strong>Evidence set (printed 2026-07-14):</strong> <code>APC_9056_ErrorMask</code>, <code>APC_9056_MaskErrors</code>,
+<code>APC_9056_MergeCylErrors</code>, <code>APC_9056_ClearSoftWarning</code>, <code>APC_ClearErrorButton</code>,
+<code>APC_9049_checkAI</code>, <code>APC_9049_CycleAvgSignals</code>, <code>APC_9056_FPGA_main</code>, plus the existing
+<code>APC_9056_WarningIntegration</code> print re-read page-by-page. Still not printed:
+<code>APC_9056_LoadINI</code> (requested, not yet delivered).</p>
+<hr />
+<h2 id="the-chain">The chain</h2>
+<pre><code>                      (TS_loop, ~20 ms control loop)
+                                   │
+                    APC_9056_WarningIntegration.vi          ── the ONE call site
+                    ┌──────────────┴───────────────────────────────┐
+   analog rasters   │  ErrorMask ── per-state arming masks         │  9049 cylinder flags
+   NI9205 → r1      │  MaskErrors ── DEAD (Disabled frame, d9)     │  CylPresWarnings/Errors
+   NI9208 → r2      │  ClearSoftWarning ── zero severity-1 slots   │  → &quot;DECODE ERRORS&quot;
+   NI9214 → r3+r4   │  MergeCylErrors ── W/E pairs → 1/3, 5 groups │  → MergeCylErrors
+   SYSTEM SIG → r5  └──────────────┬───────────────────────────────┘
+                                   ▼
+       Raster1..5_Warnings, Cylinder_Warnings (SVs, severity arrays 0..4)
+       9049notResponding / 9056FPGAnotResponding (heartbeat stall flags)
+       STATE LIMITATION FROM WARNINGS (I8)   ← the A3 output; WIRED into the StateMachine
+                                               (A2.1 pre-wire 2026-07-07; W5 refuted live
+                                               2026-07-16 — see gap list below)
+PC side: APC_ClearErrorButton.vi → APC_MASTER_ClearWarnings SV → WI handshake.
+</code></pre>
+<h2 id="apc_9056_warningintegrationvi-the-integrator">APC_9056_WarningIntegration.vi — the integrator</h2>
+<p>Inputs: <code>CURRENT SYSTEM STATE</code> (I8), raster arrays <code>NI9205</code>/<code>NI9208</code>/<code>NI9214</code>/<code>SYSTEM
+SIGNALS</code> (DBL, mean'd then forced to 16 elements), <code>WarningLimits</code> cluster, <code>LoadIni?</code>,
+and <code>input cluster</code> (tagged plant signals — AR-FT-001, O2-FC-001, …, IMEPn6, TORQUE,
+NG-FT-001, <strong>EngineSpeed_rpm</strong> — plus <code>CylPresWarnings</code>/<code>CylPresErrors</code> per-cylinder
+numeric arrays from the 9049). Output: <code>STATE LIMITATION FROM WARNINGS</code>. (panel + html)</p>
+<h3 id="raster-analog-warning-path-main-d-page">Raster (analog) warning path  <em>(main d page)</em></h3>
+<ul>
+<li><strong>Five rasters:</strong> NI9205→raster1, NI9208→raster2, NI9214 split [0..16)/[16..32)→
+  raster3/raster4, SYSTEM SIGNALS→raster5. 16 slots each.</li>
+<li><strong>Four severity tiers.</strong> <code>WarningLimits.RasterN_limits</code> are <strong>2D (4 tiers × 16 slots)</strong>;
+  <code>RasterN_Sign</code> is 1D (per-slot sign, so one comparator serves min- and max-type limits:
+  trip = <code>sign×value &gt; sign×limit</code>, i.e. sign +1 warns above, −1 warns below — operand
+  order per the 2026-07-06 wire-level transcription in <code>warning_policy.py</code>; bench-verify
+  the direction once during the SIL-1 drills). A For loop (N=4) evaluates tier i and scores
+  a tripped slot <strong>severity i+1</strong>; a slot's severity is the max tier tripped. Severity
+  legend (diagram comment): <strong>0 none · 1 soft warning (self-cleared) · 2 send to idle ·
+  3 send to motoring · 4 send to safe and vent.</strong></li>
+<li><strong>State arming:</strong> each raster's trip is AND-gated with <code>ErrorMask</code>'s rasterNmask bit
+  <em>before</em> scoring — see the decoded tables below.</li>
+<li><strong>Latching:</strong> per-slot severities max-latch through feedback registers (a severity never
+  decreases on its own). Two clears exist:</li>
+<li><strong>soft self-clear:</strong> <code>ClearSoftWarning</code> zeroes stored severity-<strong>1</strong> entries each pass,
+    so tier-1 warnings track the live condition (hence "self cleared");</li>
+<li><strong>operator clear:</strong> <code>APC_MASTER_ClearWarnings</code> TRUE → all latched severities zeroed
+    (still-active conditions re-trip next tick) <strong>and</strong> the handshake fires: WI writes
+    MASTER:=FALSE and <code>APC_SLAVE_ClearWarnings</code>:=TRUE (the 9049 consumes SLAVE for its
+    own CylPress latch clear).</li>
+<li><strong>Clamp:</strong> all five raster arrays + the merged cylinder array → Build Array → <strong>Array Max</strong>
+  → case structure → <code>STATE LIMITATION FROM WARNINGS</code>. Observed: default(0/1)→<strong>3</strong>
+  (FIRING allowed); per the legend the other frames map 2→2 (IDLING), 3→1 (MOTORING),
+  4→−1 (SAFE) — only the default frame is directly visible in the export, the rest are
+  inferred from the legend (bench-confirm during the SIL-1 warning drills).</li>
+<li><strong>Publications:</strong> <code>Raster1..5_Warnings</code> + <code>Cylinder_Warnings</code> SVs (post-clear severity
+  arrays — what the UI warning screens render).</li>
+<li><strong>Heartbeat monitors</strong> <em>(main d, bottom)</em>: <code>9049_HeartBeat</code> and <code>9056_HeartBeat</code> SVs each
+  feed an unchanged-value counter; ≥10 ticks stalled → <code>9049 not responding</code> /
+  <code>9056 FPGA not responding</code>. (These are WI-local indicators — distinct from
+  <code>APC_9056_WatchDog.vi</code>, which watches PC_HB/MTR_HB for the loss-of-PC clamp.)</li>
+<li><strong>Limits configuration</strong> <em>(d10)</em>: on <code>9056_SetWarningLimits</code> SV TRUE, WI reads
+  <code>Raster1..5_WarningLevels</code> + <code>Raster1..5_WarningSign</code> SVs, reshapes levels <strong>4×16</strong>, and
+  rebuilds the local <code>WarningLimits</code> (then answers <code>9056_RetrieveWarningLimits</code> for the UI
+  read-back). So the live limit values are <strong>runtime state loaded over SVs from the PC UI</strong>
+  — the front-panel defaults in the export are NOT the operating values. <code>LoadIni?</code> (d1)
+  triggers a load pass and resets itself.</li>
+</ul>
+<h3 id="cylinder-9049-warning-path-main-d-mergecylerrors-pages">Cylinder (9049) warning path  <em>(main d + MergeCylErrors pages)</em></h3>
+<p><code>input cluster.CylPresWarnings/CylPresErrors</code> (numeric, per-cylinder packed flags from the
+9049) → a small <strong>"DECODE ERRORS"</strong> subVI (unpacks to 2D boolean flag×cylinder matrices;
+its VI name is not identifiable from the print — no <code>Decode*.vi</code> exists in the lvproj, so
+it's one of the small helpers; functionally it is just bit-unpack) → <strong>MergeCylErrors</strong>:</p>
+<ul>
+<li>Row layout of the 7-flag matrices as-built: <strong>[0] MaxPressure · [1..3] the three misfire
+  variants (cyl-to-cyl, self-reg, from-IMEP) · [4] CyclicVar · [5] Knock · [6] LateComb.</strong></li>
+<li>Per element: <code>error ? 3 : (warning ? 1 : 0)</code> <em>(d1: warning→1, d2: error→3)</em> — i.e. a 9049
+  cylinder <strong>ERROR scores severity 3 = "send to motoring"</strong>, not SAFE. Max is taken across
+  cylinders and across the merged misfire rows → five scalars (MaxPress, Misfire, CyclicVar,
+  Knock, LateComb) → <code>MergedCylinderErrors</code> → <code>Cylinder_Warnings</code> SV → into the same
+  Array-Max clamp.</li>
+<li>Combustion is still cut on a cylinder error by <strong>two independent paths</strong>: the 9049's own
+  IGNDI supervisor disarms spark/DI off the latched <code>CylPressError</code> global (FLOOR), and the
+  9056 clamp (wired — W5 refuted live 2026-07-16) forces ≤ MOTORING where IGN/DI are
+  deactivated per the MAX-LEVEL-OF-CONTROL table.</li>
+</ul>
+<h2 id="apc_9056_errormaskvi-the-per-state-arming-masks">APC_9056_ErrorMask.vi — the per-state arming masks</h2>
+<p>One connector input: <code>SYSTEM STATE</code>. Outputs <code>raster1..5mask</code> + <code>CylinderMask</code>. Two case
+structures select boolean tables saved as front-panel defaults. <strong>Decoded cell-by-cell from
+the panel export</strong> (bright yellow = TRUE/armed, dull = FALSE):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>table</th>
+<th>SAFE (−1)</th>
+<th>STAND_BY (0)</th>
+<th>MOTORING (1)</th>
+<th>IDLING (2)</th>
+<th>FIRING (3)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>raster masks (5×16)</td>
+<td>all OFF</td>
+<td>all OFF</td>
+<td>all ON</td>
+<td>all ON</td>
+<td>all ON</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>CylinderMask row</th>
+<th>SAFE</th>
+<th>STAND_BY</th>
+<th>MOTORING</th>
+<th>IDLING</th>
+<th>FIRING</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MaxPressure</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Misfire</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Cyclic variability</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Knock</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Late combustion</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>The raster arming is <strong>binary by state</strong>: nothing armed in SAFE/STAND_BY, everything armed
+  from MOTORING up. No per-slot nuance as-built.</li>
+<li>A second "ACTIVE ERRORS FOR LOW SPEED" table is ANDed in when
+  <code>EngineSpeed &lt; MinEngineSpeedforMask</code> — but <strong><code>EngineSpeed</code> is not on the connector pane</strong>
+  (unwired; always default 0 vs threshold 1000 ⇒ the branch is permanently "low speed"), and
+  the low-speed table is <strong>all-TRUE</strong> anyway ⇒ double no-op. The plumbing for speed-dependent
+  arming exists but is inert; note <code>EngineSpeed_rpm</code> is already available in WI's input
+  cluster if it's ever wired.</li>
+<li>The per-cylinder table encodes exactly the motoring-vs-fired <strong>disarm</strong> intent (only
+  MaxPressure + Knock armed, and only in IDLING/FIRING) — <strong>but see gap W2: its consumer
+  appears to be disabled.</strong></li>
+</ul>
+<h2 id="apc_9056_maskerrorsvi-dead-code-as-built">APC_9056_MaskErrors.vi — DEAD CODE as-built</h2>
+<p>Function: elementwise <code>mask ? warning : 0</code> over a U8 severity array. <strong>All six call sites
+(5 rasters + cylinder, plus a second ErrorMask instance) sit inside a Diagram Disable
+Structure "Disabled" frame</strong> (WI print page d9) — the superseded post-hoc masking design.
+The live design gates trips inline inside the tier loop instead.</p>
+<h2 id="apc_9056_clearsoftwarningvi">APC_9056_ClearSoftWarning.vi</h2>
+<p>Elementwise: <code>element == 1 ? 0 : element</code> ("Warning vector 0 to 4"). Clears soft warnings
+only; severities ≥2 stay latched until the operator MASTER clear.</p>
+<h2 id="apc_clearerrorbuttonvi-pc">APC_ClearErrorButton.vi (PC)</h2>
+<p>OK/Cancel dialog loop; OK → writes <code>APC_MASTER_ClearWarnings</code> := TRUE (100 ms poll). The
+single operator entry point of the clear chain: PC button → MASTER SV → WI zero-latches +
+SLAVE handshake → 9049 CylPress latch clear.</p>
+<h2 id="findings-gaps-w-series">Findings / gaps (W-series)</h2>
+<ul>
+<li><strong>W1 — Raster arming is binary by state.</strong> All-or-nothing per state (off below MOTORING).
+  Any per-slot, per-state policy (e.g. arm coolant-temp warnings in STAND_BY) is new work.</li>
+<li><strong>W2 — The per-cylinder arming table is (very likely) inert.</strong> <code>CylinderMask</code> +
+  <code>MaskErrors</code> live only in the Disabled frame (d9); the live cylinder path
+  (decode → merge → clamp) shows no mask join on the visible pages. Consequence as-built:
+  cylinder diagnostics are effectively <strong>armed in every state incl. MOTORING</strong> on the 9056
+  side, mirroring the 9049's own no-state-input latch (audit F3/F3a — same class of
+  false-trip risk, now confirmed at both layers). ~~Bench check queued~~ <strong>SETTLED by
+  the 2026-07-14 SIL-1 matrix runs</strong>: cylinder warnings/errors scored outside
+  IDLING/FIRING (overpressure ERROR ×6 during the matrix at sub-IDLING states) —
+  <strong>the table is inert as predicted</strong>; cylinder diagnostics arm in every state on the
+  9056 side.</li>
+<li><strong>W3 — Speed-dependent arming is unwired scaffolding</strong> (see ErrorMask above).</li>
+<li><strong>W4 — A cylinder ERROR clamps to MOTORING (3), not SAFE.</strong> Deliberate-looking (motoring
+  keeps the engine controlled while combustion stops) but a policy decision Python's A3 port
+  must consciously adopt or change — the team should confirm intent.</li>
+<li>~~<strong>W5 — The clamp output is computed but not consumed</strong>~~ <strong>REFUTED LIVE 2026-07-16
+  (SIL-1 bench):</strong> with a latched severity-3 warning active, the gateway telemetry tap
+  <code>WarningLimits_SM</code> (the SM's <code>STATE LIMITATION FROM WARNINGS</code> input terminal) read
+  <strong>1</strong> — a value the watchdog Select(−1:3) cannot produce — and the state pinned at
+  exactly <code>min(requested, 1) = MOTORING</code> in <strong>both</strong> UI and PYTHON modes until CLEAR
+  WARNINGS restored <code>warn_lim=3</code> and the ladder worked again. <strong>The warnings→state clamp
+  is wired and live in the running/deployed build</strong> — reconciled 2026-07-19: this is
+  the <strong>A2.1 pre-wire made 2026-07-07</strong> ("WarningIntegration→StateMachine warnings
+  wire made", <code>docs/migration-plan.md</code> prior-status 07-07 block); the W5 finding came
+  from prints/analysis that predated that rewiring. (Original finding kept for
+  history: the pre-A2.1 diagram showed only the B0 watchdog clamp reaching the SM
+  input.) Consequences: A3 parity work should
+  treat the clamp as as-built behavior to replicate, not to add; severity mapping
+  confirmed live (severity 3 → limit 1 = MOTORING); and floating/disconnected plant
+  channels CAN hold the state down — the engine-only bench must manage the 9056 plant
+  warning limits/masks (see <code>docs/engine-only-9056-tradeoff.md</code>). Source of the 07-16
+  severity-3 trip not identified before clearing (cylinder-error decode vs floating
+  raster channel) — photograph <code>UI_Errors</code> lamps before any future clear.</li>
+<li><strong>W6 — No temporal rules.</strong> Trip scoring is instantaneous max-latch: no debounce, no
+  persistence windows, no hysteresis, no escalation-over-time. (The 4 tiers are <em>level</em>
+  tiers, not time tiers.) The "author the temporal rules" A3 task in
+  <code>docs/migration-seam.md</code> remains fully greenfield.</li>
+<li><strong>W7 — Two severity dialects share one scale.</strong> Raster severities span 1..4 by tier;
+  cylinder severities only ever take {0, 1, 3}. Fine under Array-Max, but a port must keep
+  the shared meaning of 0..4 straight (and 2/"send to idle" is unreachable from cylinders).</li>
+</ul>
+<h2 id="diff-against-the-existing-python-port-supervisorymonarchwarning_policypy">Diff against the existing Python port (<code>supervisory/monarch/warning_policy.py</code>)</h2>
+<p>The A3 port already exists (built 2026-07-06 from the WarningIntegration export). Checked
+against these prints, it <strong>matches</strong> on: 4 thresholds/channel + sign, severity legend and
+{0,1:3, 2:2, 3:1, 4:−1} mapping, max-latch ratchet, soft-1 self-clear, operator
+clear-as-zero, heartbeat stall detectors kept indicator-only. <strong>Deltas the prints expose:</strong></p>
+<ol>
+<li><strong>No state-dependent arming.</strong> The port's <code>ChannelLimits.enabled</code> is a static per-level
+   tuple; as-built, <code>ErrorMask</code> disarms <em>everything</em> in SAFE/STAND_BY and arms everything
+   from MOTORING up. In a shadow comparison the port would raise warnings in SAFE/STAND_BY
+   where LabVIEW stays silent. Either extend the port with a per-state arming input
+   (faithful) or record the deviation as a deliberate improvement (per W1) — decide, don't
+   drift.</li>
+<li><strong>The cylinder merge is now specified.</strong> The port takes pre-merged <code>extra_levels</code>;
+   the producer contract is documented above (row layout, <code>error?3:(warning?1:0)</code>, max
+   across cylinders) for when the 9049 bitfield decode gets modeled.</li>
+<li><strong>Live limit values are SV-loaded at runtime</strong> (<code>Raster*_WarningLevels/_WarningSign</code>),
+   so a faithful shadow needs those values captured from the running system, not the
+   panel defaults in the export.</li>
+</ol>
+<p>Unit-test against the decoded tables above; treat W1–W7 as documented deviations a
+redesign may fix (with team sign-off), not silently.</p>
+<hr />
+<h2 id="side-findings-from-the-same-print-batch">Side findings from the same print batch</h2>
+<ul>
+<li><strong><code>APC_9056_FPGA_main.vi</code> — the 9056 FPGA has its own RT-stall safe-hold.</strong> An
+  <code>RT watchdog</code> boolean toggled by the RT side is edge-checked on a 10 ms clock;
+  <code>Counter max</code> (default <strong>100</strong> ⇒ 1 s) overflow → "RT counter overflow: setting SAFE mode"
+  → the DI/DO interface case writes <strong>all AOs (NI9264×16, NI9266×8) = 0 and all DOs
+  (NI9375×16) = FALSE</strong> — diagram comment: <em>"SAFE state is applied if RT watchdog is not
+  alive"</em> (d2). With the 9049 FPGA spark/DI watchdog, <strong>both cRIOs now have a confirmed
+  below-RT hardware safe fallback</strong>; the safe-hold invariant does not depend on the 9056 RT
+  loop surviving. Caveats: the actual <code>Counter max</code> written by RT at init is unconfirmed
+  (default 1 s), and AO=0/DO=FALSE is only safe if actuators are fail-safe de-energized
+  (vents are 0=open per the MAX-LEVEL table note — consistent). Panel warns "low level FPGA
+  interface only — RT configures". Also on board: a 0.5 s <code>FPGA Hearbeat</code> (mirrored to the
+  <code>9056_HeartBeat</code> SV that WI monitors), chassis temp raw, and a <strong><code>cRIO_Trig7</code>
+  toggle-period decoder</strong> ("Ticks per toggle" 13-entry table, margin 250 → <code>Detected mode</code>)
+  whose producer/consumer is unidentified — open question.</li>
+<li><strong><code>APC_9049_checkAI.vi</code></strong>: one-liner — <code>size(AIdata) == 7200</code> → bool ("Makes sure that
+  the AI got the complete cycle"). The programmatic form of the SIL-1 Step-2 full-cycle
+  check.</li>
+<li><strong><code>APC_9049_CycleAvgSignals.vi</code></strong>: builds the <code>CRIo9049_CycleAvgSignals</code> <strong>name array</strong>
+  (TimeStamp + ControlSettingsRaster + CycleRaster name lists concatenated) — the signal-name
+  registry the pollers/mapping use to label <code>9049_MeasAndCalc</code> (confirms the README's
+  inference). <strong>Not</strong> related to <code>MaxDevFromAvg</code> averaging (that lives in the
+  already-printed analytics chain).</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/9056-warning-policy-asbuilt.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

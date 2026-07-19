@@ -137,7 +137,12 @@ armed in BOTH modes.** Verified from the 2026-07-10 `TS_loop` export:
 
 ## 6. The real gaps
 
-### 6a. Loss-of-9056 — NOTHING responds (discovered live 2026-07-16)
+### 6a. Loss-of-9056 — NOTHING responds (discovered live 2026-07-16) — **CLOSED 2026-07-17/18**
+
+> **Both build tasks below are BUILT + VERIFIED** (kill-9056 at FIRING → spark/DI
+> blocked ~5 s; kill-9049 → display drops to −1): `docs/hb-hardening-clicklevel.md`
+> Tasks A + B. Task C (gateway `operator_requests`) remains open. The as-found
+> behavior below is kept as the before-picture for drill 5i.
 
 Bench observation (SIL-1, two-chassis config): **force-stopping `APC_9056_RT` mid-run
 raises no warning anywhere and clamps nothing.** Walk the watchdog coverage:

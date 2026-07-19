@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APC9049RTmain — Open-Loop Commissioning Audit &amp; SIL Plan — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/9049-openloop-audit.md</span></div>
+<main><h1 id="apc_9049_rt_main-open-loop-commissioning-audit-sil-plan">APC_9049_RT_main — Open-Loop Commissioning Audit &amp; SIL Plan</h1>
+<p>Does the cRIO-9049 application (RT + FPGA, <code>APC_9049_RT_main.vi</code> and every
+sub-VI) work as intended for the <strong>first commissioning campaign — engine
+operation only, open-loop</strong> (motoring, then firing with manual spark/DI
+settings; no closed-loop combustion or plant control)? And how do we exercise
+it <strong>software-in-the-loop, with synthetic data, before anything is fueled or
+sparked</strong>?</p>
+<p>Audited 2026-07-08 from the fresh VI exports under
+<code>original-labview-codebase/</code> (HTML + full-res diagram GIF/PNG, read page by
+page), the two FPGA PDFs ([Deck] = <code>20251020ERD01GUI01 FPGA on cRIO 9049.pdf</code>,
+[GDoc] = <code>9049 FPGA VIs - Google Docs.pdf</code>), the Overview PDF, the E1/M1
+report ([Report] = <code>20231130ENG02CWN01_E1_M1report_GUI.docx</code>), and the vendor
+EPT manual ([EPT-UM] = <code>EPT_VI_UM_RevB.pdf</code>, Drivven/NI Powertrain). Where the old
+PNG thumbnails and the fresh GIF exports disagree, the GIFs (current live VIs)
+were used. <strong>Caveat:</strong> everything here is read from rendered diagrams; items
+marked ⚠VERIFY need a check in LabVIEW or on the bench — saved front-panel
+defaults especially, because on a headless RT deployment the compiled panel
+defaults <em>are</em> the configuration.</p>
+<p>Companion tool: <code>tools/gen_cas_traces.py</code> generates synthetic CAS
+cylinder-pressure cycles (correct 9×7200 shape, phasing, pegging behavior)
+with a ground-truth <code>truth.json</code> for verifying the analysis chain.</p>
+<p><strong>Currency &amp; where to start (as of 2026-07-16).</strong> The static audit (F1–F9,
+§§2–6) stands, with the F3a–F3d dispositions folded in below. Executed since it
+was written: <strong>SIL-0 COMPLETE</strong> (§7 — 425 metric comparisons all in tolerance;
+geometry resolved, picture15; MAPO/IMEPstd columns added); the <strong>threshold
+pipeline is built and — for the first time — connected end-to-end on target</strong>
+(<code>tools/tune_thresholds.py</code> → <code>CylWarningLevels.xml</code> + F3b Load-INI fix);
+<strong>SIL-1 Steps 0–3 done, Step 2 CLOSED (Trig0 follows the sim), and the Step-6
+false-trip/latch matrix COMPLETE 7/7 (2026-07-14)</strong> via the CAS_loop
+sim-pressure branch + <code>tools/gen_warning_matrix.py</code> (record sheet
+<code>docs/cRIO9049 Warning Matrix.xlsx</code>). <strong>→ Execution order = §7, layered SIL-0 →
+SIL-1 → SIL-2 → SIL-3, then the §8 pre-fuel checklist.</strong> The immediate next
+action (updated 2026-07-19): <strong>SIL-1 Steps 4a–4d PASSED</strong> (deployed SIM build, both
+writers, 12/12 channels; F9 closed) — remaining: <strong>4e/4f scope session + drills
+§5a–5i</strong> (<code>docs/sil1-scope-of-work.md</code>). Architecture DECIDED 07-16: engine-only
+runs both cRIOs (<code>docs/engine-only-9056-tradeoff.md</code>); loss-of-chassis hardening
+built + verified (<code>docs/hb-hardening-clicklevel.md</code>).
+Tool pipeline map: <code>tools/README.md</code>.</p>
+<hr />
+<h2 id="1-the-short-answer">1. The short answer</h2>
+<p>The 9049 application is in <strong>substantially better shape than the 9056 side
+was</strong>: the architecture is sound, the safety anchors are real and fail-safe,
+and the core engine-synchronous chain (sync → spark/DI scheduling →
+encoder-clocked acquisition) was <strong>already validated at TTL level by the
+original developer</strong> using a physical encoder emulator ([Report], Fig. 20 —
+an Arduino generating encoder/cam signals, spark &amp; injection TTL outputs
+loop-verified, CAS processing proven to 4250 rpm and "aligned with NOBLE
+calculation script").</p>
+<p>What was <strong>never</strong> validated: physical actuation (real coils/injectors),
+sensor calibration (placeholders in the VI today), the pressure <em>diagnostics</em>
+added after the 2023 report (they gate spark/DI and, as originally built,
+false-tripped — see F2/F3; <strong>since fixed and matrix-proven 7/7, 2026-07-14</strong>:
+F3b Load-INI root cause + the 6c state gate), and data recording end-to-end.</p>
+<p>And the headline for SIL: <strong>a virtual crankshaft is built in and
+vendor-documented.</strong> The NI Powertrain EPT position-tracking core on the FPGA
+has a pattern simulator (<code>EPTControl.SimEnable</code>/<code>SimPeriod</code>, reachable from
+the <code>TS10ms_loop</code> front panel, saved <code>SimPeriod=500</code> ≈ 1333 rpm — the
+developer clearly used it). Per [EPT-UM]: with <code>SimEnable</code> TRUE the physical
+<code>CrankSig</code>/<code>CamSig</code> inputs are internally disconnected and replaced by
+simulated counterparts — the simulator generates <strong>both</strong> the crank <em>and</em> the
+cam/Z reference for the configured pattern, so full sync is achievable; the
+feature exists exactly "to bench test the engine control system functionality
+… without the need for external simulation hardware" (the manual's own FPGA
+example runs with <em>no external signals wired at all</em>). The exports further
+show the CAS DAQ sample clock (<code>cRIO_Trig0</code>) is wired from EPT's
+<code>CrankSigOut</code>, which carries the simulated signal in sim mode ([GDoc]). Flip
+one boolean and the whole engine-synchronous stack runs against a phantom
+engine on the real cRIO — no encoder, no rotation.
+<code>APC_9049_PPhaseCorrection</code> additionally has a built-in canned-pressure mode
+(<code>UsePcylDatabase</code>). Both are also <em>hazards</em> if left enabled — see the
+pre-fuel checklist.</p>
+<h2 id="2-verdict-summary">2. Verdict summary</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>VI</th>
+<th>Verdict for open-loop commissioning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RT_main</code></td>
+<td>✅ Works. Two-frame sequence: SensorCalibration, then CAS/SAVE/TS10ms in parallel forever. The Diagram-Disable frames (Modbus healing loop, legacy System-PID loop) are <strong>deleted outright</strong> in the live VI (README's "currently Disabled" is outdated). No error gating: loops start even if DAQ-task creation failed — <strong>shown NOT benign 2026-07-14</strong>: the −200088 DAQmx startup race (known from the 9056, deployed-bringup #5) hit the 9049 after an app restart → CAS loop stuck in a ~1 Hz task-restart cycle, no acquisition until another app restart. <strong>Port the 9056 retry-loop fix to <code>SensorCalibration</code>.</strong></td>
+</tr>
+<tr>
+<td><code>TS10ms_loop</code></td>
+<td>✅ Works, 3 risks (F1, F5, F6). Gate logic confirmed: <code>enable = ¬CylPressError ∧ ActivateCylinder ∧ UI-enable ∧ (SYSTEMSTATE ≥ 2)</code> per cylinder, spark and DI separately. FPGA <code>WatchdogIn</code> toggled unconditionally each 10 ms tick — fail-safe by dataflow (an upstream error that stops the FPGA write also stops the toggle → FPGA kills outputs). Loop never exits; errors latch to a border indicator only.</td>
+</tr>
+<tr>
+<td><code>SparkSettings</code></td>
+<td>✅ Works. SA/cutoff → CAT conversion correct; dwell <strong>hard-coded 4 ms (2–6 clamp)</strong> via saved defaults (unwired at call site); cutoff −60 DBTDC from caller.</td>
+</tr>
+<tr>
+<td><code>KnockCA50Control</code></td>
+<td>✅ Inert as configured (both enables come from <code>PC_ControlSettings</code>, off ⇒ manual SA passes through untouched). Not usable for closed loop later without new values (knock retard/advance params saved 0, PID gains dummy, SA clamp ±100 CAD is no protection).</td>
+</tr>
+<tr>
+<td><code>ControlSettingsRaster</code></td>
+<td>⚠ DEFECT-grade echo issues (F4).</td>
+</tr>
+<tr>
+<td><code>CAS_loop</code></td>
+<td>✅ Works. Self-healing acquisition (1 s DAQ timeout → stop/restart task, no error latch-up, ~1 Hz idle retry with no encoder); lossy bounded queues (1000-cycle rolling pre-trigger buffer) — no deadlock/growth path found. Risks: <code>Enque?</code> is an unbound panel control (compiled default decides whether SAVE ever gets data ⚠VERIFY); analytics still run on timeout garbage (feeds F3).</td>
+</tr>
+<tr>
+<td><code>SensorCalibration</code></td>
+<td>❌ NEEDS-CONFIG (F2): pressure "calibrations" are NI-example placeholders. Task: AI voltage, sample clock <code>/cRIO0/cRIO_Trig0</code> falling ("encoder sample clock"), start trigger <code>cRIO_Trig1</code> rising, continuous, 7200-buffer.</td>
+</tr>
+<tr>
+<td><code>SAVE_loop</code></td>
+<td>✅ Design sound (flush/buffer/post-mortem paths, no-disk branch), idle-safe. Config risks: <code>Cycles to measure</code> saved 0, <code>BufferingTimeLimit</code> saved 0, <code>DataSaveControl</code> write-back race with the PC UI, panel "No disk" LED saved red ⚠VERIFY recording end-to-end on the bench.</td>
+</tr>
+<tr>
+<td><code>9056SharedVarPolling</code></td>
+<td>✅ Works; absent/wrong-size 9056 array ⇒ all-NaN ⇒ <code>NaN ≥ 2 = FALSE</code> ⇒ gate fails safe. <strong>No staleness check</strong> — a <em>frozen</em> 9056 publisher holds the last state forever (F7).</td>
+</tr>
+<tr>
+<td><code>PressureAnalytics</code> chain</td>
+<td>⚠ Two structural findings (F2 cal, F3 diagnostics) + known author flags (§6). Data path and per-cylinder re-phasing confirmed correct (offsets 0,4800,2400,6000,1200,3600 ⇔ firing order 1-5-3-6-2-4, consistent with the TS10ms TDC offsets ×10).</td>
+</tr>
+<tr>
+<td><code>FPGA_main</code> + EPT/di_supv/esttl</td>
+<td>✅ Safety anchors confirmed (§3).</td>
+</tr>
+<tr>
+<td><code>FPGA_IGNDI_supervisor</code></td>
+<td>✅ Works; FPGA subVI — <strong>never read its own panel (saved defaults only)</strong>; counters surfaced to TS10ms 2026-07-16 and used as the live probe (12 = all channels active, verified deployed). ~~<code>Fault1 = 126</code> snapshot~~ <strong>F9 RESOLVED</strong>: stale saved panel; live faults 0/0 (§9).</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-safety-anchors-confirmed-as-built">3. Safety anchors (confirmed as-built)</h2>
+<ol>
+<li><strong>FPGA watchdog</strong>: <code>EPTControl.WatchdogIn</code> must toggle &gt; 4 Hz; trip shuts
+   down position tracking and all engine-synchronous outputs (spark/DI die
+   with sync — both consume EPT's <code>FuelSparkSupervisor</code>). RT toggles it every
+   10 ms unconditionally. <em>Auto-recovery on resumed toggling is undocumented —
+   bench-verify (SIL-1 drill).</em></li>
+<li><strong>Sync-loss latch</strong>: <code>MissedCrankFlag</code>/<code>MissedCamFlag</code> latch and block
+   re-sync until explicitly cleared (UI "Clear Sync Errors" → RT, or the
+   TS10ms panel switch). Confirmed by [EPT-UM] (encoder pattern): Z-edge
+   early / Z-edge missing ⇒ loss of sync, "re-sync is not allowed until the
+   flag is cleared". Falling below stall speed also drops sync
+   (CrankCount/CurrentPosition → 0, <code>SyncStopped</code> TRUE) but does not latch.</li>
+<li><strong>Spark Key interlock</strong>: spark output (<code>esttl_vt_spark_reva</code>) requires the
+   <code>Key</code> emitted by the DI supervisor — <strong>spark cannot fire unless the NI 9751
+   DI chain is powered and enabled, even for spark-only tests.</strong> Plan bench
+   sessions accordingly (and note: motoring is doubly spark-safe).</li>
+<li><strong>Power-up/no-encoder state is safe</strong>: modules configured then idle;
+   unsynced EPT + no DI enables + no Key ⇒ all engine-sync outputs dead until
+   RT connects <em>and</em> sync + state + enables all line up.</li>
+<li><strong>RT-side hard gate</strong>: spark/DI enables ANDed with <code>SYSTEMSTATE ≥ 2</code> and
+   <code>¬CylPressError</code> (per cylinder) — confirmed on the diagram. The state input
+   is the 9056-relayed echo, so the 9056 StateMachine (and its warning clamp +
+   the B0 watchdog) sits above 9049 actuation, as designed.</li>
+</ol>
+<h2 id="4-findings-that-need-action-ranked">4. Findings that need action (ranked)</h2>
+<p><strong>F1 — <code>Override PC settings</code> bypasses BOTH safety gates.</strong> The TS10ms True
+case substitutes panel-manual enables/settings for the PC-derived ones
+<em>upstream of nothing</em>: the <code>SYSTEMSTATE ≥ 2</code> and <code>¬CylPressError</code> gates are
+simply not applied in override mode. It's a deliberate dev/bench feature (and
+genuinely useful for SIL — §7), but it must never ride into a fueled system
+enabled. ⚠VERIFY saved default = FALSE in LabVIEW; add to the pre-fuel
+checklist; longer-term consider re-wiring the override <em>downstream</em> of the
+gates or deleting it from the deployed build.</p>
+<p><strong>F2 — Sensor calibrations are placeholders.</strong> The CAS task's per-channel
+custom scales (saved panel defaults of a headless VI) read like NI-example
+leftovers: slopes 1.00 (one 100.00), intercepts 0/5/10/15/0…, all "bar",
+±10 V. Until real transducer calibrations are entered, every pressure number
+— including the <code>CylPressError</code> decision that gates spark/DI — is
+meaningless. Enter real cals (and preferably move them to a config file, like
+the 9056's XML pattern) before any pressure-dependent step. Channel order:
+[Pcyl1–6, Ppre, Psyst, Pexh] = rows 0–8.</p>
+<p><strong>F3 — The pressure diagnostics will false-trip and then silently veto
+firing.</strong> Confirmed semantics: per-category <em>error</em> flags latch (cleared only
+by the PC CLEAR WARNINGS → <code>APC_MASTER_ClearWarnings</code> → 9049 relay
+<code>APC_SLAVE_ClearWarnings</code>); any latched error on any cylinder ⇒
+<code>9049_Global_CylPressError</code> = TRUE ⇒ spark and DI gated off. The chain has
+<strong>no state awareness</strong> (checks run identically motored or fired), and:
+- <code>Expected IMEP</code> — the reference for the misfire-from-IMEP check — is an
+  <strong>unwired front-panel control, saved 0.0, not on the connector pane</strong>.
+  ~~Trips on any healthy firing and on motoring~~ <strong>CORRECTED 2026-07-15
+  (F3d):</strong> the check is <strong>one-sided</strong> (<code>IMEP ≤ Expected − threshold</code>), so with
+  Expected = 0 it can only fire on IMEP &lt; −threshold — i.e. it is effectively
+  <strong>INERT</strong>: a silent <em>protection gap</em> (no misfire detection against the
+  intended reference), not a false-tripper. It becomes live — and useful —
+  only once <code>Expected IMEP</code> is actually driven to the true operating value.
+- CA50 on motored data is noise (the MFB rescale normalizes whatever it gets)
+  → <code>CA50max</code> errors latch randomly while motoring.
+- The first cycle after acquisition start is zero-padded garbage (2-cycle
+  circular buffer init) → running-IMEP-std / cyclic-variability errors likely
+  latch at every acquisition start.
+- The deployed thresholds live in an XML on the cRIO (via
+  <code>LoadWarningConfig</code> → <code>9049_WarningLevels</code>) whose contents are unknown —
+  possibly never set. ⚠VERIFY on target.</p>
+<p><strong>Confirmed from the exports (2026-07-11 — <code>LoadWarningConfig</code> / <code>Pcyl_Diag</code> /
+<code>CombCluster2Array</code>).</strong> <code>Pcyl_Diag</code> compares each metric to a <strong>Warning</strong> and an
+<strong>Error</strong> limit and emits two flag clusters; <code>CombCluster2Array</code> treats them
+differently — this is the crucial detail:
+- <strong>Warnings</strong> (index 0) → simple OR → the <code>WarningsAndErrors</code> indicator only
+  (advisory, non-latching).
+- <strong>Errors</strong> (index 1) → <strong>feedback-node latch</strong> per category → OR across all →
+  <code>9049_Global_CylPressError</code>. Only the <em>Error</em> level latches and vetoes fire;
+  the latch clears only when <code>APC_SLAVE_ClearWarnings</code> fires (True case).</p>
+<p>The exact field↔flag↔metric map (each field has a <code>…Warning</code> and <code>…Error</code>
+variant; the trip is <code>metric &gt; threshold</code>):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Error flag</th>
+<th><code>9049_WarningLevels</code> field</th>
+<th>metric compared</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>maximum pressure</td>
+<td><code>MaxPCylMax</code></td>
+<td>Pmax</td>
+</tr>
+<tr>
+<td>cyclic variability</td>
+<td><code>MaxIMEPstd</code></td>
+<td>running IMEPn std</td>
+</tr>
+<tr>
+<td>misfire cyl-to-cyl</td>
+<td><code>MaxDevFromAvg</code></td>
+<td>|IMEPg − cyl-mean|</td>
+</tr>
+<tr>
+<td>misfire self reg</td>
+<td><code>MaxDevFromSelfAvg</code></td>
+<td>|IMEPn − own running mean|</td>
+</tr>
+<tr>
+<td>misfire from IMEP</td>
+<td><code>MaxDevFromExpectedIMEP</code></td>
+<td>|IMEPn − Expected IMEP|</td>
+</tr>
+<tr>
+<td>knock</td>
+<td><code>MAPOmax</code></td>
+<td>MAPO</td>
+</tr>
+<tr>
+<td>late combustion</td>
+<td><code>CA50max</code></td>
+<td>CA50</td>
+</tr>
+</tbody>
+</table></div>
+<p>plus <code>samples for running IMEP std</code> (I32). <code>tools/tune_thresholds.py</code> emits this
+exact set (Warning+Error) from a SIL metrics CSV.</p>
+<p><strong>F3a — disarm-by-threshold FAILS for the phasing checks on no-combustion data
+(confirmed live 2026-07-14, SimEnable).</strong> With <code>CA50maxError</code> set to the disarm
+sentinel <code>1e6</code> (verified loaded in <code>9049_WarningLevels</code> via the UI), the
+late-combustion error <strong>still latches</strong> in SimEnable mode. Root cause: with no
+real combustion the pressure is flat (floating 9222 / sim), so the MFB
+normalization inside <code>APC_HRL</code>→<code>APC_9049_HRL_apparentHRL</code> divides by
+<code>HRmax−HRmin ≈ 0</code> → <strong>CA50 (and CA03/CA10/CA90/CA97) come out non-finite
+(NaN/Inf)</strong> — which beats <em>any</em> finite limit (<code>+Inf ≥ 1e6</code> is TRUE; a NaN defeats
+a negated/in-range compare). The <code>-99</code> sentinel array in <code>APC_HRL</code> shows the
+author anticipated CA-detection failure, but that default is <strong>not</strong> reaching the
+comparison in this mode. Implications: <strong>(1)</strong> you cannot "disarm" a phasing check
+by raising its threshold — the diagnostics need a <strong>validity guard / non-finite
+coerce</strong> (a <code>combustion detected?</code> gate that skips CA-based checks when
+<code>HRmax−HRmin ≈ 0</code>) before the rebuild; <strong>(2)</strong> for SIL-1 the phasing checks can
+only be exercised with a <strong>real pressure source</strong> driving the CAS channels (all
+6 <code>Pcyl</code>, since late-combustion is per-cylinder OR'd), not turned off by a big
+number. Confirm the returned value with <code>trace-sets/flat_set/</code> through the SIL-0 harness, or
+by probing the live <code>CA50</code> on the panel. Same family as the NaN-at-Unflatten
+bench bug — <strong>non-finite sanitization is a systemic gap in the analytics</strong> (F8).
+<em>Live confirmation 2026-07-14 (SIL-1 sim-pressure, clean motored stream):</em>
+late-combustion errors <strong>latch continuously on random cylinders</strong> (different
+subset each run) despite <code>CA50max = 1e6</code>, on trace data whose every other
+metric is clean (IMEP σ 0.06, Pmax σ 0.06). The CA50 trend shows the
+mechanism: motored CA50 noise band −25…−32 punctured by constant spikes
+<strong>pinned at ≈ +45 (the detector's search-window end)</strong> — the crossing detector
+fails on no-combustion data, usually clamping to the window end and
+intermittently returning <strong>non-finite</strong>, which beats any finite threshold.
+This is F3's "CA50max errors latch randomly while motoring", demonstrated with
+the disarm in place. The max-pressure <em>warning</em> row re-tripping at Pmax≈151
+vs limit 181 shows garbage values transiently reach the other comparisons too.
+Operational remedies: (1) CLEAR after acquisition starts; (2) baseline-motored
+acceptance = the other six flags clean (late-combustion latches are known
+noise); (3) for spark/DI <strong>gate</strong> tests stream a <em>fired</em> set — fired CA50 is
+stable (~12.9), so <code>CylPressError</code> stays FALSE. Structural remedy — <strong>BUILT and
+live-verified both directions (2026-07-14)</strong>: the <strong>state gate</strong> — late-combustion
+AND misfire-from-IMEP warning+error flags AND'd with
+<code>9049_Global_SYSTEMSTATE ≥ 2</code> in <code>CombCluster2Array</code>, upstream of the error
+latch (late combustion is only meaningful when combustion is commanded; same
+signal already gates spark/DI, so stale/NaN state fails consistent-safe). This
+is the F3 "no state awareness" root fix and also silences the finite noise
+clamps; the matrix <code>late_combustion</code> set proved the re-arm direction (ERROR ×6
+at state ≥ 2). <strong>As-built record + verification evidence:
+<code>docs/sil1-scope-of-work.md</code> Step 6c.</strong> (Non-finite CA sanitization to −99
+in <code>APC_HRL</code> stays as backlog hygiene for telemetry + the future CA50 closed
+loop — pattern recorded in 6c's closing note.)</p>
+<p>Actions: build a <strong>motoring threshold set</strong> (MaxDevFromExpectedIMEP, CA50max and
+MAPOmax disarmed — motoring can't knock and has no combustion phasing; IMEP-std
+and dev-from-avg generous; MaxPCylMax ≈ observed motored peak ×1.3, capped at the
+hardware ceiling) and a separate <strong>fired set</strong>. <code>tools/tune_thresholds.py</code> emits
+both directly from a metrics CSV. <strong>Knock (<code>MAPOmax</code>) and cyclic-variability
+(<code>MaxIMEPstd</code>) auto-tune only if the harness CSV carries <code>mapo</code>/<code>imepstd</code>
+columns</strong> — add them to the <code>APC_SIL0_HRL_Desktop</code> Build-Array (both are already
+in <code>CombustionAnalysisCluster</code>); until then <code>MAPOmax</code> stays hand-set for firing.
+Add the procedural step <em>"after sync is stable under motoring: CLEAR WARNINGS,
+confirm <code>CylPressError</code> = FALSE, then request IDLING/FIRING"</em>. The Expected-IMEP
+fix is DECIDED (F3d, 2026-07-15): <strong>wire it from the commanded <code>IMEP-REF</code></strong> — as-built
+it is not a false-tripper but INERT dead weight (one-sided check vs 0), a silent
+protection gap until wired.</p>
+<p><strong>F3b — the warning thresholds in the comparison path are DISCONNECTED from
+the FGV/XML (root cause found by live probe, 2026-07-14).</strong> Probes in
+<code>Pcyl_Diag</code>'s diagnose path: data wire = Pmax ✓ (150.83–150.95), but
+<code>MaxPCylMaxWarning</code> = <strong>100</strong> and <code>MaxPCylMaxError</code> = <strong>1000</strong> — while the
+<code>9049_WarningLevels</code> FGV (and the UI Retrieve display) holds the loaded XML
+values 213.5/231.3. The comparisons consume <code>Pcyl_Diag</code>'s local threshold
+values (saved panel defaults), which the LoadINI/Set management cases never
+effectively update — so <strong>every threshold entered via UI/XML reaches the
+display but NOT the protections.</strong> Consequences: the eternal all-six
+max-pressure warning (Pmax 151/178 &gt; 100); and <strong>F3a is likely re-explained</strong>
+— "late-combustion trips despite CA50max=1e6" = finite +45 noise spikes
+beating the <em>default</em> (~15), no non-finite values required (re-test the 1e6
+disarm after reconnection; non-finite sanitization stays as hygiene).
+<strong>ROOT CAUSE FOUND AND FIXED (2026-07-14):</strong> <code>Pcyl_Diag</code>'s <strong><code>Load INI on
+startup</code> control was saved FALSE</strong> — the running 9049 <strong>never loaded any
+warning XML</strong>; the comparisons ran on panel defaults (MaxPCylMax 100/1000,
+CA50max ≈15, …) since the system was built, while the display pipeline
+(XML → FGV → UI Retrieve) showed the loaded values. Scope had been confirmed
+by probes (<code>CA50maxError</code> ≈15 vs loaded 1e6 — all fields; VI non-reentrant).
+User set the control TRUE and saved it as default. <strong>This is F6
+(compiled-default configuration debt) at its most consequential</strong> — and it
+re-explains F3a: the "1e6-disarm-beating" late-combustion trips were finite
++45 CA50 noise beating the <em>default</em> 15. Residual verifications
+(<code>docs/sil1-scope-of-work.md</code> Step 6d): motored → max-pressure row green;
+re-test the CA50 1e6 disarm; check whether UI RELOAD INI/SET reach the
+compares <em>mid-run</em> (else XML swaps require an app restart); carry
+<code>Load INI on startup = TRUE</code> into every deployed build (§8 checklist).
+<strong>Commissioning lesson: verify protections by probe/behavior, never by the
+UI display — the display reads the FGV, not the comparisons.</strong></p>
+<p><strong>F3c — flag-order mismatch between <code>Pcyl_Diag</code> and the UI convention
+(found 2026-07-14, user).</strong> <code>Pcyl_Diag</code>'s Warnings/Errors cluster order is
+[maxP, <strong>cyclic variability</strong>, cyl-to-cyl, self reg, IMEPref, knock, late]
+(cyclic variability 2nd) while <code>CombCluster2Array</code>'s unbundles and the
+<code>_UI_Errors</code> label table use [maxP, self reg, cyl-to-cyl, IMEPref, <strong>cyclic
+variability</strong>, MAPO, late] (5th). Name-bound nodes are immune; any
+POSITIONAL consumer (U64 byte packing, <code>Warning2DColorMap</code> reshape, a
+Cluster-to-Array anywhere) scrambles metrics 2–5 between display and label —
+a latent mislabeling hazard in the safety display. <strong>RESOLVED as no active
+mislabeling (2026-07-14): the single-flag injection (<code>variability</code> set)
+tripped cyclic variability at display row 5 — grid matches labels.</strong> The
+typedef-order mismatch remains as latent debt: align the orders in the
+rebuild so no future positional consumer can scramble. Debugging pattern
+worth keeping: <code>CylPresWarnings</code>/<code>CylPresErrors</code> decode as one byte per
+metric (first metric in the top byte), bit-per-cylinder — a complete remote
+probe of the flag state.</p>
+<p><strong>F3d — all three misfire deviations are ONE-SIDED (low-side) checks (found
+2026-07-15, user, from the <code>Pcyl_Diag</code> print).</strong> Each is built as
+<code>IMEP ≤ (reference − threshold)</code> with no absolute value: misfire-from-IMEP
+(reference = Expected IMEP), misfire cyl-to-cyl (fleet mean), misfire self reg
+(own running mean). Confirmed by the matrix drill: in the <code>misfire</code> set only
+the LOW cylinder tripped cyl-to-cyl (the five above the dragged-down mean
+never can). <strong>Defensible as design intent</strong> — a misfire only removes work;
+the high side is covered by Pmax/MAPO — but three consequences: (1) the
+<code>MaxDevFrom…</code> field names mislead (they read as |deviation|); (2) with the
+unwired Expected = 0, misfire-from-IMEP is INERT (see the corrected F3
+bullet) — arm it by driving Expected IMEP when firing; (3) over-performance
+(over-fueling, IMEP high) is deliberately NOT caught by these checks — verify
+Pmax/knock margins carry that duty in the commissioning book.
+<strong>DECISION (2026-07-15): do NOT add Abs / two-sided compares to these
+checks.</strong> Rationale: misfire is inherently low-side; these flags latch a
+whole-engine spark/DI veto, and a two-sided <code>MaxDevFromSelfAvg</code> would false-
+veto on every load/speed-increase transient (IMEP rising above its own
+running mean) — re-creating F3-class false trips; the high side belongs to
+Pmax/MAPO. If high-side IMEP detection is ever wanted, build it in the
+rebuild as a <strong>separate warning-level (non-latching) check with its own
+thresholds</strong> — misfire drops are ~27 bar, over-performance excess ~1–3 bar;
+one shared limit cannot serve both sides. <strong>The actionable F3d item is
+arming, not symmetry: wire <code>Expected IMEP</code> from the commanded value
+(<code>IMEP-REF</code> in the PC command cluster) so misfire-from-IMEP goes live when
+firing.</strong> Any future Pcyl_Diag change ⇒ re-run the false-trip matrix
+(<code>tools/gen_warning_matrix.py</code> + SOW Step 6b) as the regression gate.
+Naming/typedef cleanup belongs with the F3c order alignment in the rebuild.</p>
+<p><strong>F4 — <code>9049_ControlSettings</code> echo is not what consumers think.</strong> Fresh
+export shows: element <strong>[0] is wired to the <code>PFI0 mode</code> panel control
+(constant 0), not the system state</strong> (author note: "…used for broadcasting
+current combustion mode through PFI0"); <strong>[1] InjectionEnable and [5]
+SparkEnable pass through Boolean-Array-To-Number</strong> — i.e. 6-cylinder bitmasks
+0–63, not 1/0 (this contradicts the earlier 2026-07-07 reading recorded in
+<code>supervisory/monarch/settings_9049.py</code>; a live capture decides — drive all
+six cylinders enabled and read whether [1] is 1 or 63); and the raster taps
+the <strong>pre-Override wires</strong>, so in override mode the echo reports what the PC
+<em>would have</em> commanded, not what fires. Consequences: the PC/9056/Python
+consumers of the echo see a stale state 0 in [0] today. Reconcile with a live
+capture during SIL-1, then fix <code>settings_9049.py</code> to match reality.</p>
+<p><strong>F5 — Simulation provisions must be OFF for any fueled run.</strong> Saved panel
+values found: <code>SimPeriod = 500</code> (and a non-zero EPTData snapshot — the sim
+was used); <code>UsePcylDatabase</code> render ambiguous. A build deployed with
+<code>SimEnable</code> TRUE "syncs" happily to a phantom engine; with <code>UsePcylDatabase</code>
+TRUE the diagnostics run on canned data. Both ⚠VERIFY = FALSE before
+deployment; both belong on the pre-fuel checklist permanently.</p>
+<p><strong>F6 — Compiled-default configuration debt (headless deploy).</strong> Several
+behavior-defining controls are unbound panel controls whose saved value is
+the deployed configuration: <code>Override PC settings</code>, <code>Enque?</code> (CAS→SAVE data
+flow!), <code>1/2 Z pulse</code>, <code>Must Use Cam &amp; Z</code>, <code>toggle TDC</code>, the DIControl enable
+switches, SimEnable/SimPeriod, <code>Cycles to measure</code>, <code>BufferingTimeLimit</code>.
+⚠VERIFY each in LabVIEW and record the intended values in a deployment sheet
+(candidate for a small INI, same pattern as the 9056).</p>
+<p><strong>F7 — No 9049-side staleness guard on the 9056 state relay.</strong> If the 9056
+<em>stops publishing but the value stays</em> (process frozen), the 9049 holds the
+last <code>SYSTEMSTATE</code> indefinitely — including ≥ 2, which keeps spark/DI
+enabled with a dead supervisor above them. (Total absence is safe: NaN →
+gate closed. And the 9056-side WatchDog covers the reverse direction,
+9049-loss → SAFE.) Cheap mitigation when wanted: stall-count
+<code>TimeStamp9056</code> (element 0 of the polled array) in CAS_loop and treat stale
+as state −1. Log as a commissioning watch item; same family as the closed
+loss-of-PC gap.</p>
+<p><strong>F8 — Analytics accuracy debt (author-flagged, inherited).</strong> <code>HRL_volume</code>:
+"FIX STROKE CALC", crankpin-offset inaccuracy, IVC/EVO/EVC "to be updated" ⇒
+absolute IMEP bias (motored and fired); threshold calibration inherits it.
+<code>APC_9049_CA</code>: the CA97 detector constant renders as 0.9 (same as CA90) —
+if real, CA97/CA10CA90 are wrong ⚠VERIFY. Pegging window = cylinder-frame
+samples 6900–7100 (+330…+350 CADATDC), additive peg to LP-filtered exhaust —
+fine, but Pmax-class metrics are offset-sensitive to a bad exhaust channel.
+None of this blocks motoring; it blocks <em>trusting</em> absolute numbers. The
+2023 "aligned with NOBLE calculation script" claim gives the cross-check
+route: rerun that alignment via SIL-0 with <code>truth.json</code>.</p>
+<p><strong>F9 — DI hardware unknowns for the firing step (from [Report], partially
+resolved).</strong> Injector current profile inherited from a single-cylinder project
+("could be biased") and physical actuation of all six never verified — both
+still open for SIL-3. ~~<code>Fault1 = 126</code> snapshot to decode~~ <strong>RESOLVED
+2026-07-16</strong>: stale saved panel, live faults 0/0 with modules present + enabled
+(§9); re-check once at first HV energize. Bench DI dry-fire (SIL-3) before fuel.</p>
+<h2 id="5-what-the-open-loop-use-case-does-doesnt-need">5. What the open-loop use case does / doesn't need</h2>
+<p>Not needed (and confirmed inert when off): KnockCA50 closed loop (both
+enables off ⇒ manual SA passthrough), PFI (strategy replaced by intake flow
+regulator), MTR/membrane, all 9056 closed-loop combustion-adjacent modes
+(9056 loops run mode 0/1), Modbus healing loop + legacy System-PID loop
+(deleted from RT_main). The dyno speed loop and thermal loops are 9056
+territory and out of scope here.</p>
+<p>Needed and used: EPT sync chain, spark path (manual SA + fixed 4 ms dwell,
+cutoff −60), DI path (manual duration/SOI, window constants now <strong>200/0
+DBTDC</strong> on the diagram — matches [GDoc]; the older 90/−30 reading is
+outdated), per-cylinder activate flags, CAS acquisition + analytics (as
+monitor + <code>CylPressError</code> gate), SAVE recording (the commissioning product),
+the state echo, and both watchdog directions.</p>
+<p>Minimal command surface (all already modeled in
+<code>supervisory/monarch/control_settings.py</code>): Activate cylinder ×6, DI enable +
+duration + advance, IGN enable + spark advance, CA50/Knock control = OFF,
+requested mode, speed selector. The existing Python command path (Phase B/C)
+can drive all of it.</p>
+<h2 id="6-on-working-as-intended-the-honest-scoreboard">6. On "working as intended" — the honest scoreboard</h2>
+<ul>
+<li><strong>Proven by the 2023 campaign</strong> ([Report]): sync + filtering + TDC toggle;
+  CAS clock/trigger generation; 6-cyl CAS processing to 4250 rpm; spark/DI
+  TTL outputs incl. per-cylinder disconnect; TDMS logging toolchain.</li>
+<li><strong>Confirmed by this audit (static)</strong>: gate logic, watchdog dataflow,
+  restart/queue robustness, phasing consistency, safety anchors, limiter
+  independence (9056 above 9049).</li>
+<li><strong>Broken/misleading as-built</strong>: F1–F4 above.</li>
+<li><strong>Unprovable without a bench run</strong>: watchdog auto-recovery, deployed panel
+  defaults, warning-XML contents, Trig0-follows-sim, recording end-to-end,
+  echo element semantics — exactly the SIL-1 agenda below.</li>
+</ul>
+<h2 id="7-sil-plan-layered-cheapest-first">7. SIL plan — layered, cheapest first</h2>
+<p><strong>SIL-0 — analytics on the dev PC (no hardware). — MATH VALIDATED
+(2026-07-11).</strong> → <strong>Click-level step-by-step: <code>docs/sil0-scope-of-work.md</code>.</strong>
+Generate traces (real MONARCH geometry, from picture15 — bore 0.112,
+½-stroke <code>Lm</code>=0.0745, rod <code>Lb</code>=0.217, CR 12.8, offset −0.00099):
+<code>python tools/gen_cas_traces.py trace-sets/sil0_traces --cycles 20 --mode mixed
+--fire-from 10 --misfire 3:14 --knock 1:16:2.5 --bore 0.112 --stroke 0.149
+--conrod 0.217 --cr 12.8 --pin-offset=-0.00099 [--q-fired 6000]</code>. The
+generator emits <strong><code>cycle_NNNN_phased.csv</code> (6×7200, already phased, TDC at
+sample 3600)</strong> + <code>truth.json</code>.</p>
+<p><strong>Harness built:</strong> <code>APC_SIL0_HRL_Desktop.vi</code> on My Computer (globals-free —
+sidesteps the <code>9049_Global_CylPressError</code> target-relative trap): List Folder
+(<code>*_phased.csv</code>) → For loop → Read Delimited Spreadsheet (<strong>comma</strong> delimiter)
+→ <strong><code>support/APC_HRL.vi</code></strong> with <code>Pcyl</code>=6×7200, <code>exhaust pressure</code>=flat
+<code>Initialize Array(3.0, 7200)</code>, <code>FilterCoefs</code> from <code>HRL_CreateFilter</code>
+(<code>Expected IMEP</code> left unwired — feeds only the misfire diag). <code>APC_HRL</code> has
+<strong>no geometry input</strong> (internal <code>VOL</code> constant) and runs its <strong>own For loop
+over the 6 cylinders</strong>, so its cluster fields (<code>IMEPg/IMEPn/Pmax/CA50</code>) come
+out as <strong>6-element arrays</strong>. Inner loop over those → rows
+<code>[cycle, cyl, IMEPg, IMEPn, Pmax, CA50]</code> → concatenating tunnel → Write
+Delimited Spreadsheet → <code>labview_metrics.csv</code>. Score with
+<code>tools/compare_hrl.py truth.json labview_metrics.csv</code>.</p>
+<p><strong>Result (2026-07-11): 425 comparisons, ALL within tolerance</strong> — worst |Δ|
+IMEPg 0.001 bar, IMEPn 0.000, Pmax 0.002 bar, CA50 0.112 CADATDC, across all
+20 cycles × 6 cylinders (motored + fired). The 9049 HRL/IMEP/CA50 math is
+faithful vs known truth (F8 verdict: the math is sound; any absolute IMEP
+bias would show as a consistent offset — none seen at this geometry).
+<em>Python side (generator + <code>compare_hrl.py</code> + tests) done and self-tested.</em></p>
+<p><strong>~~Still to do in SIL-0~~ — ✅ COMPLETE (thresholds 2026-07-13/14; false-trip
+matrix 7/7 in SIL-1 Step 6, 2026-07-14 — <code>tools/gen_warning_matrix.py</code>, record
+sheet <code>docs/cRIO9049 Warning Matrix.xlsx</code>).</strong> The steps below are kept as the
+repeatable recipe (they are the regression procedure whenever <code>Pcyl_Diag</code>
+or the thresholds change — F3d rule). This produces the two warning-XML profiles
+(motoring, fired) the 9049 loads at
+run time, and proves the false-trip/latch behaviour F3 warns about. <strong>Scope
+boundary:</strong> the desktop harness runs <code>support/APC_HRL.vi</code> <strong>only</strong> (it computes
+the metrics), so Steps 1–4 (generate → metrics → thresholds) run fully
+off-hardware; the <strong>latch</strong> tests (Step 5) need the
+<code>Pcyl_Diag → CombCluster2Array → 9049_Global_CylPressError</code> chain and are best
+run in SIL-1 on the real 9049 — that global is a <em>target-relative single-process</em>
+variable (the trap that kept those VIs off the desktop harness).</p>
+<p><strong>Step 1 — Generate the motored trace set.</strong></p>
+<pre><code>python tools/gen_cas_traces.py trace-sets/motored_set --cycles 30 --mode motored \
+  --bore 0.112 --stroke 0.149 --conrod 0.217 --cr 12.8 --pin-offset=-0.00099
+</code></pre>
+<p>Writes into <code>trace-sets/motored_set/</code>: raw <code>cycle_NNNN.csv</code> (9×7200 — Pcyl1–6, Ppre, Psyst,
+Pexh), <strong><code>cycle_NNNN_phased.csv</code> (6×7200, each cylinder already in its own frame,
+TDC at sample 3600 — these feed <code>APC_HRL</code> directly)</strong>, and <code>truth.json</code> (the
+computed IMEPg/IMEPn/Pmax/CA50 per cycle·cylinder). <code>--mode motored</code> =
+compression/expansion only, no combustion, so IMEP ≈ −1 bar and Pmax is the
+motored peak (~150 bar at this geometry/CR). Geometry is the picture15 as-built
+(<code>--stroke 0.149</code> = 2×half-stroke 0.0745); raise <code>--cycles</code> for tighter
+statistics. <em>Accept:</em> 30 <code>*_phased.csv</code> + <code>truth.json</code> present; the generator
+prints the per-cycle period.</p>
+<p><strong>Step 2 — Run the set through the harness → metrics, and re-confirm the math.</strong>
+Point <code>APC_SIL0_HRL_Desktop.vi</code> (My Computer) at <code>trace-sets/motored_set/</code>: List Folder
+(<code>*_phased.csv</code>) → For loop → Read Delimited Spreadsheet (<strong>comma</strong> delimiter) →
+<code>support/APC_HRL.vi</code> with <code>Pcyl</code> = the 6×7200 array, <code>exhaust pressure</code> =
+<code>Initialize Array(3.0, 7200)</code> (flat — <strong>must</strong> be wired or pegging → NaN),
+<code>FilterCoefs</code> from <code>HRL_CreateFilter</code>. <code>APC_HRL</code> runs its own loop over the 6
+cylinders, so its <code>IMEPg/IMEPn/Pmax/CA50</code> come out as <strong>6-element arrays</strong>; the
+inner loop writes one row per (cycle, cyl) — <code>[cycle, cyl, IMEPg, IMEPn, Pmax,
+CA50]</code>, <strong>cycle = outer i+1, cyl = inner i+1</strong> — through a concatenating tunnel →
+Write Delimited Spreadsheet → <code>trace-sets/motored_set/labview_metrics.csv</code>. Then sanity-check
+before trusting any threshold derived from it:</p>
+<pre><code>python tools/compare_hrl.py trace-sets/motored_set/truth.json trace-sets/motored_set/labview_metrics.csv
+</code></pre>
+<p><em>Accept:</em> <code>labview_metrics.csv</code> has 30×6 = 180 numeric rows and <code>compare_hrl</code>
+prints "ALL metrics within tolerance". (If it fails, fix the harness before
+Step 3 — every threshold below is derived from these numbers.)</p>
+<p><strong>Step 3 — Recommend and enter the motoring thresholds.</strong></p>
+<pre><code>python tools/tune_thresholds.py trace-sets/motored_set/labview_metrics.csv --mode motored \
+  --pmax-hard-limit &lt;engine over-pressure ceiling, bar&gt;
+</code></pre>
+<p>Prints the full <code>9049_WarningLevels</code> set (each field as <code>&lt;field&gt;Warning</code> /
+<code>&lt;field&gt;Error</code>) plus the <code>samples for running IMEP std</code> window, with rationale:</p>
+<ul>
+<li><strong><code>MaxPCylMax</code></strong> — Warning ≈ peak×1.2, Error ≈ min(peak×1.3, <code>--pmax-hard-limit</code>).
+  The ceiling is the engine's physical over-pressure limit (get the number from
+  the team); the Error limit is never allowed above it.</li>
+<li><strong><code>MaxIMEPstd</code> / <code>MaxDevFromAvg</code> / <code>MaxDevFromSelfAvg</code></strong> — generous (motored
+  cycles are repeatable; these mainly guard against acquisition glitches).</li>
+<li><strong>DISARMED for motoring</strong> (the XML field set to the huge sentinel — effectively
+  off): <strong><code>CA50max</code></strong> (motored CA50 is MFB noise), <strong><code>MaxDevFromExpectedIMEP</code></strong>
+  (the unwired-Expected-IMEP-0 trap, F3), <strong><code>MAPOmax</code></strong> (motoring can't knock).</li>
+</ul>
+<p>Enter each Warning + Error into the <strong>UI CYLINDER (Errors) screen</strong>
+(<code>APC_PC_UI_Errors.vi</code>) → this sets <code>9049_WarningLevels</code> (<code>SetWarningLimits</code>);
+<strong>Save to INI</strong> (<code>SaveWarningLimitsToINI</code>) so it survives redeploy, and
+<code>LoadWarningConfig</code> loads it into the running 9049 at startup. Adjust margins with
+<code>--pmax-margin</code> (default 1.30), <code>--std-margin</code> (5.0), <code>--imep-std-samples</code> (20 =
+the I32 std window). <em>Accept:</em> the motoring profile saved on the 9049; a CLEAR
+WARNINGS then <code>CylPressError = FALSE</code> confirmed before the first IDLING request.</p>
+<p><strong>Keep a separate fired profile.</strong> Once fired cycles exist (a <code>--mode fired</code>
+synthetic set now, or captured light-off data later): same harness →
+<code>tune_thresholds … --mode fired --pmax-hard-limit &lt;ceiling&gt;</code>. Fired mode arms
+<code>CA50max</code> and <code>MaxDevFromExpectedIMEP</code> from the data — but the latter still
+<strong>requires Expected IMEP actually driven</strong> (else leave it disarmed); <code>MAPOmax</code>
+stays hand-set unless you add the MAPO column (Step 4). Save it as a <strong>second</strong>
+XML profile; never fire on the motoring set.</p>
+<blockquote>
+<p><strong>⚠ The two-profile scheme is NOT built — this is new work, not "save a second file."</strong>
+The as-built 9049 has a <strong>single</strong> profile slot: one <code>9049_WarningLevels</code> variable
+persisted to one hardcoded <code>CylWarningLevels.xml</code> (<code>APC_9049_LoadWarningConfig.vi</code>,
+no state input), and the UI edits that one slot — <code>SaveWarningLimitsToINI</code> <strong>overwrites</strong>
+the file, it does not keep two. A real motoring/fired split needs: (a) two persisted
+profiles; (b) a <strong>state-driven selector on the 9049</strong> that swaps the active limits at the
+MOTORING↔FIRING transition; (c) UI to edit each profile; (d) <strong>fail-safe</strong> handling —
+load-fail ⇒ hold the <em>tighter</em> set or safe-hold, tie the swap to <em>actual</em> (not commanded)
+state, and manage the <code>CylPressError</code> latch so the swap itself doesn't nuisance-trip.
+Until it's built, treat the two profiles as <strong>operator-swapped by hand</strong> (re-enter + Save
+the correct set before changing run type). Tracked in <code>docs/migration-seam.md</code> (backlog,
+item 3).</p>
+</blockquote>
+<p><strong>Step 4 — (optional) add <code>MAPO</code> + <code>IMEPstd</code> harness columns to tune knock +
+cyclic-variability from data.</strong> <code>MAPOmax</code> (knock) and <code>MaxIMEPstd</code> (cyclic
+variability) can't be derived from IMEP/Pmax/CA50 — they need the analytics' own
+<code>MAPO</code> and <code>IMEPstd</code>, which <code>APC_HRL</code> already computes inside
+<code>CombustionAnalysisCluster</code>; the harness just isn't writing them out. In
+<code>APC_SIL0_HRL_Desktop.vi</code>, unbundle <strong><code>MAPO [bar/CAD]</code></strong> and <strong><code>IMEPstd [bar]</code></strong>
+alongside the existing four, extend the inner-loop Build Array, and write a header
+row naming the columns (the tool matches by name — <code>mapo</code>, <code>imepstd</code>,
+order-independent):</p>
+<pre><code>cycle,cylinder,imep_g,imep_n,pmax,mapo,ca50,imepstd
+</code></pre>
+<p>Re-run <code>tune_thresholds</code>: the report now reads "analytics IMEPstd column" and, in
+<code>--mode fired</code>, emits a numeric <code>MAPOmax</code> (×2/×3 of observed clean-combustion
+MAPO — a starting point to refine from a knock-onset sweep). Motored still
+disarms <code>MAPOmax</code> (no knock) but tightens <code>MaxIMEPstd</code> from the real column.</p>
+<p><strong>Step 5 — the false-trip / latch matrix + clear-warnings path</strong> (best done in
+SIL-1 — needs the diagnostic chain, not just <code>APC_HRL</code>). Purpose: prove a genuine
+fault latches <code>9049_Global_CylPressError</code> (which vetoes spark/DI) and that CLEAR
+WARNINGS releases it — the behaviour F3 warns about. <strong>TOOLED (2026-07-14):
+<code>python tools/gen_warning_matrix.py</code> emits the whole drill</strong> — 7 trace sets
+(clean controls + one per fault), an all-armed <code>CylWarningLevels.drill.xml</code>, and
+a manifest with the <em>computed</em> expected Warning/Error per set; run it via the
+CAS_loop sim-pressure branch per <code>docs/sil1-scope-of-work.md</code> Step 6. The
+underlying fault recipes:</p>
+<ul>
+<li><strong>Misfire</strong> — <code>--misfire &lt;cyl&gt;:&lt;cycle&gt;</code>: a dead cylinder → IMEP collapses →
+  <code>misfire from IMEP</code> / <code>misfire self reg</code> / <code>misfire cyl-to-cyl</code> Errors →
+  <code>CylPressError</code> latches.</li>
+<li><strong>Knock</strong> — <code>--knock &lt;cyl&gt;:&lt;cycle&gt;:&lt;intensity&gt;</code>: pressure oscillation → <code>MAPO</code>
+  spikes → <code>knock</code> Error (requires <code>MAPOmax</code> armed + the MAPO column, Step 4).</li>
+<li><strong>First-cycle garbage</strong> — the 9049's 2-cycle circular buffer makes the first
+  acquired cycle zero-padded → <code>cyclic variability</code> may latch at every
+  acquisition start; confirm the <code>MaxIMEPstd</code> floor (or a skip-first-cycle)
+  suppresses it.</li>
+</ul>
+<p>Then exercise the clear path: <strong>PC CLEAR WARNINGS → <code>APC_MASTER_ClearWarnings</code> →
+9049 relay <code>APC_SLAVE_ClearWarnings</code></strong> resets the feedback-node latches →
+<code>CylPressError</code> returns FALSE and spark/DI gating is restored. <em>SIL-0 output:</em> the
+finalized <strong>motoring + fired warning-XML profiles</strong>, plus a documented false-trip
+matrix (which fault trips which metric at the chosen limits) in the commissioning
+book.</p>
+<p><strong>SIL-1 — virtual crankshaft on the real 9049 (EPT simulator).</strong> → <strong>Click-level
+step-by-step: <code>docs/sil1-scope-of-work.md</code>.</strong> Run
+<code>RT_main</code> interactively from the dev environment (or a bench build), HV/fuel
+physically absent. <code>SimEnable</code> TRUE; <code>SimPeriod = 60·4e7/(rpm·3600)</code> → 741 ≈
+900 rpm, 370 ≈ 1800 rpm (or use the vendor <code>speed2ticks.vi</code>; the simulated
+signals are also mirrored on <code>SimCrankSig</code>/<code>SimCamSig</code> indicators for scope
+checks [EPT-UM]). Note the simulator injects <em>at the EPT input</em>, so the ½-Z
+synthetic-cam logic, deglitch filters, and NI 9401 wiring are NOT exercised —
+that's SIL-2's job. Agenda:
+1. Sync acquired (CrankStalled/SyncStopped clear, CrankCount/CurrentPosition
+   rolling, Speed(RPM) correct).
+2. <strong>Does Trig0 follow the sim?</strong> The FPGA export shows <code>cRIO_Trig0</code> wired
+   from <code>CrankSigOut</code> (which carries simulated signals in sim mode), so CAS
+   acquisition should clock — the Deck's "Trig0 = ENC A" text describes
+   pass-through. Confirm: CAS_loop stops timing out and delivers 7200-sample
+   cycles (of whatever is on the 9222 terminals). <strong>→ CONFIRMED on the bench
+   (2026-07-14): <code>rpm from DAQ</code> = the TS10ms-set rpm, so Trig0 clocks acquisition in sim mode.</strong>
+3. Spark/DI scheduling: enable via <code>PC_ControlSettings</code> with the state gate
+   satisfied (drive <code>9049_Global_SYSTEMSTATE</code> ≥ 2 by running the 9056, or SV
+   injection, or — bench-only — Override mode w/ F1 noted); observe
+   <code>NumberOfActiveIGN_DI</code> = 12, scope the Mod4 spark and Mod5/6 DI outputs,
+   sweep SA/SOI from the Python command path and watch <code>dT inj</code>/<code>SparkOut</code>.
+4. Drills: watchdog (stop the RT loop → outputs die; resume → document
+   recovery behavior), sync-loss inject + clear, state-gate walk (spark/DI
+   dead below state 2), <code>CylPressError</code> veto + clear, echo live-capture (F4),
+   recording drill (REC → TDMS files appear, <code>Enque?</code> answered).
+Pressure inputs during SIL-1 are whatever the 9222 terminals float at — use
+the SIL-0-derived open thresholds, or drive 1–2 channels from a function
+generator/AO, or (optional) the Seam-A sim-read below.</p>
+<p><strong>SIL-2 — physical encoder emulation (the 2023 rig, resurrected).</strong> Feed
+real A(+B)+Z(+cam) TTL into Mod3 DIO0–3: the Arduino emulator from [Report]
+Fig. 20 if it still exists in the lab, else a ~$20 microcontroller (in <code>1/2 Z
+pulse</code> cam-less mode only <strong>A + Z</strong> are required; 1800 rpm = 108 kHz A, 30 Hz
+Z, phase-locked — beyond typical two-channel function generators). Adds
+coverage the internal sim can't: NI 9401 input path, deglitch filters, the
+synthetic-cam logic, real quadrature. Also the path to <em>speed-transient</em>
+tests the internal sim can't do without RT-side SimPeriod ramping.</p>
+<p><strong>SIL-3 — actuation dry tests (commissioning entry, after SIL-1/2 pass).</strong>
+Spark coils on bench plugs; DI drivers into dummy loads/disconnected
+injectors; remember the Key interlock (9751s must be powered+enabled for any
+spark). Fault registers verified clean pre-HV (F9 resolved 2026-07-16); re-read
+them at first HV energize. This is the boundary where the
+team's commissioning plan takes over.</p>
+<p><strong>Optional Seam-A/B build (full-chain SIL with no cRIO at all):</strong> CAS_loop's
+DAQmx Read wrapped in a sim case that reads <code>cycle_????.csv</code> (NOT <code>cycle_*.csv</code>
+— that also matches the <code>_phased</code> files and poisons the metrics) + waits one cycle
+period (133 ms @ 900 rpm — printed by the generator); SensorCalibration's
+task-creation frame already sits in a Diagram-Disable whose empty frame is
+the natural stub. <em>(The Seam-A sim case is now BUILT in CAS_loop and ran the
+whole Step-6 matrix — <code>docs/sil1-scope-of-work.md</code> 6a; this note remains only
+for the no-cRIO desktop variant.)</em> Worth building if the cRIO bench is a
+bottleneck; otherwise SIL-1 covers more with less LabVIEW surgery.</p>
+<h2 id="8-pre-fuel-checklist-add-to-the-commissioning-book">8. Pre-fuel checklist (add to the commissioning book)</h2>
+<p>Every item ⚠ must be re-verified on the <em>deployed build</em>, not the dev copy:
+1. <code>Override PC settings</code> = FALSE (F1) — and nobody's bench build leaks in.
+2. <code>SimEnable</code> = FALSE, <code>UsePcylDatabase</code> = FALSE, <strong><code>SIM pressure?</code> = FALSE</strong>
+   (the CAS_loop sim-read branch, if built — <code>sil1-scope-of-work.md</code> Step 6a) (F5).
+3. Real sensor calibrations entered + spot-checked (F2).
+4. Motoring warning XML loaded — <strong>not the all-armed <code>CylWarningLevels.drill.xml</code></strong>
+   (drill-sized, uncapped Pmax); CLEAR WARNINGS drill done; <code>CylPressError</code>
+   = FALSE confirmed before first IDLING request (F3).
+   <strong>4b. <code>Load INI on startup</code> = TRUE on the deployed build</strong> (F3b — saved
+   FALSE meant the XML was NEVER loaded and the comparisons ran on panel
+   defaults while the UI displayed the loaded values). <strong>Verify the ACTIVE
+   thresholds by probe or trip-behavior, never by the UI display</strong> (the
+   display reads the FGV, not the comparisons).
+5. <code>Enque?</code> = TRUE + a recording drill has produced readable TDMS (F6).
+6. Encoder mode flags (<code>1/2 Z pulse</code>, <code>Must Use Cam &amp; Z</code>, <code>toggle TDC</code>)
+   match the actual engine sensor set.
+7. Watchdog drill + sync-loss drill passed on the deployed build (SIL-1 §4).
+8. State-gate drill: spark/DI provably dead below IDLING from the real
+   command path (not Override).
+9. <code>9049_ControlSettings</code> echo reconciled with a live capture; Python
+   <code>settings_9049.py</code> updated (F4).
+10. E-stop path exercised end-to-end with the 9049 in the loop.</p>
+<h2 id="9-open-questions">9. Open questions</h2>
+<ul>
+<li>~~Trig0-in-sim (decides SIL-1 item 2)~~ <strong>RESOLVED (2026-07-14, bench): YES.</strong> With the EPT
+  sim running, <code>APC_9049_CAS_loop</code>'s <code>rpm from DAQ</code> tracked the <code>SimPeriod</code> rpm set on TS10ms —
+  so <code>cRIO_Trig0</code> (from <code>CrankSigOut</code>) clocks CAS acquisition in sim mode. Acquisition testing
+  does <strong>not</strong> need SIL-2's real encoder. (Also confirmed same session: <code>Graph time</code> delivers
+  full 7200-sample cycles + DAQ error 0 — Step 2 fully closed.)</li>
+<li>Watchdog auto-recovery semantics (SIL-1 drill).</li>
+<li>Deployed warning-XML values; <code>Enque?</code>/Override/Sim saved defaults.</li>
+<li>Echo bitmask vs 1/0 (F4) — live capture.</li>
+<li>Does the Arduino encoder emulator still exist in the lab? (SIL-2)</li>
+<li>~~<code>Fault1 = 126</code> meaning (NI 9751 manual) (F9)~~ <strong>RESOLVED for the pre-HV bench
+  (2026-07-16, SIL-1 4b; <code>screenshots/DIControl_before-state.png</code> +
+  <code>DIControl_enabled-state.png</code>):</strong> <code>Fault1 = 0</code> / <code>Fault2 = 0</code> on both 9751s with all
+  enables FALSE <strong>and</strong> with <code>ModuleEnable = TRUE</code>; <code>ModulePresent</code> TRUE ×2; reads
+  proven live (TempSense 26→27, LVSense 85⇄84). The historical 126 was a stale
+  saved-panel snapshot, not a live fault. <strong>Residual:</strong> supply faults can only appear
+  when HV is expected — if a nonzero fault appears at first HV energize (4e / SIL-3),
+  decode it against the NI-9751 manual then (also check LVSense scaling — 84–85 raw;
+  confirm units before trusting the LV-supply margin).</li>
+<li>~~Engine geometry values~~ <strong>RESOLVED</strong> — bore 0.112 / stroke 0.149 / rod
+  0.217 / CR 12.8 / pin-offset −0.00099 (picture15), used in SIL-0 and validated
+  (§7, 425 comparisons in tolerance). Remaining: confirm picture15 matches the
+  as-built engine, and the working-fluid (argon) kappas for the analytics.</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/9049-openloop-audit.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

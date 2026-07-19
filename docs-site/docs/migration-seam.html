@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MONARCH LabVIEW → Python — Migration Seam &amp; Port Backlog — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/migration-seam.md</span></div>
+<main><h1 id="monarch-labview-python-migration-seam-port-backlog">MONARCH LabVIEW → Python — Migration Seam &amp; Port Backlog</h1>
+<p>Where to draw the boundary between what stays in LabVIEW/cRIO/FPGA and what moves to
+Python, and in what order to port. Derived from the <code>MONARCH.lvproj</code> target map, the
+shared-variable libraries, and the exported documentation (<code>APC Control System - LV
+MONARCH Overview.pdf</code>, the FPGA design decks, and the SCADA/logging/report <code>.docx</code>
+set under <code>original-labview-codebase/</code>). Where the sources are silent or a TODO, this
+doc says so explicitly.</p>
+<p><strong>This is the analysis document.</strong> The executable sequence — phases A–E with authority
+gates, exit criteria, and <strong>current project status</strong> — is <code>docs/migration-plan.md</code>;
+the backlog at the bottom of this doc maps 1:1 onto its phases.</p>
+<h2 id="the-one-invariant-and-why-it-already-holds-in-hardware">The one invariant (and why it already holds in hardware)</h2>
+<p>Hard real-time and safety stay on the cRIO/FPGA; a dead/absent Python side must equal a
+safe hold. This is <strong>already enforced in hardware</strong>: the 9049 FPGA runs a <strong>watchdog
+(<code>WatchdogIn</code>) that the RT loop must toggle &gt; 4 Hz</strong>, whose stated job is to <em>shut down
+engine position tracking and all engine-synchronous outputs on loss of LabVIEW-RT
+communication</em>. If the layer feeding the FPGA stalls, spark and injection stop on their
+own. Giving Python supervisory authority is therefore structurally safe <strong>provided
+Python sits above the RT watchdog-toggle loop and never becomes responsible for petting
+that watchdog.</strong> Safe-state limiting (feeds closed, vents open, cooling max, dyno
+stopped, IGN/DI off) is likewise enforced on the cRIOs (the 9056 StateMachine), not the
+PC.</p>
+<p><strong>Confirmed on the 9056 too (2026-07-14, from the <code>APC_9056_FPGA_main</code> print):</strong> the 9056
+FPGA runs its own RT-stall watchdog — an <code>RT watchdog</code> boolean the RT side must keep
+toggling, checked on a 10 ms clock; on counter overflow (<code>Counter max</code> default 100 ⇒ 1 s)
+it forces <strong>all analog outs to 0 and all digital outs FALSE</strong> ("SAFE state is applied if
+RT watchdog is not alive"). So the plant/gas side has a below-RT hardware fallback
+symmetric to the 9049's spark/DI kill; <strong>both cRIOs safe-hold if their RT loop dies.</strong>
+Caveats: the RT-configured <code>Counter max</code> on the deployed build is unconfirmed, and
+AO=0/DO=FALSE is safe only because actuators are fail-safe de-energized (vents 0=open).
+Details in <code>docs/9056-warning-policy-asbuilt.md</code> (side findings).</p>
+<h2 id="architecture-4-targets">Architecture (4 targets)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Top VI</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PC (Windows)</strong></td>
+<td><code>APC_PC_UI_Main</code></td>
+<td>Thin HMI/SCADA over shared variables + Modbus master to the MTR membrane PLC. <strong>Almost no control logic.</strong></td>
+</tr>
+<tr>
+<td><strong>cRIO-9049</strong> (FPGA+RT)</td>
+<td><code>APC_9049_RT_main</code> → <code>APC_9049_FPGA_main</code></td>
+<td>Engine-synchronous: encoder→crank-angle, spark &amp; DI timing, cylinder-pressure/combustion analysis.</td>
+</tr>
+<tr>
+<td><strong>cRIO-9056</strong> (FPGA+RT)</td>
+<td><code>APC_9056_RT_main</code></td>
+<td>Plant: gas (NG/Ar/O2), thermal HX, vents, dyno, membrane — <strong>and the supervisory StateMachine</strong>.</td>
+</tr>
+<tr>
+<td><strong>MTR PLC</strong></td>
+<td>external</td>
+<td>CO2/membrane gas-separation skid; own state machine + heartbeat, over Modbus TCP.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Command path today: operator → PC writes <code>PC_ControlSettings</code> → <strong>9056 StateMachine</strong>
+limits it to <code>Limited_ControlSettings</code> + sets <code>SYSTEM STATE</code> → 9056 controllers and 9049
+consume it; 9049 publishes <code>9049_ControlSettings</code> back.</p>
+<h2 id="the-seam">The seam</h2>
+<p><strong>FLOOR — stays in LabVIEW/cRIO/FPGA (hard real-time, safety, or data-local):</strong>
+- <strong>9049 FPGA:</strong> engine position tracking (encoder→CAD @ 40 MHz), spark &amp; DI pulse
+  generation, encoder deglitch, crank-synchronous DAQ triggers, the <strong>watchdog</strong> and
+  <strong>sync-loss latching</strong>, the on-FPGA IGN/DI supervisor + <code>Key</code> unlock.
+- <strong>9049 RT:</strong> cylinder-pressure DAQ + combustion analysis (HRL/IMEP/CA50/MAPO/MFB) —
+  per-cycle (7200 samples/cycle, ~67 ms at 1800 rpm), data-heavy, stays for locality;
+  the <strong>hard spark/DI enable gate</strong> <code>(SYSTEMSTATE ≥ 2) ∧ ¬CylPressError ∧ Activate ∧ Enable</code>.
+- <strong>Everywhere:</strong> DAQ config, valve/mA drivers, sensor calibration, Modbus I/O, heartbeats.</p>
+<p><strong>MIDDLE — RT loop stays; Python supplies setpoint + mode:</strong>
+- 9056 control loops, each with a <strong>3-mode pattern (0 = safe/bypassed, 1 = manual
+  setpoint, 2 = closed-loop):</strong> O2 (on concentration), NG (on lambda), Ar (on system
+  pressure), coolant/exhaust/oil thermal HX (cascade PIDs), dyno/speed, membrane skid.
+  The <strong>PID execution stays real-time on the cRIO</strong>; the mode and setpoint are the Python
+  hand-off. Thermal loops fail to <strong>max cooling</strong> in SAFE.
+- Knock/CA50 spark-trim PID (currently disabled): enable + CA50 setpoint from Python,
+  PID stays on 9049.
+- Spark/DI <strong>timing setpoints</strong> (spark advance, dwell, DI advance/duration/window):
+  decided above, converted to crank-angle ticks and executed by RT/FPGA.</p>
+<p><strong>BRAIN — Python port targets (supervisory, slow, testable):</strong>
+- <strong>9056 StateMachine</strong> — mode arbitration + the per-state max-level-of-control limit
+  table + the transition rules. Fully specified (see below). <em>The first port.</em>
+- <strong>Warning/diagnostic → state policy</strong> — thresholds/levels (editable, INI-persisted),
+  the warning→max-state clamp, the severity→reaction map (yellow = self-clearing info,
+  <strong>orange → idle, red → motoring, black → emergency stop &amp; vent</strong>), and the
+  <strong>temporal rules the author flagged as not-yet-built</strong> (e.g. "oil pressure low &gt; X s").
+- <strong>Run sequencing / recipes</strong> — cranking/start, purge, motoring→firing light-off,
+  venting + recovery-from-venting, misfire recovery, working-fluid quality check.
+  <strong>These are named in the docs as still-to-build research goals — they do not exist in
+  LabVIEW.</strong> Greenfield: author in Python, testable from day one.
+- <strong>Setpoint scheduling</strong> — choosing the 3-mode + setpoints for the MIDDLE loops as a
+  function of state and operator intent. PC request conditioning and MTR commanding.</p>
+<h2 id="contracts-python-must-honor-byte-for-byte">Contracts Python must honor byte-for-byte</h2>
+<ul>
+<li><strong><code>PC_ControlSettings</code></strong> — the operator→cRIO command cluster. <strong>Already modeled and
+  confirmed</strong> against a live capture (<code>supervisory/monarch/control_settings.py</code>,
+  <code>docs/monarch-control-settings.md</code>).</li>
+<li><strong><code>Limited_ControlSettings</code></strong> — the StateMachine output; same shape as
+  <code>PC_ControlSettings</code>, clamped. Python decodes it already (the optional
+  <code>limited_settings</code> telemetry field); the gateway pre-wire is Phase A2.</li>
+<li><strong><code>9049_ControlSettings</code></strong> — the 9049 command subset (STATE, InjectionEnable,
+  Main{Enable/Duration/SOI}, SparkEnable, SparkTiming, Speed). <strong>Not yet modeled</strong>
+  (needed by Phase C at the latest).</li>
+</ul>
+<h2 id="statemachine-transition-rules-consolidated-spec">StateMachine transition rules (consolidated spec)</h2>
+<p>Inputs: <code>CURRENT SYSTEM STATE</code>, <code>STATE LIMITATION FROM WARNINGS</code>, <code>PC_ControlSettings</code>,
+<code>ForceState</code>, <code>ManualState</code>. Outputs: <code>SYSTEM STATE</code>, <code>Limited_ControlSettings</code>.
+States: −1 SAFE, 0 STAND_BY, 1 MOTORING, 2 IDLING, 3 FIRING.</p>
+<ul>
+<li><code>SYSTEM STATE</code> = the <strong>min</strong> of {requested mode, warning-permitted max state, and the
+  discrete-override limits}, then <strong>clamped so it can only increase by 1 per step</strong>.</li>
+<li>Discrete overrides (from <code>PC_ControlSettings</code>): <strong>Force idling → ≤ 2</strong>, <strong>Force
+  motoring → ≤ 1</strong>, <strong>EMERGENCY STOP → −1</strong>.</li>
+<li>If <code>ForceState</code> = TRUE, <code>SYSTEM STATE</code> is overridden to <code>ManualState</code>.</li>
+<li><code>Limited_ControlSettings</code> = each controller clamped to its per-state max level (the
+  MAX-LEVEL-OF-CONTROL table, identical across StateMachine versions). Levels: 0 = safe,
+  1 = open-loop/alternate, 2 = closed-loop; vents 1 = closed / 0 = open.</li>
+<li>Hard sequencing invariant (from the report): <strong>discontinuing combustion must also cut
+  NG and O2 feeds.</strong></li>
+</ul>
+<p>Port the current <code>APC_9056_StateMachine.vi</code> (2026); <code>_v2</code> is an older 2024 draft.</p>
+<h2 id="the-safety-gap-loss-of-pc-watchdog-closed-2026-07-07-live-verified">The safety gap — loss-of-PC watchdog — <strong>CLOSED (2026-07-07, live-verified)</strong></h2>
+<blockquote>
+<p><strong>As-built resolution:</strong> the WatchDog VI was refreshed (four stall counters,
+threshold controls, an <code>Iteration Time [ms]</code> indicator) and wired at the
+<code>TS_loop</code> call site: <strong><code>PCnotResponding</code> OR <code>9049notResponding</code> → Select
+(−1 : 3) → Min into the StateMachine's <code>STATE LIMITATION FROM WARNINGS</code>
+input</strong> (MTR flag = indicator/alert only, per review). The UI toggles <code>PC_HB</code>
+(feedback-node → NOT in <code>APC_PC_UI_System.vi</code>, relayed through the PID-refs
+global and <code>UI_Main</code> — the heartbeat supervises the whole UI app), so the
+clamp arms ungated in both command modes. <strong>Live-verified:</strong> a real PC drop
+drove <code>warnings_limit → −1</code> and <code>SYSTEM STATE → SAFE</code>, with step-by-1
+recovery on return; <code>tools/shadow_compare.py</code> agreed <strong>100%/100%</strong> across the
+whole episode. The text below is kept as the historical finding.</p>
+<p><strong>Threshold sizing (2026-07-07).</strong> The threshold is a <strong>count of ~20 ms control-loop
+ticks</strong> while the heartbeat is unchanged, so trip time = <code>count × 20 ms</code>. It must be
+<strong>several heartbeat periods</strong>, and the binding heartbeat is <code>PC_HB</code> at <strong>~1 Hz</strong> in
+both modes (Python Supervisor 1 Hz; UI toggle ~1 Hz) — i.e. one heartbeat period ≈ 50
+ticks. The agreed <strong>5 s = 250 counts</strong> (5 missed beats of margin). <strong>Do not set 50
+counts (=1 s ≈ one heartbeat period): it false-trips to SAFE on normal jitter.</strong> A
+faster clamp (e.g. 1 s / 50 counts) is only safe if <code>PC_HB</code> is first sped up to ≥5 Hz
+in <em>both</em> command modes. The threshold is bound by the slow 1 Hz heartbeat, not the
+fast 20 ms loop (the loop only sets detection <em>granularity</em>).</p>
+</blockquote>
+<p><code>APC_9056_WatchDog.vi</code> (2025-12-18) <strong>does monitor loss-of-PC.</strong> It watches four
+heartbeats — <code>9056_HeartBeat</code>, <code>9049_HeartBeat</code>, and <code>PC_HB</code> + <code>MTR_HB</code> carried inside
+<code>PC_ControlSettings</code> — each with a stall counter that increments while the heartbeat
+value is unchanged and trips a <code>*notResponding</code> flag once the counter passes a
+configurable threshold. So <strong><code>PCnotResponding</code> exists</strong> on the 9056 RT.</p>
+<p><strong>The response does not exist — confirmed from the <code>APC_9056_TS_loop.vi</code> export
+(2026-07-06).</strong> The WatchDog subVI sits on the TS_loop diagram <strong>completely unwired</strong>
+(no inputs, no outputs): it executes each iteration (it reads the heartbeats via shared
+variables internally) but its <code>*notResponding</code> flags are consumed by <strong>nothing</strong> — no
+state clamp, no warning, not even a caller-level indicator. Two aggravating details:
+its front-panel <code>*watchdogThreshold</code> defaults are 0 (actual configured values unknown —
+possibly never set), and it is <strong>unknown whether anything toggles <code>PC_HB</code> today</strong> (if
+the UI never toggles it, <code>PCnotResponding</code> would read permanently tripped — a plausible
+reason the outputs were left dangling).</p>
+<p><strong>Cadence (2026-07-07, corrected — confirmed with the user):</strong> the WatchDog subVI is in
+the fast control loop (StateMachine + limiter + actuator refs), which is <strong>paced by the
+NI9205 DAQmx block read</strong> (<code>Analog 2D DBL NChan NSamp</code>, 20 samples/read) → <strong>~20 ms per
+iteration, ~50 Hz</strong>. So the watchdog is evaluated ~50×/s. <em>(The <code>1000</code> <code>Wait Until Next
+ms Multiple</code> elsewhere in the VI belongs to a separate, slower housekeeping/streaming
+loop — TS_loop runs ~5 parallel loops — not the control loop.)</em> <strong>Design implications:</strong>
+(1) a wired B0 loss-of-PC response reacts in ~20 ms granularity — far inside the 5 s
+safe-hold budget; thresholds count in ~20 ms ticks, not seconds. (2) The 1 Hz telemetry
+cadence is purely the <strong>PC gateway's</strong> sample rate; the 9056 decision loop underneath
+runs ~50× faster. (3) Because ~50 SM ticks occur between two 1 Hz telemetry samples, the
+state has <strong>converged</strong> by each sample — see the shadow-compare convergence caveat in
+<code>docs/shadow-findings.md</code> (the 1-per-tick step-up rate limit is not observable at 1 Hz).</p>
+<p><strong>Consequence:</strong> building the loss-of-PC response is Phase B0 work (Case 2 in
+<code>docs/phases/phase-b-command-path.md</code>): wire <code>PCnotResponding</code> → (Select −1 : 3) →
+<code>Min</code> with the warning-integration output feeding the StateMachine's
+<code>STATE LIMITATION FROM WARNINGS</code> input, pick real thresholds, and define who toggles
+<code>PC_HB</code> per command source. The TS_loop diagram shows exactly where it plugs in (the
+DIAG VI's output into the StateMachine call).</p>
+<p><strong>Python requirement either way:</strong> <code>PC_HB</code> is a boolean field inside <code>PC_ControlSettings</code>
+(modeled as <code>pid_control_references.pc_hb</code>). The watchdog trips when it stops <em>changing</em>,
+so whatever sends the settings must <strong>toggle <code>pc_hb</code> every cycle</strong> to keep the 9056 from
+flagging the supervisor as dead. This is a concrete, testable requirement for the command
+path.</p>
+<h2 id="prioritized-port-backlog-phases-in-docsmigration-planmd">Prioritized port backlog (→ phases in <code>docs/migration-plan.md</code>)</h2>
+<ol>
+<li><strong>StateMachine</strong> → <strong>Phase A1</strong> <em>(next up)</em> — fully specified, self-contained,
+   foundational; port + exhaustive unit tests. Validates the whole toolchain.</li>
+<li><strong>Command path + stale-command watchdog</strong> → <strong>Phase B</strong> (prerequisite for any
+   authority) — build the Python→LabVIEW command channel with ACK/NACK validation
+   (telemetry/read is <strong>done and live</strong>), and confirm/implement the cRIO-side response
+   to <code>PCnotResponding</code> (detection already exists — see the watchdog section above).</li>
+<li><strong>Warning/diagnostic → state policy</strong> → <strong>Phase A3</strong> — port the thresholds +
+   warning→max-state clamp + severity→reaction map, and <strong>author the temporal rules</strong>
+   the original dev left unbuilt. Pairs with (1): it produces
+   <code>STATE LIMITATION FROM WARNINGS</code>.
+   - <strong>As-built ground truth now documented (2026-07-14):</strong> the full 9056 chain
+     (WarningIntegration's 4-tier × 16-slot × 5-raster limits, per-state arming masks,
+     max-latch + soft/master clear, cylinder W→1/E→3 scoring, severity→state map) is in
+     <strong><code>docs/9056-warning-policy-asbuilt.md</code></strong>, incl. the W1–W7 gap list (per-cylinder
+     state-arming table inert — W2 settled; no temporal rules; ~~clamp output unwired~~
+     W5 refuted live 2026-07-16 — the clamp IS consumed).
+   - <strong>Motoring vs fired warning-limit profiles (NEW — not in the as-built).</strong> Today the
+     9049 has a <em>single</em> limit set (<code>9049_WarningLevels</code> → one hardcoded <code>CylWarningLevels.xml</code>,
+     no state input; the UI edits one slot). Motoring and firing need different thresholds and
+     different <em>armed</em> diagnostics (CA50/MAPO/DevFromExpectedIMEP disarmed for motoring). Needs
+     a second persisted profile <strong>and</strong> a state-driven selector that swaps the active limits at
+     the MOTORING↔FIRING transition, with a cRIO-side fail-safe default (load-fail ⇒ tighter
+     set / safe-hold). Profile <em>selection</em> is BRAIN/Python scope; profile <em>load + enforcement</em>
+     stay on the 9049. See <code>docs/9049-openloop-audit.md</code> Step 3.
+   - <strong>F3d follow-ups for any 9049 warning-chain port (decided 2026-07-15):</strong> the three
+     misfire checks are ONE-SIDED low-side (no Abs — keep it that way); <code>Expected IMEP</code>
+     must be wired from the commanded <code>IMEP-REF</code> (as-built it's an unwired 0 ⇒ the check
+     is INERT); the 9049 now state-gates late-combustion + misfire-from-IMEP on
+     <code>SYSTEMSTATE ≥ 2</code> (built + live-verified). Any change to <code>Pcyl_Diag</code> ⇒ re-run the
+     false-trip matrix (<code>tools/gen_warning_matrix.py</code>) as the regression gate. Note the
+     Python port <code>supervisory/monarch/warning_policy.py</code> still lacks per-state arming
+     (gap documented in its docstring).</li>
+<li><strong>Run sequencing / recipes</strong> → <strong>Phase D</strong> (greenfield, highest operational value) —
+   cranking, purge, light-off, venting + recovery, misfire recovery, WF quality check.
+   Needs an operating-procedure <strong>spec from the team</strong> (not in the code/docs). Build in
+   Python, test-first.</li>
+<li><strong>Setpoint scheduling / control-mode selection</strong> → <strong>Phase E</strong> — the "what targets,
+   which mode" layer above the 9056 MIDDLE loops.</li>
+</ol>
+<h2 id="open-questions-to-source-from-the-team">Open questions to source from the team</h2>
+<ul>
+<li><strong>Operating procedures / sequences</strong> — the single biggest missing spec. The docs
+  encode modes and a limit table but <strong>no scripted PURGE / start / light-off / abort
+  sequences</strong>. These must be authored (they were never built).</li>
+<li>~~Loss-of-PC response~~ <strong>answered AND built</strong>: none existed as of 2026-07-06; the B0
+  clamp was then built and live-verified (armed in both modes; threshold 250 counts ≈ 5 s;
+  <code>PC_HB</code> toggled by the UI in UI mode / Python via the gateway in PYTHON mode — see the
+  safety-gap section above and <code>docs/command-path-asbuilt.md</code> §4–5).</li>
+<li><strong>9056 loop rates</strong> — undocumented except the membrane skid (200 ms).</li>
+<li><strong>As-built vs docs</strong> — the overview flags developer TODOs (stroke-volume calc, a
+  project/diagram mismatch), so treat the docs as intent, not ground truth; confirm
+  against the VIs when porting each piece.</li>
+</ul></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/migration-seam.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

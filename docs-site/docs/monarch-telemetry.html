@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MONARCH Telemetry — the read-only pipeline — MONARCH docs</title>
+<style>
+:root{
+  --paper:#F5F1EA; --card:#FDFBF7; --ink:#26221C; --muted:#6E6558;
+  --accent:#CF551F; --signal:#1C7E8C; --good:#3C8B57; --warn:#9A6E1F; --bad:#B3382E;
+  --line:#DCD4C6; --code-bg:#ECE6DA;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#201D18; --card:#2A2620; --ink:#EAE4D9; --muted:#A79B8A;
+    --accent:#E8763F; --signal:#4FAEBC; --good:#6CB584; --warn:#D2A24C; --bad:#DE6D5F;
+    --line:#463F35; --code-bg:#353028; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;}
+.bar{position:sticky; top:0; background:var(--paper); border-bottom:2px solid var(--accent);
+  padding:10px 20px; display:flex; gap:14px; align-items:baseline; z-index:5;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+.bar b{color:var(--accent)} .bar a{color:var(--muted); text-decoration:none}
+.bar a:hover{color:var(--accent)}
+main{max-width:900px; margin:0 auto; padding:34px 24px 70px;}
+h1{font-size:30px; line-height:1.2; font-weight:650; margin:0 0 14px; text-wrap:balance;}
+h2{font-size:21px; font-weight:650; margin:34px 0 10px; padding-top:10px;
+  border-top:1px solid var(--line);}
+h3{font-size:17px; font-weight:650; margin:24px 0 8px;}
+h4{font-size:15px; font-weight:650; margin:18px 0 6px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase;}
+p{margin:0 0 12px} li{margin-bottom:4px} ul,ol{padding-left:26px; margin:0 0 12px}
+a{color:var(--signal)} a:hover{color:var(--accent)}
+code{font-family:Consolas,"SF Mono",Menlo,monospace; font-size:.86em;
+  background:var(--code-bg); padding:.08em .35em; border-radius:3px;}
+pre{background:var(--code-bg); border:1px solid var(--line); padding:12px 14px;
+  overflow-x:auto; border-radius:4px; margin:0 0 14px;}
+pre code{background:none; padding:0; font-size:13px; line-height:1.5;}
+blockquote{border-left:4px solid var(--accent); background:var(--card);
+  margin:0 0 14px; padding:10px 16px; color:var(--muted);}
+blockquote p:last-child{margin-bottom:0}
+.tw{overflow-x:auto; margin:0 0 14px; border:1px solid var(--line); background:var(--card);}
+table{border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums;}
+th,td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+thead th{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--line);}
+tbody tr:last-child td{border-bottom:none}
+hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+del{color:var(--muted)}
+img{max-width:100%}
+details{margin:0 0 14px; border:1px solid var(--line); background:var(--card); padding:8px 14px;}
+summary{cursor:pointer; font-weight:600}
+.mermaid{background:var(--card); border:1px solid var(--line); padding:14px;
+  margin:0 0 14px; overflow-x:auto; text-align:center;}
+footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
+  font-size:12px; border-top:1px solid var(--line); padding-top:12px;}
+/* index page */
+.grp{margin-bottom:30px}
+.grp > p{color:var(--muted); font-size:14px; margin-bottom:10px}
+.doc{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--signal);
+  padding:10px 16px; margin-bottom:8px; display:block; text-decoration:none; color:var(--ink);}
+.doc:hover{border-left-color:var(--accent); color:var(--ink)}
+.doc b{display:block; font-size:15.5px}
+.doc span{color:var(--muted); font-size:13px}
+</style></head><body>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/monarch-telemetry.md</span></div>
+<main><h1 id="monarch-telemetry-the-read-only-pipeline">MONARCH Telemetry — the read-only pipeline</h1>
+<blockquote>
+<p><strong>Status: LIVE (2026-07-06).</strong> The gateway (<code>APC_PC_PythonGateway.vi</code> in the
+MONARCH project) streams the real, live <code>PC_ControlSettings</code> + system state at
+1 Hz; Python decodes and records it (<code>monarch.jsonl</code>) with zero unmapped
+fields. <strong>This pipeline is fully wired</strong> — the shadow-mode extras (§ below) were
+pre-wired in the A2.1 rework (2026-07-07) and verified live (100% shadow-compare
+agreement). Overall project status: <code>docs/migration-plan.md</code>.</p>
+</blockquote>
+<p>The pipeline streams the real engine state to Python once per second, decoded
+into the confirmed <code>ControlSettings</code> contract (docs/monarch-control-settings.md).
+Python only <strong>observes</strong> — no commands, no authority — so it was the safe first
+step of the migration. This is what <code>examples/monarch_listen.py</code> does.</p>
+<p><em>(Naming note: earlier work called this "Stage 1" and the shadow-mode envelope
+fields "Stage-2 fields". The phased plan supersedes that numbering: this
+pipeline = done; the extras below = Phase A2.)</em></p>
+<h2 id="wire-format">Wire format</h2>
+<p>One JSON object per line (the ICD framing, LF/CRLF terminated):</p>
+<pre><code class="language-json">{&quot;type&quot;:&quot;telemetry&quot;,&quot;seq&quot;:42,&quot;ts&quot;:1783041300.5,&quot;system_state&quot;:3,
+ &quot;warnings_limit&quot;:3,&quot;manual_state&quot;:0,&quot;force_state&quot;:false,
+ &quot;settings&quot;:{ …raw Flatten To JSON of PC_ControlSettings… },
+ &quot;limited_settings&quot;:{ …raw Flatten To JSON of Limited_ControlSettings… }}
+</code></pre>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"telemetry"</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>seq</code></td>
+<td>int</td>
+<td>Per-connection frame counter</td>
+</tr>
+<tr>
+<td><code>ts</code></td>
+<td>float</td>
+<td>LabVIEW wall-clock time (seconds since epoch)</td>
+</tr>
+<tr>
+<td><code>system_state</code></td>
+<td>int</td>
+<td>The 9056 StateMachine's <code>SYSTEM STATE</code> output (this-tick decision, tapped <em>before</em> the feedback node): −1 SAFE, 0 STAND_BY, 1 MOTORING, 2 IDLING, 3 FIRING</td>
+</tr>
+<tr>
+<td><code>settings</code></td>
+<td>object</td>
+<td><strong>Raw</strong> <code>Flatten To JSON</code> of <code>PC_ControlSettings</code> (the request)</td>
+</tr>
+<tr>
+<td><code>warnings_limit</code></td>
+<td>int</td>
+<td>Shadow extra (A2.1): <code>STATE LIMITATION FROM WARNINGS</code> feeding the SM (−1…3)</td>
+</tr>
+<tr>
+<td><code>manual_state</code></td>
+<td>int</td>
+<td>Shadow extra (A2.1): <code>ManualState_SM</code></td>
+</tr>
+<tr>
+<td><code>force_state</code></td>
+<td>bool</td>
+<td>Shadow extra (A2.1): <code>ForceState_SM</code> (lowercase <code>true</code>/<code>false</code> via a Select — a bare boolean formats as <code>TRUE</code>/<code>FALSE</code> and breaks JSON)</td>
+</tr>
+<tr>
+<td><code>limited_settings</code></td>
+<td>object</td>
+<td>Shadow extra (A2.1): <strong>raw</strong> <code>Flatten To JSON</code> of <code>Limited_ControlSettings</code> (the SM's clamped output)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Envelope history:</strong> the read-only pipeline (Part A/B) shipped <code>system_state</code> +
+<code>settings</code> only. Phase A2.1 added the four <strong>shadow extras</strong> above (grew
+<code>Format Into String</code> from 3 → 8 args) and <strong>re-tapped <code>system_state</code></strong> from the
+old 9049-side <code>9049_Global_SYSTEMSTATE</code> echo (which froze when the 9049 loops
+weren't running) to the 9056 StateMachine's own <code>SYSTEM STATE</code> output — so state,
+warnings, and <code>limited_settings</code> are all the same source and same tick. The
+node-by-node A2.1 wiring recipe (incl. the exact target string) lives in
+<code>docs/phases/phase-a-shadow-brain.md</code>.</p>
+<p><strong>Cadence note:</strong> the gateway samples at 1 Hz, but the 9056 SM/limiter loop it
+reads runs at ~50 Hz (DAQ-paced) — so each frame is a 1 Hz <em>sample</em> of a converged
+state, not the loop rate. See the shadow-compare convergence caveat in
+<code>docs/shadow-findings.md</code>.</p>
+<p>The key idea: <strong><code>settings</code> is LabVIEW's raw flatten</strong> — original field labels,
+PID references nested under <code>"PID control references"</code>, quirks and all. Python
+maps it to the typed model with <code>control_settings_from_labview()</code>
+(<code>supervisory/monarch/labview_mapping.py</code>), so <strong>the gateway VI does no
+key-renaming</strong> — it just flattens the cluster and drops it in. Unknown labels
+are surfaced (<code>MonarchTelemetry.unmapped</code>), never fatal.</p>
+<h2 id="labview-gateway-send-the-real-envelope-node-by-node">LabVIEW gateway — send the real envelope, node by node</h2>
+<blockquote>
+<p><strong>Built and verified.</strong> Part A (constant) passed 2026-07-05; Part B (live
+data) passed 2026-07-06 — live value changes and real state tracked, 0
+unmapped. <strong>A2.1 extended the envelope to the 8-field shadow form</strong> (see the
+field table above) and re-tapped <code>system_state</code> to the 9056 StateMachine's
+<code>SYSTEM STATE</code> output; live shadow compare then agreed 100% across all five
+states (<code>docs/shadow-findings.md</code>). The 9056 StateMachine writes <code>SYSTEM STATE</code>
+via a network-published shared variable; the PC gateway reads it. This section
+is the <em>original</em> 4-field build history — for the shadow-extras additions
+follow <code>docs/phases/phase-a-shadow-brain.md</code> A2.1.</p>
+</blockquote>
+<p>This is the build history of the gateway (the hello VI became
+<code>APC_PC_PythonGateway.vi</code>). You replace <strong>only</strong> the telemetry
+<code>Format Into String</code> and add three inputs to it — the 1 Hz timer, <code>seq</code> shift
+register, <code>TCP Write</code>, framing, the ack reply, and the reconnect handling all
+stay exactly as they are. This exact envelope was verified to decode on the
+Python side (<code>monarch_parser</code>), so if the flatten matches (it did — the contract
+diff → AGREE) there's nothing new to validate.</p>
+<h3 id="where-this-vi-lives">Where this VI lives</h3>
+<p>The gateway is <strong><code>APC_PC_PythonGateway.vi</code>, in the MONARCH project</strong> — it needs
+the <code>APC_ControlSettings.ctl</code> typedef and the live <code>PC_ControlSettings</code> +
+<code>CURRENT SYSTEM STATE</code>, all of which live in MONARCH. It grew directly out of the
+connectivity-test hello VI: the working VI was renamed to <code>APC_PC_PythonGateway.vi</code>
+(File → Save As → <em>Rename</em>, from inside LabVIEW, so the project reference updates).
+The connectivity-experiment walkthrough is preserved in <code>docs/hello-vi.md</code>; there
+is no separate live "hello-vi.vi" to maintain.</p>
+<p>Architectural guardrail: the gateway runs as its <strong>own independent loop</strong> reading
+a <em>read-only copy</em> of the published settings — it never writes hardware and never
+sits in the control/safety path. If it (or Python) hangs, the control loops are
+untouched. Telemetry-out only.</p>
+<h3 id="part-a-prove-the-envelope-with-a-constant-do-this-first">Part A — prove the envelope with a constant (do this first)</h3>
+<p><strong>Step 1 — a ControlSettings value to flatten.</strong> With the VI in the MONARCH
+project, open <code>controls</code> in the Project Explorer and <strong>drag
+<code>APC_ControlSettings.ctl</code> onto the block diagram</strong> — it drops as a constant of
+that type. Right-click it → <em>View Cluster Size</em> isn't
+needed; just set a couple of visible fields (e.g. <code>Speed ref</code>, <code>Requested mode</code>,
+<code>Spark advance</code>) to non-default values so you can see them change in Python.</p>
+<p><strong>Step 2 — <code>Flatten To JSON</code>.</strong> Drop it (Programming → Cluster, Class &amp; Variant
+→ JSON), wire the constant from Step 1 into its <strong>value</strong> input. Leave the other
+inputs default. Its output string is your <code>settingsJSON</code>. (This is the identical
+flatten you captured for the contract diff — no new work.)</p>
+<p><strong>Step 3 — system state.</strong> For the test, a <strong>numeric constant</strong>, representation
+<strong>I32</strong>, value <code>3</code> (FIRING) — or a front-panel control so you can change it
+live. This becomes the real <code>CURRENT SYSTEM STATE</code> in Part B.</p>
+<p><strong>Step 4 — timestamp (<code>ts</code>).</strong> Simplest for now: a <strong>DBL constant <code>0</code></strong>. For a
+real Unix timestamp: <code>Get Date/Time In Seconds</code> (Programming → Timing) →
+<strong>To Double Precision Float</strong> → <strong>subtract <code>2082844800</code></strong> → wire that.
+- Why subtract: LabVIEW timestamps count seconds from <strong>1904</strong>-01-01; the wire
+  format (and Python) use the <strong>Unix</strong> epoch (1970-01-01). The offset is
+  2 082 844 800 s. Skip it and Python still records fine — <code>ts</code> is informational,
+  the staleness watchdog uses arrival time — but the number won't read as a real
+  date.</p>
+<p><strong>Step 5 — build the envelope with <code>Format Into String</code>.</strong> Replace your current
+telemetry format-string constant with this one, in <strong><code>'\' Codes Display</code></strong> so the
+trailing <code>\r\n</code> is a real CR+LF:</p>
+<pre><code>{&quot;type&quot;:&quot;telemetry&quot;,&quot;seq&quot;:%d,&quot;ts&quot;:%.3f,&quot;system_state&quot;:%d,&quot;settings&quot;:%s}\r\n
+</code></pre>
+<p>Grow the node to <strong>four arguments</strong> and wire them <strong>in this order</strong>:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Format</th>
+<th>Wire</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>%d</code></td>
+<td><code>seq</code> (your existing telemetry counter)</td>
+<td>I32</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>%.3f</code></td>
+<td><code>ts</code> (Step 4)</td>
+<td>DBL</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>%d</code></td>
+<td><code>system_state</code> (Step 3)</td>
+<td>I32 / I8</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>%s</code></td>
+<td><code>settingsJSON</code> (Step 2)</td>
+<td>String</td>
+</tr>
+</tbody>
+</table></div>
+<p>Key point: <code>settingsJSON</code> enters as a <strong><code>%s</code> argument</strong>, so <code>Format Into String</code>
+inserts it <strong>verbatim</strong> — its braces, quotes, and any <code>%</code> inside are <em>not</em>
+re-interpreted, and the nested object lands correctly. (Never build the settings
+by string concatenation; always via <code>Flatten To JSON</code>, so it stays locked to the
+typedef.)</p>
+<p><strong>Step 6 — send.</strong> Wire the <code>Format Into String</code> output into the <strong>same
+telemetry <code>TCP Write</code></strong> you already have (on the connection ID). That's the whole
+change. Keep the 1 Hz gate and the <code>seq</code> increment as-is.</p>
+<p><strong>Test A.</strong> Run the VI, then in the venv: <code>python examples\monarch_listen.py</code>.
+You should see <code>seq</code> incrementing, <code>state</code> = your constant, and the fields you
+set on the constant (e.g. <code>speed_ref</code>) — with <code>unmapped=[]</code>. If <code>unmapped</code> is
+non-empty, the cluster's field labels drifted; capture one flattened line and run
+<code>python tools\compare_flatten.py &lt;that file&gt;</code> to see which.</p>
+<h3 id="part-b-switch-to-live-data">Part B — switch to live data</h3>
+<p>Two wire swaps, nothing else:</p>
+<ol>
+<li><strong>Step 1's constant → the live <code>PC_ControlSettings</code></strong> value.</li>
+<li><strong>Step 3's constant → the real <code>CURRENT SYSTEM STATE</code></strong> (I8) from the
+   StateMachine.</li>
+</ol>
+<p>Both come from wherever the running application already publishes them — the same
+queue / FGV / shared variable / notifier the UI reads. The gateway loop taps a
+<strong>read-only copy</strong>; it must never modify them. Now Python records real runs and
+<code>monarch.jsonl</code> becomes a genuine corpus — the read-only pipeline is complete.</p>
+<h3 id="notes">Notes</h3>
+<ul>
+<li><strong>Payload size:</strong> the full cluster is ~64 fields ≈ a 1.6 KB line at 1 Hz —
+  trivial; one <code>TCP Write</code> sends it.</li>
+<li><strong>Keep it in lockstep:</strong> if anyone edits <code>APC_ControlSettings.ctl</code>, re-run the
+  flatten diff (<code>docs/monarch-flatten-diff.md</code>) so the Python model and the
+  gateway agree again.</li>
+<li><strong>Fast check without Python:</strong> <code>telnet 127.0.0.1 5020</code> should show a long
+  <code>{"type":"telemetry",…,"settings":{…}}</code> line once per second.</li>
+</ul>
+<h2 id="python-side-the-observer">Python side — the observer</h2>
+<pre><code class="language-bash"># against the real gateway (on the control-room PC): just run the observer
+python examples/monarch_listen.py
+
+# offline / no LabVIEW: substitute the sim gateway in terminal 1
+python -m supervisory.monarch.simserver_monarch --speedup 5
+</code></pre>
+<p><code>monarch_listen.py</code> connects (reusing <code>TcpPlantLink</code> with <code>monarch_parser</code>),
+decodes each frame to <code>MonarchTelemetry</code> (typed <code>system_state</code> + <code>settings:
+ControlSettings</code>), logs a one-line status, and records every frame to
+<code>monarch.jsonl</code>. It sends a 1 Hz heartbeat so a watchdog-guarded gateway stays
+live, but issues no commands.</p>
+<p>The <code>monarch.jsonl</code> recordings are the replay corpus for the shadow-compare
+harness (Phase A2): the ported state logic is re-run against recorded telemetry
+and its decisions diffed against LabVIEW's offline.</p>
+<h2 id="shadow-mode-extras-the-fuller-envelope-phase-a2-gateway-task-done-2026-07-07-a21">Shadow-mode extras — the fuller envelope (Phase A2 gateway task — DONE 2026-07-07, A2.1)</h2>
+<p>The read-only pipeline needs only <code>system_state</code> + <code>settings</code>. Shadow mode
+(Phase A) also needs the rest of the StateMachine's I/O that lives <strong>outside</strong>
+the ControlSettings cluster — each a sibling top-level field, same pattern as
+<code>system_state</code>:</p>
+<pre><code class="language-json">{&quot;type&quot;:&quot;telemetry&quot;,&quot;seq&quot;:42,&quot;ts&quot;:1783041300.500,
+ &quot;system_state&quot;:2,
+ &quot;warnings_limit&quot;:2,&quot;manual_state&quot;:-128,&quot;force_state&quot;:false,
+ &quot;settings&quot;:{ …Flatten To JSON of PC_ControlSettings… },
+ &quot;limited_settings&quot;:{ …Flatten To JSON of Limited_ControlSettings… }}
+</code></pre>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>LabVIEW source</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>system_state</code></td>
+<td>int</td>
+<td><code>CURRENT SYSTEM STATE</code> (I8)</td>
+<td>StateMachine <strong>output</strong> — the decided state (already wired and live)</td>
+</tr>
+<tr>
+<td><code>warnings_limit</code></td>
+<td>int</td>
+<td><code>STATE LIMITATION FROM WARNINGS</code> (I8)</td>
+<td>input — max state warnings permit (same −1..3 encoding)</td>
+</tr>
+<tr>
+<td><code>manual_state</code></td>
+<td>int</td>
+<td><code>ManualState</code> (I8)</td>
+<td>input — manual state override (send your "no override" sentinel as-is)</td>
+</tr>
+<tr>
+<td><code>force_state</code></td>
+<td>bool</td>
+<td><code>ForceState</code></td>
+<td>input — force-state override</td>
+</tr>
+<tr>
+<td><code>settings</code></td>
+<td>object</td>
+<td><code>Flatten To JSON</code> of <code>PC_ControlSettings</code></td>
+<td>input — what was requested</td>
+</tr>
+<tr>
+<td><code>limited_settings</code></td>
+<td>object</td>
+<td><code>Flatten To JSON</code> of <code>Limited_ControlSettings</code></td>
+<td><strong>output</strong> — what the StateMachine allowed</td>
+</tr>
+</tbody>
+</table></div>
+<p>Why these exact fields: shadow mode has Python recompute the state and the
+limiting from the <strong>inputs</strong> (<code>settings.requested_mode</code>, force idling/motoring &amp;
+e-stop inside <code>settings</code>, plus <code>warnings_limit</code> / <code>manual_state</code> / <code>force_state</code>)
+and compare against LabVIEW's <strong>outputs</strong> (<code>system_state</code>, <code>limited_settings</code>).
+That's the whole comparison, so this is the complete set.</p>
+<p>To add each in the gateway: one more <code>Format Into String</code> argument (a <code>%d</code>, <code>%d</code>,
+a boolean rendered as <code>true</code>/<code>false</code>, and a second <code>%s</code> for the
+<code>Limited_ControlSettings</code> flatten). <strong>The Python side already accepts all of
+them</strong> (<code>MonarchTelemetry</code>) — they're optional, so today's gateway is
+unaffected, and the moment you wire one it's decoded, logged, and recorded. No
+Python change needed when you pre-wire. Note the inputs (<code>warnings_limit</code>,
+<code>manual_state</code>, <code>force_state</code>) live on cRIO-9056 at the StateMachine call site —
+like <code>system_state</code>, they'll need publishing to the PC (same shared-variable
+pattern) if they aren't already.</p>
+<p>Rendering <code>force_state</code> as a boolean in <code>Format Into String</code>: use a Select
+(<code>True</code>→<code>true</code> string, <code>False</code>→<code>false</code> string) into a <code>%s</code>, since <code>%d</code> would
+give <code>1</code>/<code>0</code> — the model accepts JSON <code>true</code>/<code>false</code>.</p>
+<h2 id="status-this-pipeline">Status (this pipeline)</h2>
+<ul>
+<li>[x] <code>ControlSettings</code> contract confirmed against a live capture (diff → AGREE)</li>
+<li>[x] Raw-flatten → typed model decoder (<code>control_settings_from_labview</code>), tested
+      against the real capture</li>
+<li>[x] Telemetry envelope + parser (<code>MonarchTelemetry</code>, <code>monarch_parser</code>)</li>
+<li>[x] Read-only observer + JSONL recorder; sim gateway for offline testing</li>
+<li>[x] Gateway Part A — envelope from a constant, verified on the real VI (2026-07-05)</li>
+<li>[x] Gateway Part B — <strong>live</strong> <code>PC_ControlSettings</code> + real <code>CURRENT SYSTEM STATE</code>
+      (via new shared variable), verified live-value tracking (2026-07-06)</li>
+<li>[x] Shadow-mode extras Python-ready (optional fields; decode+record when pre-wired)</li>
+<li>[x] <strong>Pre-wire the shadow-mode extras in the gateway</strong> (<code>warnings_limit</code>,
+      <code>manual_state</code>, <code>force_state</code>, <code>limited_settings</code>) — A2.1, done 2026-07-07</li>
+</ul>
+<p>For overall project status and what comes after this pipeline, see
+<code>docs/migration-plan.md</code>.</p></main>
+<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>docs/monarch-telemetry.md</code> —
+the markdown is the source of truth; re-run the tool after editing it.</footer>
+<script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>
