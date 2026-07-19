@@ -9,30 +9,50 @@ Python's authority until the phase gating it is closed.
 their own piece and point here. Step-by-step instructions for each phase live in
 `docs/phases/` (one file per phase, linked from each section below).
 
-## Current status (2026-07-16)
+## Current status (2026-07-19)
 
-**Phases A & B COMPLETE and live-verified. Both cRIOs run AUTONOMOUS on hardware
-(cold-boot verified). SIL-0 COMPLETE (9049 analytics math validated). SIL-1
-half-complete: the diagnostics/protection half is DONE — the false-trip/latch
-matrix passed 7/7 on the real 9049 — the actuation half (Steps 4–5) remains.**
-The frontier is now LabVIEW/hardware, not Python.
+**Phases A & B COMPLETE and live-verified. Both cRIOs run AUTONOMOUS on hardware.
+SIL-0 COMPLETE. SIL-1 nearly complete: protection half DONE (7/7 false-trip matrix)
+AND the actuation half through Step 4d — the full Python command path drives the
+FPGA ignition/injection channels (12/12) on the deployed build, from both writers.
+Loss-of-any-chassis now fails safe (heartbeat hardening Tasks A+B built + verified).
+Remaining: the 4e/4f scope session, Step-5 drills, Task C.**
+The frontier is still LabVIEW/hardware, not Python.
 
-- **SIL-1 (2026-07-14, bench)** — Steps 0–3 done; **Step 2 CLOSED: Trig0 follows
-  the sim** (no SIL-2 encoder needed for CAS-acquisition testing); **Step 6
-  false-trip matrix COMPLETE 7/7** (synthetic pressure via the CAS_loop sim
-  branch; every warning/error trips on exactly its target cylinders, latches,
-  clears; record sheet `docs/cRIO9049 Warning Matrix.xlsx`). Four as-built
-  defects found + dispositioned (audit F3a–F3d): non-finite-CA50 noise trips
-  (cured: sim pressure + the user-built **SYSTEMSTATE ≥ 2 state gate** in
-  `CombCluster2Array`, live-verified); **thresholds never loaded since build**
-  (`Pcyl_Diag` "Load INI on startup" saved FALSE — fixed; must be carried into
-  deployed builds); display order verified correct (name-bound); **misfire
-  checks are one-sided low-side** (misfire-from-IMEP INERT until `Expected
-  IMEP` is wired from IMEP-REF — decision: no Abs; any `Pcyl_Diag` change ⇒
-  re-run the matrix as regression gate). **Remaining: Steps 4–5** (state-gated
-  spark/DI scheduling + drills) — click-level SOW: `docs/sil1-scope-of-work.md`
-  (4a–4f, 5a–5h). Pending architecture decision for engine-only running:
-  `docs/engine-only-9056-tradeoff.md`.
+- **SIL-1 Step 4 (2026-07-16→18, bench)** — 4a–4d **PASSED**: state ladder over the
+  real command path (+1 per step up, instant down; CLI now refuses >+1 jumps),
+  **panel E-STOP verified in PYTHON mode**, DI-module health (F9 CLOSED — the
+  `Fault1=126` was a stale saved panel; live 0/0), gate LEDs, and
+  `NumberOfActiveIGN_DI = 12` (⇒ Key present) — **on the deployed self-starting SIM
+  build** (`APC_9049_RT SIM`: SimEnable + SIM pressure? compiled TRUE — never-fuel
+  custody marker on the build spec) and **from BOTH writers** (PYTHON and UI).
+  Remaining: 4d.3 truth test (count=2), 4e scope + SA/SOI sweep, 4f HMI sweep, then
+  drills 5a–5i (`docs/sil1-scope-of-work.md`).
+- **Heartbeat hardening (2026-07-16→18)** — the kill-9056 test found the gap
+  (`docs/command-path-asbuilt.md` §6a: NOTHING responds; 9049 gate stayed open on
+  stale state ≥2, LEDs froze green). **Task A (9049 staleness→SAFE relay clamp) and
+  Task B (PC-computed watchdog LEDs + Min-of-verified-sources state display, both
+  operator-designed) BUILT + VERIFIED** by re-crashing both cRIOs. Task C (gateway
+  `operator_requests` → makes the Python safety mirror real) pending. Click-level:
+  `docs/hb-hardening-clicklevel.md`. Threshold tuning open (measure-then-multiply;
+  Task A can likely go 5 s → 1 s on the fast MeasAndCalc timestamp).
+- **W5 REFUTED / RECONCILED** — the warnings→state clamp IS consumed in the running
+  build (live 2026-07-16: latched severity-3 warning pinned the state at MOTORING in
+  both modes; `warn_lim=1`). Consistent with the **A2.1 pre-wire made 2026-07-07**
+  (see the prior-status block below: "WarningIntegration→StateMachine warnings wire
+  made") — the warning-policy doc's W5 came from pre-rewire prints. Operational
+  consequence: floating plant channels CAN clamp the state — manage 9056 limits/masks
+  each engine-only session; diagnostic order: `status`→`warn_lim` first.
+- **DECIDED (2026-07-16): engine-only testing runs BOTH cRIOs** — dyno command
+  (`DYNO-REF`) and all engine-health reads live on the 9056
+  (`docs/engine-only-9056-tradeoff.md`).
+- **SIL-1 protection half (2026-07-14)** — Steps 0–3 + Step 6 matrix 7/7; Trig0
+  follows the sim (Step 2 closed); F3a–F3d found + dispositioned (thresholds never
+  loaded since build = F3b headline; one-sided misfire checks = F3d; any `Pcyl_Diag`
+  change ⇒ matrix re-run). Record sheet `docs/cRIO9049 Warning Matrix.xlsx`.
+- **Python/CLI hardening** — `monarch_operate.py`: state-ladder guard + typed `set`
+  validation (a bad value can no longer poison the 1 Hz intent into a NACK loop).
+  Suite **202 green**.
 
 - **Phase A** — done; live shadow-compare 100% across all 5 states + inputs.
 - **Phase B** — **exit gate passed 2026-07-09.** Command path built end-to-end
@@ -54,12 +74,13 @@ The frontier is now LabVIEW/hardware, not Python.
   SIL-1 (Step 6, complete — see above).
 - **Phase C** — Python built; C3/C4/C5 unverified (needs bench + 2nd operator).
 - **Phase D** — framework + sim built; blocked on the **D0 procedure sheets (team)**.
-- **Next:** SIL-1 Steps 4–5 (`docs/sil1-scope-of-work.md`): spark/DI scheduling
-  from both writers + the drills (watchdog, sync-loss, state-gate walk,
-  CylPressError veto, F4 echo capture, e-stop, recording). Team inputs owed:
-  engine mechanical peak-pressure rating (drill Pmax limits are
-  statistics-derived, uncapped), procedure sheets, bench + 2nd operator.
-- Suite **191 green** (was 108 at the 2026-07-07 block below).
+- **Next:** SIL-1 4e/4f scope session (spark/DI edges at the pins + SA/SOI sweep
+  from both writers) → drills 5a–5i (watchdog, sync-loss, state-gate walk,
+  CylPressError veto, F4 echo capture, e-stop, recording, loss-of-PC UI leg,
+  loss-of-9056 formal) → HB Task C. Team inputs owed: engine mechanical
+  peak-pressure rating (drill Pmax limits are statistics-derived, uncapped),
+  procedure sheets, bench + 2nd operator.
+- Suite **202 green** (was 108 at the 2026-07-07 block below).
 
 <details><summary>Prior status (2026-07-07) — Phase A validation detail</summary>
 

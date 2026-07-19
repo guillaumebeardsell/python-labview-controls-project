@@ -28,9 +28,12 @@ synthetically. Because the LabVIEW logic is unvalidated and unowned, its value a
 
 The safe-hold invariant is **already enforced in hardware**: the 9049 FPGA watchdog kills spark/DI
 if the RT loop stops toggling it (>4 Hz), so a supervisor dropout is a safe hold — *provided Python
-stays above that RT loop and never pets the watchdog*. Known gap: no documented watchdog on
-`PC_ControlSettings`/loss-of-PC — a cRIO-side stale-command→SAFE watchdog must be resolved before
-Python holds command authority (vs. read-only). See `docs/migration-seam.md` for the full
+stays above that RT loop and never pets the watchdog*. The once-open loss-of-PC gap is **closed and
+live-verified** (Phase B: `PC_HB` stall → 9056 clamp → SAFE, armed in both modes), and loss-of-9056
+now also fails safe (2026-07-17/18: 9049-side staleness→SAFE relay clamp + PC-computed liveness
+display — `docs/hb-hardening-clicklevel.md`). Remaining before firing-relevant Python authority:
+`UI_HeartBeat` (a dead operator console is invisible in PYTHON mode) and the gateway
+`operator_requests` field (the panel-force safety mirror), per `docs/command-path-asbuilt.md` §6. See `docs/migration-seam.md` for the full
 FLOOR/MIDDLE/BRAIN boundary and the port backlog; the scope is broader than the state machine
 (sequencing/recipes — which don't exist in LabVIEW yet — plus warning policy and setpoint scheduling).
 
@@ -119,8 +122,9 @@ task guidance for smaller models, and the invariants that must never be weakened
 the layered SIL plan + the F3a–F3d as-built defect dispositions — EPT built-in crank
 simulator, synthetic pressure traces via `tools/gen_cas_traces.py`, pre-fuel checklist);
 `docs/sil0-scope-of-work.md` + `docs/sil1-scope-of-work.md` (**click-level SIL procedures**;
-SIL-0 complete 07-11, SIL-1 Steps 0–3 + the 7/7 false-trip matrix complete 07-14 —
-Steps 4–5, spark/DI scheduling + drills, are the live next work); `docs/deployed-bringup.md`
+SIL-0 complete 07-11; SIL-1: Steps 0–3 + 7/7 matrix complete 07-14, Steps 4a–4d passed
+07-16/18 on the deployed SIM build from both writers — live next work: 4e/4f scope
+session + drills 5a–5i); `docs/deployed-bringup.md`
 (deployed-mode build/deploy procedure + the rules learned at first autonomous bringup,
 2026-07-09 — PC apps as EXEs only, single shared-variable host, no builds from out-of-sync
 VIs); `docs/command-path-asbuilt.md` (the **verified** PC⇄cRIO command path — source-select,

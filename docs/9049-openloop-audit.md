@@ -34,9 +34,11 @@ false-trip/latch matrix COMPLETE 7/7 (2026-07-14)** via the CAS_loop
 sim-pressure branch + `tools/gen_warning_matrix.py` (record sheet
 `docs/cRIO9049 Warning Matrix.xlsx`). **→ Execution order = §7, layered SIL-0 →
 SIL-1 → SIL-2 → SIL-3, then the §8 pre-fuel checklist.** The immediate next
-action is **SIL-1 Steps 4–5** (state-gated spark/DI scheduling + drills) —
-click-level: `docs/sil1-scope-of-work.md` §4a–4f and §5a–5h. Pending
-architecture decision for engine-only running: `docs/engine-only-9056-tradeoff.md`.
+action (updated 2026-07-19): **SIL-1 Steps 4a–4d PASSED** (deployed SIM build, both
+writers, 12/12 channels; F9 closed) — remaining: **4e/4f scope session + drills
+§5a–5i** (`docs/sil1-scope-of-work.md`). Architecture DECIDED 07-16: engine-only
+runs both cRIOs (`docs/engine-only-9056-tradeoff.md`); loss-of-chassis hardening
+built + verified (`docs/hb-hardening-clicklevel.md`).
 Tool pipeline map: `tools/README.md`.
 
 ---
@@ -92,7 +94,7 @@ pre-fuel checklist.
 | `9056SharedVarPolling` | ✅ Works; absent/wrong-size 9056 array ⇒ all-NaN ⇒ `NaN ≥ 2 = FALSE` ⇒ gate fails safe. **No staleness check** — a *frozen* 9056 publisher holds the last state forever (F7). |
 | `PressureAnalytics` chain | ⚠ Two structural findings (F2 cal, F3 diagnostics) + known author flags (§6). Data path and per-cylinder re-phasing confirmed correct (offsets 0,4800,2400,6000,1200,3600 ⇔ firing order 1-5-3-6-2-4, consistent with the TS10ms TDC offsets ×10). |
 | `FPGA_main` + EPT/di_supv/esttl | ✅ Safety anchors confirmed (§3). |
-| `FPGA_IGNDI_supervisor` | ✅ Works; indicator-only consumer, but it's a ready-made pass/fail probe for bench spark/DI tests (12 = all channels active). Saved-panel snapshot shows `Fault1 = 126` on both NI 9751 modules — decode before trusting DI health telemetry ⚠VERIFY. |
+| `FPGA_IGNDI_supervisor` | ✅ Works; FPGA subVI — **never read its own panel (saved defaults only)**; counters surfaced to TS10ms 2026-07-16 and used as the live probe (12 = all channels active, verified deployed). ~~`Fault1 = 126` snapshot~~ **F9 RESOLVED**: stale saved panel; live faults 0/0 (§9). |
 
 ## 3. Safety anchors (confirmed as-built)
 
@@ -372,10 +374,12 @@ None of this blocks motoring; it blocks *trusting* absolute numbers. The
 2023 "aligned with NOBLE calculation script" claim gives the cross-check
 route: rerun that alignment via SIL-0 with `truth.json`.
 
-**F9 — DI hardware unknowns for the firing step (from [Report], still
-open).** Injector current profile inherited from a single-cylinder project
-("could be biased"); physical actuation of all six never verified; 9751
-`Fault1 = 126` snapshot to decode. Bench DI dry-fire (SIL-3) before fuel.
+**F9 — DI hardware unknowns for the firing step (from [Report], partially
+resolved).** Injector current profile inherited from a single-cylinder project
+("could be biased") and physical actuation of all six never verified — both
+still open for SIL-3. ~~`Fault1 = 126` snapshot to decode~~ **RESOLVED
+2026-07-16**: stale saved panel, live faults 0/0 with modules present + enabled
+(§9); re-check once at first HV energize. Bench DI dry-fire (SIL-3) before fuel.
 
 ## 5. What the open-loop use case does / doesn't need
 
@@ -631,7 +635,8 @@ tests the internal sim can't do without RT-side SimPeriod ramping.
 **SIL-3 — actuation dry tests (commissioning entry, after SIL-1/2 pass).**
 Spark coils on bench plugs; DI drivers into dummy loads/disconnected
 injectors; remember the Key interlock (9751s must be powered+enabled for any
-spark). Decode `Fault1=126` first (F9). This is the boundary where the
+spark). Fault registers verified clean pre-HV (F9 resolved 2026-07-16); re-read
+them at first HV energize. This is the boundary where the
 team's commissioning plan takes over.
 
 **Optional Seam-A/B build (full-chain SIL with no cRIO at all):** CAS_loop's

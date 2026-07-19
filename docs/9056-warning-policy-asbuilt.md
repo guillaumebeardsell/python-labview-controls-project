@@ -156,9 +156,11 @@ SLAVE handshake → 9049 CylPress latch clear.
   (decode → merge → clamp) shows no mask join on the visible pages. Consequence as-built:
   cylinder diagnostics are effectively **armed in every state incl. MOTORING** on the 9056
   side, mirroring the 9049's own no-state-input latch (audit F3/F3a — same class of
-  false-trip risk, now confirmed at both layers). **Bench check** (fold into the SIL-1
-  warning-matrix drills): inject overpressure in MOTORING; if `Cylinder_Warnings` scores
-  it, W2 is confirmed inert.
+  false-trip risk, now confirmed at both layers). ~~Bench check queued~~ **SETTLED by
+  the 2026-07-14 SIL-1 matrix runs**: cylinder warnings/errors scored outside
+  IDLING/FIRING (overpressure ERROR ×6 during the matrix at sub-IDLING states) —
+  **the table is inert as predicted**; cylinder diagnostics arm in every state on the
+  9056 side.
 - **W3 — Speed-dependent arming is unwired scaffolding** (see ErrorMask above).
 - **W4 — A cylinder ERROR clamps to MOTORING (3), not SAFE.** Deliberate-looking (motoring
   keeps the engine controlled while combustion stops) but a policy decision Python's A3 port
@@ -169,9 +171,12 @@ SLAVE handshake → 9049 CylPress latch clear.
   **1** — a value the watchdog Select(−1:3) cannot produce — and the state pinned at
   exactly `min(requested, 1) = MOTORING` in **both** UI and PYTHON modes until CLEAR
   WARNINGS restored `warn_lim=3` and the ladder worked again. **The warnings→state clamp
-  is wired and live in the running/deployed build** — the July-07 print either predates
-  the wiring or missed the join. (Original finding kept for history: the print showed
-  only the B0 watchdog clamp reaching the SM input.) Consequences: A3 parity work should
+  is wired and live in the running/deployed build** — reconciled 2026-07-19: this is
+  the **A2.1 pre-wire made 2026-07-07** ("WarningIntegration→StateMachine warnings
+  wire made", `docs/migration-plan.md` prior-status 07-07 block); the W5 finding came
+  from prints/analysis that predated that rewiring. (Original finding kept for
+  history: the pre-A2.1 diagram showed only the B0 watchdog clamp reaching the SM
+  input.) Consequences: A3 parity work should
   treat the clamp as as-built behavior to replicate, not to add; severity mapping
   confirmed live (severity 3 → limit 1 = MOTORING); and floating/disconnected plant
   channels CAN hold the state down — the engine-only bench must manage the 9056 plant

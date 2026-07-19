@@ -111,6 +111,29 @@ plan; this doc is the *current state + what to do next + what's still soft*.
 
 ---
 
+## Update 2026-07-17/18 — HB hardening A+B built, Step 4d passed deployed, W5 reconciled
+
+- **HB hardening Tasks A + B BUILT + VERIFIED** (`docs/hb-hardening-clicklevel.md`):
+  9049 staleness→SAFE relay clamp (kill-9056 at FIRING → spark/DI blocked ~5 s) +
+  PC-computed watchdog LEDs + **Min-of-verified-sources state display** (operator
+  design; kill-9049 also drops the display to −1). Task C (gateway
+  `operator_requests`) pending. Threshold tuning open: measure worst gaps first;
+  Task A can likely go 5 s → 1 s (fast MeasAndCalc timestamp), Task B LEDs ~2 s
+  floor (2 Hz heartbeats). **No local protection against loss-of-supervisor exists
+  below the clamp** — the 5 s window is real firing (verified: count=12 for 5 s).
+- **SIL-1 4d PASSED incl. counters, on the DEPLOYED SIM build** (`APC_9049_RT SIM`:
+  SimEnable + SIM pressure? compiled TRUE, never-fuel marker on the spec):
+  `NumberOfActiveIGN_DI = 12` only at state ≥ 2, **from both writers**; counters
+  surfaced into TS10ms (grown R/W node; both rtexe specs rebuilt). F9 CLOSED
+  (Fault1=126 = stale saved panel; live 0/0). Remaining: 4d.3 count=2, 4e/4f scope.
+- **W5 reconciled:** the live warnings→state clamp = the **A2.1 pre-wire made
+  2026-07-07** (migration-plan prior-status block) — W5 came from pre-rewire prints.
+  W2 also settled (matrix runs; per-cylinder table inert).
+- CLI: state-ladder guard + typed `set` validation (NACK-poisoning fixed); suite
+  **202 green**. Team one-slider: `team-update/team-update-2026-07-18.v2.pptx`.
+
+---
+
 ## What to do next (in order)
 
 *(Items 1 and 3 below are DONE as of the 07-15/16 update above; item 2's matrix
@@ -130,7 +153,8 @@ half is done — Steps 4–5 remain. Kept for the historical record.)*
      Keep a **separate fired profile** (re-run with a `--mode fired` set).
 2. **SIL-1 — virtual crankshaft.** ⇒ *Half done (see update above): Steps 0–3 +
    the Step-6 matrix are complete (sync, CAS, analytics, latch/veto, W2 settled);
-   **Steps 4–5 remain** — `docs/sil1-scope-of-work.md` 4a–4f + drills 5a–5h.*
+   **Steps 4–5 remain** — `docs/sil1-scope-of-work.md` 4a–4f + drills 5a–5i
+   *(4a–4d since PASSED — see the 07-17/18 update block above).*
    On the real 9049, set `EPTControl.SimEnable`
    TRUE (`SimPeriod = 60·4e7/(rpm·3600)`) and watch the whole engine-sync stack
    run with no engine: sync, spark/DI scheduling, CAS acquisition, the analytics

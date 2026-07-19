@@ -1,10 +1,11 @@
 # Handoff — continuing this project without the original assistant
 
 > **Where things are: `docs/migration-plan.md` (authoritative status, updated
-> 2026-07-16)** — SIL-0 complete; SIL-1 protection half complete (7/7 false-trip
-> matrix, F3a–F3d defects dispositioned); next = SIL-1 Steps 4–5
-> (`docs/sil1-scope-of-work.md`). Background detail: the 07-11 session handoff
-> (`docs/session-handoff-2026-07-11.md`, with 07-14/15/16 update blocks).
+> 2026-07-19)** — SIL-0 complete; SIL-1 protection half complete (7/7 matrix) AND
+> actuation Steps 4a–4d passed on the deployed SIM build; loss-of-chassis hardening
+> built (`docs/hb-hardening-clicklevel.md`); next = 4e/4f scope session + drills
+> 5a–5i (`docs/sil1-scope-of-work.md`). Background detail: the 07-11 session handoff
+> (`docs/session-handoff-2026-07-11.md`, with 07-14→18 update blocks).
 > This file is about *how to keep working*.
 
 Written 2026-07-07 (Python deliverables front-loaded); the frontier has since
