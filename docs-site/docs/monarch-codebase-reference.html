@@ -62,8 +62,16 @@ footer{max-width:900px; margin:0 auto; padding:0 24px 40px; color:var(--muted);
 .doc b{display:block; font-size:15.5px}
 .doc span{color:var(--muted); font-size:13px}
 </style></head><body>
-<div class="bar"><b>◆ MONARCH docs</b><a href="../../index.html">index</a><span>original-labview-codebase/MONARCH-CODEBASE/README.md</span></div>
+<div class="bar"><b>◆ MONARCH docs</b><a href="../index.html">index</a><span>docs/monarch-codebase-reference.md</span></div>
 <main><h1 id="monarch-labview-codebase-vi-reference">MONARCH LabVIEW Codebase — VI Reference</h1>
+<blockquote>
+<p><strong>Location note (2026-07-20):</strong> this file describes
+<code>original-labview-codebase/MONARCH-CODEBASE/</code> but lives here in <code>docs/</code> on
+purpose. It used to be <code>MONARCH-CODEBASE/README.md</code> and was accidentally
+deleted <strong>twice</strong> (commits <code>efcb09d</code>, <code>12126a4</code>) by the folder-sync that
+mirrors the Windows LabVIEW tree — anything placed inside the mirrored
+folder gets swept. Do not move it back.</p>
+</blockquote>
 <p>A per-VI map of the MONARCH LabVIEW control system, written so a future session (human or
 model) can understand what every VI does <strong>without opening LabVIEW or re-reading the PDF
 exports</strong>. Compiled 2026-07-07 from: the <code>MONARCH.lvproj</code> target tree, string extraction
@@ -1237,6 +1245,6 @@ snapshot.</p>
 <li><strong>Python ports</strong>: <code>supervisory/monarch/</code> — <code>state_machine.py</code> (validated 100% against
   live LabVIEW), <code>warning_policy.py</code>, <code>control_settings.py</code>, <code>labview_mapping.py</code>.</li>
 </ul></main>
-<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>original-labview-codebase/MONARCH-CODEBASE/README.md</code> —
+<footer>Generated 2026-07-20 by tools/build_docs_html.py from <code>docs/monarch-codebase-reference.md</code> —
 the markdown is the source of truth; re-run the tool after editing it.</footer>
 <script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>

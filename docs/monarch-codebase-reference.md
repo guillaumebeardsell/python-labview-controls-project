@@ -1,5 +1,12 @@
 # MONARCH LabVIEW Codebase — VI Reference
 
+> **Location note (2026-07-20):** this file describes
+> `original-labview-codebase/MONARCH-CODEBASE/` but lives here in `docs/` on
+> purpose. It used to be `MONARCH-CODEBASE/README.md` and was accidentally
+> deleted **twice** (commits `efcb09d`, `12126a4`) by the folder-sync that
+> mirrors the Windows LabVIEW tree — anything placed inside the mirrored
+> folder gets swept. Do not move it back.
+
 A per-VI map of the MONARCH LabVIEW control system, written so a future session (human or
 model) can understand what every VI does **without opening LabVIEW or re-reading the PDF
 exports**. Compiled 2026-07-07 from: the `MONARCH.lvproj` target tree, string extraction

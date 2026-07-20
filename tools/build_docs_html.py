@@ -31,8 +31,7 @@ OUT = ROOT / "docs-site"
 # Every markdown file that becomes a page (repo-relative).
 SOURCES = (
     sorted(p.relative_to(ROOT) for p in (ROOT / "docs").rglob("*.md"))
-    + [Path("README.md"), Path("CLAUDE.md"), Path("tools/README.md"),
-       Path("original-labview-codebase/MONARCH-CODEBASE/README.md")]
+    + [Path("README.md"), Path("CLAUDE.md"), Path("tools/README.md")]
 )
 
 # Index groups: (heading, blurb, [repo-relative paths]) — order = page order.
@@ -42,7 +41,7 @@ GROUPS = [
         "docs/session-handoff-2026-07-11.md", "CLAUDE.md",
     ]),
     ("As-built references", "How the LabVIEW system actually works — verified against exports and live bench evidence.", [
-        "original-labview-codebase/MONARCH-CODEBASE/README.md",
+        "docs/monarch-codebase-reference.md",
         "docs/command-path-asbuilt.md", "docs/9056-warning-policy-asbuilt.md",
         "docs/migration-seam.md", "docs/9049-openloop-audit.md",
     ]),

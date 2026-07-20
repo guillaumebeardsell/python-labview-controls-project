@@ -151,8 +151,11 @@ to keep the model and gateway in lockstep.</p>
 (<code>APC_PC_PythonGateway.vi</code>, a copy of the connectivity-test <code>hello-vi.vi</code>) runs as its own
 <strong>read-only</strong> loop, <code>Flatten To JSON</code>s the live <code>PC_ControlSettings</code> cluster, and sends a
 telemetry envelope at 1 Hz. <code>original-labview-codebase/MONARCH-CODEBASE/</code> is a curated copy of
-the LabVIEW source tree (binary <code>.vi</code>s) — <strong>read its <code>README.md</code> first</strong>: it documents every VI
-(role, call graph, shared-variable I/O, loop rates, as-built gotchas). The sibling folders hold
+the LabVIEW source tree (binary <code>.vi</code>s) — <strong>read <code>docs/monarch-codebase-reference.md</code> first</strong>: it
+documents every VI (role, call graph, shared-variable I/O, loop rates, as-built gotchas). (That
+reference lives in <code>docs/</code>, NOT inside the mirrored folder — the Windows folder-sync sweeps any
+file added there; it deleted the reference twice. Never place repo files inside
+<code>original-labview-codebase/MONARCH-CODEBASE/</code>.) The sibling folders hold
 PNG/PDF/HTML <strong>exports</strong> of the key MONARCH VIs (the HTML files carry terminal labels as
 grep-able text; most "DAQmx Custom Scales" VI descriptions are boilerplate — ignore them). The first port target is
 <code>APC_9056_StateMachine.vi</code> (the 2026 version — <code>_v2</code> is an older 2024 draft, not newer).</p>
@@ -202,6 +205,6 @@ gaps, tools — with 07-14/15/16 update blocks; <strong>status itself lives in
 <li>Staleness: no telemetry for 3 s ⇒ stop sending commands and hold; LabVIEW safe-holds 5 s after
   Python's heartbeat stops.</li>
 </ul></main>
-<footer>Generated 2026-07-19 by tools/build_docs_html.py from <code>CLAUDE.md</code> —
+<footer>Generated 2026-07-20 by tools/build_docs_html.py from <code>CLAUDE.md</code> —
 the markdown is the source of truth; re-run the tool after editing it.</footer>
 <script type="module">try{const m=await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");m.default.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});}catch(e){/* offline: the fallback source stays visible */}</script></body></html>
